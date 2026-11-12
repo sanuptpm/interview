@@ -7,6 +7,7 @@ function PythonQuestions() {
       title="Python Interview Questions"
       intro="Output from running each example with Python 3"
       questions={questions}
+      tryKind={() => 'python'}
     />
   )
 }

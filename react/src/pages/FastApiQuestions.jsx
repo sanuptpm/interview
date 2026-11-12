@@ -7,6 +7,7 @@ function FastApiQuestions() {
       title="FastAPI Interview Questions"
       intro="Output shows the HTTP request and the JSON response"
       questions={questions}
+      tryKind={() => 'fastapi'}
     />
   )
 }

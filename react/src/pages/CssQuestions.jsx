@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import LevelSections from '../components/LevelSections.jsx'
+import TryIt from '../tryit/TryIt.jsx'
+import TryItButton from '../tryit/TryItButton.jsx'
 
 // Each question has: a simple answer, example HTML + CSS, and a live preview.
 
@@ -1216,43 +1219,57 @@ function Preview({ html, css }) {
   )
 }
 
+function CssCard({ item, number }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
+      <div className="min-w-0">
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="font-semibold text-indigo-600">
+            Q{number}. {item.q}
+          </h2>
+          <TryItButton open={open} onClick={() => setOpen(!open)} />
+        </div>
+        <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
+        <p className="mt-1 text-sm leading-relaxed text-slate-700">{item.a}</p>
+
+        <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">HTML</p>
+        <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
+          {item.html}
+        </pre>
+
+        <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">CSS</p>
+        <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
+          {item.css}
+        </pre>
+      </div>
+
+      <div className="flex min-w-0 flex-col">
+        <p className="text-xs font-semibold text-slate-400 uppercase">Output</p>
+        <Preview html={item.html} css={item.css} />
+      </div>
+
+      {open && (
+        <div className="min-w-0 md:col-span-2">
+          <TryIt kind="css" html={item.html} css={item.css} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CssQuestions() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-slate-900">CSS Interview Questions</h1>
-      <p className="mt-1 text-sm text-slate-500">{questions.length} questions</p>
+      <p className="mt-1 text-sm text-slate-500">
+        {questions.length} questions · Click "Try it" to edit the HTML and CSS
+      </p>
 
       <LevelSections
         questions={questions}
-        renderItem={(item, number) => (
-            <div
-              key={item.q}
-              className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2"
-            >
-              <div className="min-w-0">
-                <h2 className="font-semibold text-indigo-600">
-                  Q{number}. {item.q}
-                </h2>
-                <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-700">{item.a}</p>
-
-                <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">HTML</p>
-                <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
-                  {item.html}
-                </pre>
-
-                <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">CSS</p>
-                <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
-                  {item.css}
-                </pre>
-              </div>
-
-              <div className="flex min-w-0 flex-col">
-                <p className="text-xs font-semibold text-slate-400 uppercase">Output</p>
-                <Preview html={item.html} css={item.css} />
-              </div>
-            </div>
-        )}
+        renderItem={(item, number) => <CssCard key={item.q} item={item} number={number} />}
       />
     </div>
   )

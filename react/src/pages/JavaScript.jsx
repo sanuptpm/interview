@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { basics } from './jsBasicsData.js'
 import LevelSections from '../components/LevelSections.jsx'
+import { runCode, addConsoleLogs } from '../lib/runJs.js'
+import TryIt from '../tryit/TryIt.jsx'
+import TryItButton from '../tryit/TryItButton.jsx'
 
 // Each question has a simple answer and example code.
 // The code is really run, and whatever it console.logs is shown as the output.
@@ -1805,42 +1808,16 @@ console.log(init())   // does not initialize again`,
   },
 ]
 
-// Turn a logged value into readable text
-function format(value) {
-  if (typeof value === 'string') return value
-  if (typeof value === 'number' || value === undefined || typeof value === 'bigint') {
-    return String(value)
-  }
-  if (typeof value === 'function') return 'function ' + (value.name || '(anonymous)')
-  try {
-    return JSON.stringify(value)
-  } catch {
-    return String(value)
-  }
-}
+function Card({ title, note, code, output, isQuestion, autoLog }) {
+  const [open, setOpen] = useState(false)
 
-// Run the code with a fake console and collect what it logs
-function runCode(code) {
-  const logs = []
-  const fakeConsole = {
-    log: (...args) => logs.push(args.map(format).join(' ')),
-  }
-
-  try {
-    new Function('console', code)(fakeConsole)
-  } catch (error) {
-    logs.push(error.name + ': ' + error.message)
-  }
-
-  // Give timers and Promises time to finish before showing the output
-  return new Promise((resolve) => setTimeout(() => resolve(logs), 400))
-}
-
-function Card({ title, note, code, output, isQuestion }) {
   return (
     <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
       <div className="min-w-0">
-        <h3 className="font-semibold text-indigo-600">{title}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-semibold text-indigo-600">{title}</h3>
+          <TryItButton open={open} onClick={() => setOpen(!open)} />
+        </div>
         {isQuestion && (
           <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
         )}
@@ -1858,6 +1835,12 @@ function Card({ title, note, code, output, isQuestion }) {
           {output}
         </pre>
       </div>
+
+      {open && (
+        <div className="min-w-0 md:col-span-2">
+          <TryIt kind="js" code={autoLog ? addConsoleLogs(code) : code} />
+        </div>
+      )}
     </div>
   )
 }
@@ -1893,6 +1876,7 @@ function JavaScript() {
           <Card
             key={ex.title}
             isQuestion
+            autoLog
             title={'Q' + (index + 1) + '. ' + ex.title}
             note={ex.note}
             code={ex.code}

@@ -7,6 +7,7 @@ function ReactQuestions() {
       title="React Interview Questions"
       intro="Live demos on the right are real React components"
       questions={questions}
+      tryKind={(item) => (typeof item.output === 'string' ? null : 'react')}
     />
   )
 }
