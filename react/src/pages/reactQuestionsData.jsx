@@ -10,6 +10,8 @@ import {
   createContext,
   memo,
   startTransition,
+  Suspense,
+  use,
   useActionState,
   useCallback,
   useContext,
@@ -1445,7 +1447,1023 @@ function RenderPropsDemo() {
     </div>
   )
 }
+/* ------------------------- Extra basics demos ------------------------- */
+
+function TreeHeader({ user }) {
+  return <h3 className="font-semibold">Welcome, {user}</h3>
+}
+
+function TreeProductItem({ name, onBuy }) {
+  return (
+    <li className="flex items-center gap-2">
+      {name}
+      <button className={btnLight} onClick={() => onBuy(name)}>
+        Buy
+      </button>
+    </li>
+  )
+}
+
+function TreeProductList({ products, onBuy }) {
+  return (
+    <ul className="space-y-1">
+      {products.map((p) => (
+        <TreeProductItem key={p} name={p} onBuy={onBuy} />
+      ))}
+    </ul>
+  )
+}
+
+const treeProducts = ['Pen', 'Book', 'Bag']
+
+function ComponentTreeDemo() {
+  const [cart, setCart] = useState([])
+  return (
+    <div className="space-y-2">
+      <TreeHeader user="Anu" />
+      <TreeProductList products={treeProducts} onBuy={(name) => setCart([...cart, name])} />
+      <p>Cart: {cart.join(', ') || 'empty'}</p>
+    </div>
+  )
+}
+
+function HandlerArgsDemo() {
+  const [log, setLog] = useState('')
+  const items = ['Pen', 'Book', 'Bag']
+  const buy = (name, price) => setLog('Bought ' + name + ' for Rs ' + price)
+  const handleClick = (e, name) => setLog(name + ' clicked at x=' + Math.round(e.clientX))
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {items.map((name, i) => (
+          <button key={name} className={btn} onClick={() => buy(name, (i + 1) * 10)}>
+            Buy {name}
+          </button>
+        ))}
+        <button className={btnLight} onClick={(e) => handleClick(e, 'Info')}>
+          Info
+        </button>
+      </div>
+      <p>{log}</p>
+    </div>
+  )
+}
+
+function SyntheticEventDemo() {
+  const [log, setLog] = useState([])
+  const add = (msg) => setLog((l) => [...l, msg].slice(-4))
+  const openCard = (e) => {
+    add('card opened (target: ' + e.target.tagName + ', currentTarget: ' + e.currentTarget.tagName + ')')
+  }
+  const remove = (e) => {
+    e.stopPropagation()
+    add('delete clicked only')
+  }
+  return (
+    <div className="space-y-2">
+      <div onClick={openCard} className="flex cursor-pointer flex-wrap items-center gap-3 rounded-lg border border-slate-300 p-3">
+        <span>Click the card text</span>
+        <button className={btnLight} onClick={remove}>
+          Delete
+        </button>
+      </div>
+      <ul className="list-disc pl-5 text-sm">
+        {log.map((m, i) => (
+          <li key={i}>{m}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function PromoBanner({ show }) {
+  if (!show) return null
+  return <p className="rounded bg-amber-100 px-2 py-1 text-amber-800">Sale ends today!</p>
+}
+
+function RenderNothingDemo() {
+  const [count, setCount] = useState(0)
+  const [show, setShow] = useState(true)
+  return (
+    <div className="space-y-2">
+      <PromoBanner show={show} />
+      <div className="flex flex-wrap gap-2">
+        <button className={btnLight} onClick={() => setShow(!show)}>
+          Toggle banner
+        </button>
+        <button className={btn} onClick={() => setCount(count + 1)}>
+          New message
+        </button>
+        <button className={btnLight} onClick={() => setCount(0)}>
+          Read all
+        </button>
+      </div>
+      <p>
+        <span className="text-red-600">Wrong:</span> {count && <b>{count} new</b>}
+      </p>
+      <p>
+        <span className="text-emerald-700">Right:</span> {count > 0 && <b>{count} new</b>}
+      </p>
+    </div>
+  )
+}
+
+/* ----------------------- Extra intermediate demos ----------------------- */
+
+function fakeFetchPost(id, signal) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve({ id, title: 'Post #' + id }), 1000)
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer)
+      reject(new DOMException('Aborted', 'AbortError'))
+    })
+  })
+}
+
+function AbortFetchDemo() {
+  const [postId, setPostId] = useState(1)
+  const [result, setResult] = useState({ id: null, post: null })
+  const [log, setLog] = useState([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fakeFetchPost(postId, controller.signal)
+      .then((post) => setResult({ id: postId, post }))
+      .catch((err) => {
+        if (err.name === 'AbortError') setLog((l) => [...l, 'cancelled request ' + postId].slice(-3))
+      })
+    return () => controller.abort()
+  }, [postId])
+
+  const loading = result.id !== postId
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3].map((id) => (
+          <button key={id} className={id === postId ? btn : btnLight} onClick={() => setPostId(id)}>
+            Post {id}
+          </button>
+        ))}
+      </div>
+      <p>{loading ? 'Loading...' : result.post.title}</p>
+      <p className="text-xs text-slate-500">Click quickly between posts: {log.join(', ') || 'no cancelled requests yet'}</p>
+    </div>
+  )
+}
+
+function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key)
+      return saved !== null ? JSON.parse(saved) : initialValue
+    } catch {
+      return initialValue
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // storage full or blocked
+    }
+  }, [key, value])
+  return [value, setValue]
+}
+
+function LocalStorageHookDemo() {
+  const [name, setName] = useLocalStorage('demo-name', '')
+  const [dark, setDark] = useLocalStorage('demo-dark', false)
+  return (
+    <div className="space-y-2">
+      <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+      <label className="flex items-center gap-1">
+        <input type="checkbox" checked={dark} onChange={(e) => setDark(e.target.checked)} />
+        Dark mode
+      </label>
+      <p>
+        Hello {name || 'guest'}, dark mode is {dark ? 'on' : 'off'}. Reload the page: it stays.
+      </p>
+    </div>
+  )
+}
+
+function useOnClickOutside(ref, handler) {
+  useEffect(() => {
+    const listener = (e) => {
+      if (!ref.current || ref.current.contains(e.target)) return
+      handler()
+    }
+    document.addEventListener('mousedown', listener)
+    return () => document.removeEventListener('mousedown', listener)
+  }, [ref, handler])
+}
+
+function ClickOutsideDemo() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const close = useCallback(() => setOpen(false), [])
+  useOnClickOutside(ref, close)
+  return (
+    <div className="h-40">
+      <div ref={ref} className="inline-block">
+        <button className={btn} onClick={() => setOpen(!open)}>
+          Menu {open ? '▲' : '▼'}
+        </button>
+        {open && (
+          <ul className="mt-1 w-40 rounded-lg border border-slate-300 bg-white p-2 shadow">
+            <li>Profile</li>
+            <li>Settings</li>
+            <li>Logout</li>
+          </ul>
+        )}
+      </div>
+      <p className="mt-2 text-xs text-slate-500">Open the menu, then click anywhere outside it.</p>
+    </div>
+  )
+}
+
+const BIO_MAX = 100
+
+function CharCounterDemo() {
+  const [text, setText] = useState('')
+  const left = BIO_MAX - text.length
+  return (
+    <div className="space-y-2">
+      <textarea
+        className={inputCls + ' w-full max-w-md'}
+        value={text}
+        maxLength={BIO_MAX}
+        rows={4}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Write a short bio"
+      />
+      <p style={{ color: left < 10 ? 'crimson' : 'gray' }}>{left} characters left</p>
+      <button className={btn + ' disabled:opacity-50'} disabled={!text.trim()}>
+        Save
+      </button>
+    </div>
+  )
+}
+
+const demoCities = {
+  India: ['Kochi', 'Bengaluru', 'Mumbai'],
+  USA: ['New York', 'Austin'],
+  UK: ['London', 'Leeds'],
+}
+
+function DependentSelectDemo() {
+  const [country, setCountry] = useState('')
+  const [city, setCity] = useState('')
+  const changeCountry = (e) => {
+    setCountry(e.target.value)
+    setCity('')
+  }
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <select className={inputCls} value={country} onChange={changeCountry}>
+          <option value="">Select country</option>
+          {Object.keys(demoCities).map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+        <select className={inputCls} value={city} onChange={(e) => setCity(e.target.value)} disabled={!country}>
+          <option value="">Select city</option>
+          {(demoCities[country] || []).map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+      <p>{city ? city + ', ' + country : 'Nothing selected'}</p>
+    </div>
+  )
+}
+
+const pageItems = Array.from({ length: 23 }, (_, i) => 'Item ' + (i + 1))
+const PAGE_SIZE = 5
+
+function PaginationDemo() {
+  const [page, setPage] = useState(1)
+  const totalPages = Math.ceil(pageItems.length / PAGE_SIZE)
+  const start = (page - 1) * PAGE_SIZE
+  const visible = pageItems.slice(start, start + PAGE_SIZE)
+  return (
+    <div className="space-y-2">
+      <ul className="list-disc pl-5">
+        {visible.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <div className="flex flex-wrap gap-1">
+        <button className={btnLight + ' disabled:opacity-50'} disabled={page === 1} onClick={() => setPage(page - 1)}>
+          Prev
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+          <button key={n} className={n === page ? btn : btnLight} onClick={() => setPage(n)}>
+            {n}
+          </button>
+        ))}
+        <button className={btnLight + ' disabled:opacity-50'} disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+          Next
+        </button>
+      </div>
+      <p className="text-xs text-slate-500">
+        Page {page} of {totalPages}
+      </p>
+    </div>
+  )
+}
+
+const demoProducts = [
+  { id: 1, name: 'Laptop', category: 'tech', price: 900 },
+  { id: 2, name: 'Phone', category: 'tech', price: 600 },
+  { id: 3, name: 'Desk', category: 'home', price: 200 },
+  { id: 4, name: 'Lamp', category: 'home', price: 40 },
+  { id: 5, name: 'Headphones', category: 'tech', price: 150 },
+]
+
+function SearchFilterSortDemo() {
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('all')
+  const [sort, setSort] = useState('name')
+  const visible = demoProducts
+    .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
+    .filter((p) => category === 'all' || p.category === category)
+    .sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : a.price - b.price))
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <input className={inputCls} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+        <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="all">All</option>
+          <option value="tech">Tech</option>
+          <option value="home">Home</option>
+        </select>
+        <select className={inputCls} value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="name">Sort by name</option>
+          <option value="price">Sort by price</option>
+        </select>
+      </div>
+      <ul className="list-disc pl-5">
+        {visible.map((p) => (
+          <li key={p.id}>
+            {p.name} - Rs {p.price}
+          </li>
+        ))}
+      </ul>
+      {visible.length === 0 && <p className="text-slate-500">No products found</p>}
+    </div>
+  )
+}
+
+function AccessibleDialog({ onClose }) {
+  const cancelRef = useRef(null)
+  useEffect(() => {
+    const previous = document.activeElement
+    cancelRef.current.focus()
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      previous?.focus()
+    }
+  }, [onClose])
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="demo-dlg-title"
+        className="space-y-3 rounded-xl bg-white p-6 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="demo-dlg-title" className="text-lg font-semibold">
+          Delete file?
+        </h2>
+        <p>This cannot be undone. Press Escape to close.</p>
+        <div className="flex gap-2">
+          <button ref={cancelRef} className={btnLight} onClick={onClose}>
+            Cancel
+          </button>
+          <button className={btn} onClick={onClose}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+function AccessibleModalDemo() {
+  const [open, setOpen] = useState(false)
+  const close = useCallback(() => setOpen(false), [])
+  return (
+    <div>
+      <button className={btn} onClick={() => setOpen(true)}>
+        Delete file
+      </button>
+      {open && <AccessibleDialog onClose={close} />}
+    </div>
+  )
+}
+
+function StopwatchDemo() {
+  const [ms, setMs] = useState(0)
+  const [running, setRunning] = useState(false)
+  const startRef = useRef(0)
+  useEffect(() => {
+    if (!running) return
+    const id = setInterval(() => setMs(Date.now() - startRef.current), 50)
+    return () => clearInterval(id)
+  }, [running])
+  const start = () => {
+    startRef.current = Date.now() - ms
+    setRunning(true)
+  }
+  const stop = () => setRunning(false)
+  const reset = () => {
+    setRunning(false)
+    setMs(0)
+  }
+  return (
+    <div className="space-y-2">
+      <p className="font-mono text-2xl">{(ms / 1000).toFixed(2)}s</p>
+      <div className="flex gap-2">
+        {running ? (
+          <button className={btn} onClick={stop}>
+            Stop
+          </button>
+        ) : (
+          <button className={btn} onClick={start}>
+            Start
+          </button>
+        )}
+        <button className={btnLight} onClick={reset}>
+          Reset
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const CartStoreContext = createContext(null)
+
+function cartReducer(state, action) {
+  switch (action.type) {
+    case 'add':
+      return [...state, action.item]
+    case 'clear':
+      return []
+    default:
+      return state
+  }
+}
+
+function CartStoreProvider({ children }) {
+  const [items, dispatch] = useReducer(cartReducer, [])
+  return <CartStoreContext.Provider value={{ items, dispatch }}>{children}</CartStoreContext.Provider>
+}
+
+function useCartStore() {
+  return useContext(CartStoreContext)
+}
+
+function CartProductButton({ name }) {
+  const { dispatch } = useCartStore()
+  return (
+    <button className={btn} onClick={() => dispatch({ type: 'add', item: name })}>
+      Add {name}
+    </button>
+  )
+}
+
+function CartSummary() {
+  const { items, dispatch } = useCartStore()
+  return (
+    <p className="flex flex-wrap items-center gap-2">
+      Cart ({items.length}): {items.join(', ') || 'empty'}
+      <button className={btnLight} onClick={() => dispatch({ type: 'clear' })}>
+        Clear
+      </button>
+    </p>
+  )
+}
+
+function GlobalStoreDemo() {
+  return (
+    <CartStoreProvider>
+      <div className="space-y-2">
+        <CartSummary />
+        <div className="flex gap-2">
+          <CartProductButton name="Pen" />
+          <CartProductButton name="Book" />
+        </div>
+      </div>
+    </CartStoreProvider>
+  )
+}
+
+/* ------------------------- Extra advanced demos ------------------------- */
+
+function fetchQuote(id) {
+  return new Promise((resolve) => setTimeout(() => resolve('Quote #' + id + ': Keep it simple.'), 1000))
+}
+
+function QuoteText({ quotePromise }) {
+  const text = use(quotePromise)
+  return <p className="italic">{text}</p>
+}
+
+function UsePromiseDemo() {
+  const [id, setId] = useState(1)
+  const [quotePromise, setQuotePromise] = useState(() => fetchQuote(1))
+  const next = () => {
+    setId(id + 1)
+    setQuotePromise(fetchQuote(id + 1))
+  }
+  return (
+    <div className="space-y-2">
+      <button className={btn} onClick={next}>
+        Next quote
+      </button>
+      <Suspense fallback={<p className="text-slate-500">Loading quote...</p>}>
+        <QuoteText quotePromise={quotePromise} />
+      </Suspense>
+    </div>
+  )
+}
+
+const MemoPitfallChild = memo(function MemoPitfallChild({ label, style, onClick }) {
+  const badge = useRenderBadge()
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button className={btnLight} style={style} onClick={onClick}>
+        {label}
+      </button>
+      <RenderBadge badgeRef={badge} label={label} />
+    </div>
+  )
+})
+
+const blueStyle = { color: '#2563eb' }
+
+function MemoPitfallDemo() {
+  const [count, setCount] = useState(0)
+  const handleClick = useCallback(() => console.log('clicked'), [])
+  return (
+    <div className="space-y-2">
+      <button className={btn} onClick={() => setCount(count + 1)}>
+        Re-render parent ({count})
+      </button>
+      <MemoPitfallChild label="Inline props" style={{ color: '#2563eb' }} onClick={() => console.log('clicked')} />
+      <MemoPitfallChild label="Stable props" style={blueStyle} onClick={handleClick} />
+    </div>
+  )
+}
+
+function A11yDemo() {
+  const [open, setOpen] = useState(false)
+  const [email, setEmail] = useState('')
+  const id = useId()
+  const error = email && !email.includes('@') ? 'Email must contain @' : ''
+  return (
+    <div className="space-y-3">
+      <div>
+        <button className={btnLight} aria-expanded={open} aria-controls={id + '-panel'} onClick={() => setOpen(!open)}>
+          What is your refund policy? {open ? '▲' : '▼'}
+        </button>
+        <p id={id + '-panel'} hidden={!open} className="mt-1">
+          30 days, no questions asked.
+        </p>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor={id + '-email'}>Email</label>
+        <input
+          id={id + '-email'}
+          className={inputCls + ' max-w-xs'}
+          type="email"
+          value={email}
+          aria-invalid={!!error}
+          aria-describedby={id + '-error'}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <p id={id + '-error'} role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function escapeHtml(text) {
+  return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+}
+
+function XssDemo() {
+  const [text, setText] = useState('<img src=x onerror="alert(1)"> Hello')
+  return (
+    <div className="space-y-2">
+      <input className={inputCls + ' w-full max-w-md'} value={text} onChange={(e) => setText(e.target.value)} />
+      <p>
+        <span className="text-xs text-slate-500">Rendered with {'{text}'}: </span>
+        {text}
+      </p>
+      <p className="text-xs text-slate-500">HTML React wrote into the page:</p>
+      <code className="block rounded bg-slate-50 p-2 text-xs">{escapeHtml(text)}</code>
+    </div>
+  )
+}
+
+function UndoRedoDemo() {
+  const [history, setHistory] = useState({ past: [], present: 0, future: [] })
+  const { past, present, future } = history
+  const change = (delta) => setHistory({ past: [...past, present], present: present + delta, future: [] })
+  const undo = () =>
+    setHistory({ past: past.slice(0, -1), present: past[past.length - 1], future: [present, ...future] })
+  const redo = () => setHistory({ past: [...past, present], present: future[0], future: future.slice(1) })
+  return (
+    <div className="space-y-2">
+      <p className="text-2xl font-semibold">{present}</p>
+      <div className="flex flex-wrap gap-2">
+        <button className={btn} onClick={() => change(-1)}>
+          -1
+        </button>
+        <button className={btn} onClick={() => change(1)}>
+          +1
+        </button>
+        <button className={btnLight + ' disabled:opacity-50'} onClick={undo} disabled={!past.length}>
+          Undo
+        </button>
+        <button className={btnLight + ' disabled:opacity-50'} onClick={redo} disabled={!future.length}>
+          Redo
+        </button>
+      </div>
+      <p className="text-xs text-slate-500">History: {past.join(' -> ') || 'none'}</p>
+    </div>
+  )
+}
+
+const todoFilters = {
+  all: () => true,
+  active: (t) => !t.done,
+  completed: (t) => t.done,
+}
+
+function FilteredTodoDemo() {
+  const [todos, setTodos] = useState([
+    { id: 1, text: 'Learn React', done: true },
+    { id: 2, text: 'Practice hooks', done: false },
+    { id: 3, text: 'Build a project', done: false },
+  ])
+  const [text, setText] = useState('')
+  const [filter, setFilter] = useState('all')
+  const add = (e) => {
+    e.preventDefault()
+    if (!text.trim()) return
+    setTodos([...todos, { id: Date.now(), text: text.trim(), done: false }])
+    setText('')
+  }
+  const toggle = (id) => setTodos(todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+  const clearCompleted = () => setTodos(todos.filter((t) => !t.done))
+  const visible = todos.filter(todoFilters[filter])
+  const left = todos.filter((t) => !t.done).length
+  return (
+    <div className="space-y-2">
+      <form onSubmit={add} className="flex flex-wrap gap-2">
+        <input className={inputCls} value={text} onChange={(e) => setText(e.target.value)} placeholder="New todo" />
+        <button className={btn} type="submit">
+          Add
+        </button>
+      </form>
+      <div className="flex flex-wrap gap-2">
+        {Object.keys(todoFilters).map((f) => (
+          <button key={f} className={f === filter ? btn : btnLight} onClick={() => setFilter(f)}>
+            {f}
+          </button>
+        ))}
+      </div>
+      <ul className="space-y-1">
+        {visible.map((t) => (
+          <li key={t.id} className="flex items-center gap-1">
+            <input type="checkbox" checked={t.done} onChange={() => toggle(t.id)} />
+            <span className={t.done ? 'text-slate-400 line-through' : ''}>{t.text}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="flex flex-wrap items-center gap-2 text-sm">
+        {left} items left
+        <button className={btnLight} onClick={clearCompleted}>
+          Clear completed
+        </button>
+      </p>
+    </div>
+  )
+}
+
+function StarRating({ max = 5, value, onChange }) {
+  const [hover, setHover] = useState(0)
+  return (
+    <div onMouseLeave={() => setHover(0)}>
+      {Array.from({ length: max }, (_, i) => {
+        const star = i + 1
+        const filled = star <= (hover || value)
+        return (
+          <button
+            key={star}
+            aria-label={star + ' stars'}
+            className="cursor-pointer px-0.5 text-3xl"
+            style={{ color: filled ? 'gold' : 'lightgray' }}
+            onMouseEnter={() => setHover(star)}
+            onClick={() => onChange(star)}
+          >
+            ★
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function StarRatingDemo() {
+  const [rating, setRating] = useState(3)
+  return (
+    <div className="space-y-1">
+      <StarRating value={rating} onChange={setRating} />
+      <p>You rated {rating} / 5</p>
+    </div>
+  )
+}
+
+const OTP_LENGTH = 4
+
+function OtpDemo() {
+  const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(''))
+  const inputs = useRef([])
+  const handleChange = (i, e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(-1)
+    const next = [...digits]
+    next[i] = value
+    setDigits(next)
+    if (value && i < OTP_LENGTH - 1) inputs.current[i + 1].focus()
+  }
+  const handleKeyDown = (i, e) => {
+    if (e.key === 'Backspace' && !digits[i] && i > 0) inputs.current[i - 1].focus()
+  }
+  const handlePaste = (e) => {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH)
+    if (!pasted) return
+    e.preventDefault()
+    setDigits(Array.from({ length: OTP_LENGTH }, (_, i) => pasted[i] || ''))
+    inputs.current[Math.min(pasted.length, OTP_LENGTH - 1)].focus()
+  }
+  const code = digits.join('')
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2" onPaste={handlePaste}>
+        {digits.map((d, i) => (
+          <input
+            key={i}
+            ref={(el) => {
+              inputs.current[i] = el
+            }}
+            className="h-12 w-12 rounded-lg border border-slate-300 text-center text-xl"
+            value={d}
+            inputMode="numeric"
+            aria-label={'Digit ' + (i + 1)}
+            onChange={(e) => handleChange(i, e)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+          />
+        ))}
+      </div>
+      <p>{code.length === OTP_LENGTH ? 'Verifying ' + code : 'Enter the ' + OTP_LENGTH + '-digit code'}</p>
+    </div>
+  )
+}
+
+/* ------------------------ Extra hooks demos (2) ------------------------ */
+
+function QtyWithState() {
+  const [qty, setQty] = useState(1)
+  const [error, setError] = useState('')
+  const add = () => {
+    if (qty >= 5) {
+      setError('Max 5 per order')
+      return
+    }
+    setQty(qty + 1)
+    setError('')
+  }
+  const remove = () => {
+    if (qty <= 1) {
+      setError('At least 1 item')
+      return
+    }
+    setQty(qty - 1)
+    setError('')
+  }
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-300 p-3">
+      <p className="font-semibold">useState</p>
+      <div className="flex items-center gap-2">
+        <button className={btnLight} onClick={remove}>
+          -
+        </button>
+        <span>Qty: {qty}</span>
+        <button className={btnLight} onClick={add}>
+          +
+        </button>
+      </div>
+      <p className="min-h-5 text-sm text-red-600">{error}</p>
+    </div>
+  )
+}
+
+function qtyReducer(state, action) {
+  switch (action.type) {
+    case 'add':
+      return state.qty >= 5 ? { ...state, error: 'Max 5 per order' } : { qty: state.qty + 1, error: '' }
+    case 'remove':
+      return state.qty <= 1 ? { ...state, error: 'At least 1 item' } : { qty: state.qty - 1, error: '' }
+    case 'reset':
+      return { qty: 1, error: '' }
+    default:
+      return state
+  }
+}
+
+function QtyWithReducer() {
+  const [state, dispatch] = useReducer(qtyReducer, { qty: 1, error: '' })
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-300 p-3">
+      <p className="font-semibold">useReducer</p>
+      <div className="flex items-center gap-2">
+        <button className={btnLight} onClick={() => dispatch({ type: 'remove' })}>
+          -
+        </button>
+        <span>Qty: {state.qty}</span>
+        <button className={btnLight} onClick={() => dispatch({ type: 'add' })}>
+          +
+        </button>
+        <button className={btnLight} onClick={() => dispatch({ type: 'reset' })}>
+          Reset
+        </button>
+      </div>
+      <p className="min-h-5 text-sm text-red-600">{state.error}</p>
+    </div>
+  )
+}
+
+function StateVsReducerDemo() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <QtyWithState />
+      <QtyWithReducer />
+    </div>
+  )
+}
+
+function EffectRunCounter({ fetchResults, label }) {
+  const runs = useRef(0)
+  const out = useRef(null)
+  useEffect(() => {
+    runs.current += 1
+    fetchResults()
+    if (out.current) out.current.textContent = label + ': effect ran ' + runs.current + ' times'
+  }, [fetchResults, label])
+  return <p ref={out} className="rounded bg-amber-100 px-2 py-0.5 text-sm text-amber-800" />
+}
+
+function CallbackEffectDemo() {
+  const [query, setQuery] = useState('react')
+  const [theme, setTheme] = useState('light')
+  // new function on every render -> the effect re-runs on every render
+  const inlineFetch = () => query.length
+  // same function until query changes
+  const stableFetch = useCallback(() => query.length, [query])
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <input className={inputCls} value={query} onChange={(e) => setQuery(e.target.value)} />
+        <button className={btnLight} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+          Toggle theme ({theme})
+        </button>
+      </div>
+      <EffectRunCounter label="Inline function" fetchResults={inlineFetch} />
+      <EffectRunCounter label="useCallback" fetchResults={stableFetch} />
+      <p className="text-xs text-slate-500">Toggle the theme: only the inline one re-runs. Type: both re-run.</p>
+    </div>
+  )
+}
+
+function validateAuthForm(values) {
+  const errors = {}
+  if (!/^\S+@\S+\.\S+$/.test(values.email)) errors.email = 'Enter a valid email'
+  if (values.password.length < 8) errors.password = 'At least 8 characters'
+  return errors
+}
+
+function ValidationTimingDemo() {
+  const [values, setValues] = useState({ email: '', password: '' })
+  const [touched, setTouched] = useState({})
+  const [submitted, setSubmitted] = useState(false)
+  const errors = validateAuthForm(values)
+  const handleChange = (e) => {
+    setValues({ ...values, [e.target.name]: e.target.value })
+    setSubmitted(false)
+  }
+  const handleBlur = (e) => setTouched({ ...touched, [e.target.name]: true })
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setTouched({ email: true, password: true })
+    setSubmitted(Object.keys(errors).length === 0)
+  }
+  const show = (name) => touched[name] && errors[name]
+  return (
+    <form onSubmit={handleSubmit} noValidate className="space-y-2">
+      <div>
+        <input className={inputCls} name="email" value={values.email} onChange={handleChange} onBlur={handleBlur} placeholder="Email" />
+        {show('email') && <p className="text-xs text-red-600">{errors.email}</p>}
+      </div>
+      <div>
+        <input
+          className={inputCls}
+          name="password"
+          type="password"
+          value={values.password}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder="Password"
+        />
+        <p className="text-xs text-slate-500">
+          {values.password.length}/8 characters {values.password.length >= 8 ? '✓' : ''}
+        </p>
+        {show('password') && <p className="text-xs text-red-600">{errors.password}</p>}
+      </div>
+      <button className={btn} type="submit">
+        Sign up
+      </button>
+      {submitted && <p className="text-emerald-700">Signed up!</p>}
+    </form>
+  )
+}
+
+function useOpenToggle(initial = false) {
+  const [isOpen, setIsOpen] = useState(initial)
+  const toggle = () => setIsOpen(!isOpen)
+  return [isOpen, toggle]
+}
+
+function ToggleOpenDemo() {
+  const [isOpen, toggle] = useOpenToggle()
+  return (
+    <div>
+      <button className={btn} onClick={toggle}>
+        {isOpen ? 'Close' : 'Open'} menu
+      </button>
+      {isOpen && (
+        <ul className="mt-1 w-40 rounded-lg border border-slate-300 bg-white p-2 shadow">
+          <li>Profile</li>
+          <li>Settings</li>
+          <li>Logout</li>
+        </ul>
+      )}
+    </div>
+  )
+}
+
 /* ---------------------------- Questions ---------------------------- */
+
+function HooksIntroDemo() {
+  // Built-in hook
+  const [count, setCount] = useState(0)
+  // Custom hook (defined below) built from built-in hooks
+  const [isOn, toggle] = useSwitch()
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={() => setCount(count + 1)}
+        className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500"
+      >
+        useState count: {count}
+      </button>
+      <button
+        onClick={toggle}
+        className="ml-2 rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
+      >
+        useSwitch: {isOn ? 'ON' : 'OFF'}
+      </button>
+    </div>
+  )
+}
+
+function useSwitch(initial = false) {
+  const [isOn, setIsOn] = useState(initial)
+  return [isOn, () => setIsOn(!isOn)]
+}
 
 export const questions = [
   // ---------- Basics ----------
@@ -1968,6 +2986,387 @@ function Greeting({ name, age = 18, onGreet }: GreetingProps) {
 
 The mistake is caught in the editor, before the app runs.`,
   },
+  {
+    q: 'What is a component tree, and what does one-way data flow mean?',
+    level: 'Basics',
+    a: 'My app is a tree of components: App at the root renders children like Header and ProductList, and those render their own children. Data flows one way, from parent to child through props, so when I want to know where a value comes from I just walk up the tree. A child never changes its parent data directly; it calls a function the parent passed down, which keeps bugs easy to trace.',
+    code: `function Header({ user }) {
+  return <h3>Welcome, {user}</h3>
+}
+
+function ProductItem({ name, onBuy }) {
+  return (
+    <li>
+      {name} <button onClick={() => onBuy(name)}>Buy</button>
+    </li>
+  )
+}
+
+function ProductList({ products, onBuy }) {
+  return (
+    <ul>
+      {products.map((p) => (
+        <ProductItem key={p} name={p} onBuy={onBuy} />
+      ))}
+    </ul>
+  )
+}
+
+// Tree: App -> Header, ProductList -> ProductItem
+function App() {
+  const [cart, setCart] = useState([])
+  const products = ['Pen', 'Book', 'Bag']
+  return (
+    <>
+      <Header user="Anu" />
+      <ProductList products={products}
+        onBuy={(name) => setCart([...cart, name])} />
+      <p>Cart: {cart.join(', ') || 'empty'}</p>
+    </>
+  )
+}`,
+    output: <ComponentTreeDemo />,
+  },
+  {
+    q: 'How does React render? Render phase vs commit phase',
+    level: 'Basics',
+    a: 'Rendering happens in two steps. In the render phase React calls my component functions to get the new JSX and compares it with the previous tree; this must be pure, with no side effects, because React may run it more than once or throw the result away. In the commit phase React applies only the differences to the real DOM, then the browser paints and my effects run. So a re-render does not always mean the DOM changed; if nothing is different, the commit does nothing.',
+    code: `function Counter() {
+  const [count, setCount] = useState(0)
+  console.log('render: count =', count)      // render phase
+
+  useEffect(() => {
+    console.log('effect: DOM shows', count)  // after commit + paint
+  }, [count])
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      {count}
+    </button>
+  )
+}`,
+    output: `1. Trigger:  click -> setCount(1)
+2. Render:   React calls Counter()  -> "render: count = 1"
+             diff with the old tree: only the button text changed
+3. Commit:   React sets button.textContent = "1"
+4. Paint:    the browser draws the new frame
+5. Effects:  "effect: DOM shows 1"`,
+  },
+  {
+    q: 'What are the rules of JSX?',
+    level: 'Basics',
+    a: 'A component must return one parent element, so I wrap siblings in a div or a Fragment. Every tag has to be closed, so I write <img /> and <input />, and attributes are camelCase: className instead of class, htmlFor instead of for, onClick instead of onclick. Inside curly braces I can only put expressions, not statements, so I use a ternary or map instead of if or for.',
+    code: `// Wrong
+function Profile() {
+  return (
+    <h2 class="title">Anu</h2>
+    <img src="/anu.png">
+    <label for="bio">Bio</label>
+  )
+}
+
+// Right
+function Profile() {
+  const isAdmin = true
+  return (
+    <>
+      <h2 className="title">Anu</h2>
+      <img src="/anu.png" alt="Anu" />
+      <label htmlFor="bio">Bio</label>
+      <p style={{ fontSize: 14 }}>{isAdmin ? 'Admin' : 'User'}</p>
+    </>
+  )
+}`,
+    output: `Wrong version:
+  Adjacent JSX elements must be wrapped in an enclosing tag
+  Expected corresponding JSX closing tag for <img>
+  Warning: Invalid DOM property 'class'. Did you mean 'className'?
+
+Rules:
+  1. One parent element (or a Fragment <>...</>)
+  2. Close every tag: <img />, <br />, <input />
+  3. camelCase attributes: className, htmlFor, onClick, tabIndex
+  4. {} takes expressions only: ternary, &&, map (not if / for)
+  5. style takes an object: style={{ fontSize: 14 }}`,
+  },
+  {
+    q: 'How do you pass arguments to an event handler?',
+    level: 'Basics',
+    a: 'I wrap the call in an arrow function, like onClick={() => buy(name, price)}, so it runs on click and not during render. If I also need the event object, I pass it along: onClick={(e) => handleClick(e, name)}. Writing onClick={buy(name)} is a classic bug, because it calls the function immediately on every render.',
+    code: `function Shop() {
+  const [log, setLog] = useState('')
+  const items = ['Pen', 'Book', 'Bag']
+
+  const buy = (name, price) =>
+    setLog('Bought ' + name + ' for Rs ' + price)
+  const handleClick = (e, name) =>
+    setLog(name + ' clicked at x=' + Math.round(e.clientX))
+
+  return (
+    <>
+      {items.map((name, i) => (
+        <button key={name} onClick={() => buy(name, (i + 1) * 10)}>
+          Buy {name}
+        </button>
+      ))}
+      <button onClick={(e) => handleClick(e, 'Info')}>Info</button>
+      <p>{log}</p>
+    </>
+  )
+}`,
+    output: <HandlerArgsDemo />,
+  },
+  {
+    q: 'What is a SyntheticEvent? e.target vs e.currentTarget and stopPropagation',
+    level: 'Basics',
+    a: 'React wraps the browser event in a SyntheticEvent, which works the same in every browser and has target, currentTarget, preventDefault and stopPropagation. e.target is the element that was actually clicked, while e.currentTarget is the element the handler is attached to. I use e.stopPropagation() when a click inside a child should not trigger the parent, like a delete button inside a clickable card.',
+    code: `function CardList() {
+  const [log, setLog] = useState([])
+  const add = (msg) => setLog((l) => [...l, msg].slice(-4))
+
+  const openCard = (e) => {
+    add('card opened (target: ' + e.target.tagName +
+      ', currentTarget: ' + e.currentTarget.tagName + ')')
+  }
+  const remove = (e) => {
+    e.stopPropagation() // do not open the card
+    add('delete clicked only')
+  }
+
+  return (
+    <>
+      <div className="card" onClick={openCard}>
+        <span>Click the card text</span>
+        <button onClick={remove}>Delete</button>
+      </div>
+      <ul>{log.map((m, i) => <li key={i}>{m}</li>)}</ul>
+    </>
+  )
+}`,
+    output: <SyntheticEventDemo />,
+  },
+  {
+    q: 'How do you render nothing, and why does {count && ...} show a 0?',
+    level: 'Basics',
+    a: 'A component can return null to render nothing, which I use for things like a hidden banner, and false, null and undefined inside JSX also render nothing. But 0 is a number, so React prints it: {count && <b>new</b>} shows a 0 when count is 0. I fix it by making the condition a real boolean, like count > 0 && ..., or by using a ternary.',
+    code: `function Banner({ show }) {
+  if (!show) return null // renders nothing
+  return <p>Sale ends today!</p>
+}
+
+function Inbox() {
+  const [count, setCount] = useState(0)
+  const [show, setShow] = useState(true)
+  return (
+    <>
+      <Banner show={show} />
+      <button onClick={() => setShow(!show)}>Toggle banner</button>
+      <button onClick={() => setCount(count + 1)}>New message</button>
+      <button onClick={() => setCount(0)}>Read all</button>
+
+      <p>Wrong: {count && <b>{count} new</b>}</p>
+      <p>Right: {count > 0 && <b>{count} new</b>}</p>
+    </>
+  )
+}`,
+    output: <RenderNothingDemo />,
+  },
+  {
+    q: 'How do you import images and other static assets in a Vite React app?',
+    level: 'Basics',
+    a: 'For files inside src, I import them like modules: import logo from \'./assets/logo.png\' gives me the final URL, and Vite adds a hash to the file name so browsers can cache it forever. Files in the public folder are copied as they are and I use an absolute path like /hero.jpg, which is good for files that need a fixed name, like robots.txt. I always give images a meaningful alt text.',
+    code: `import logo from './assets/logo.png'   // URL string
+import data from './data.json'          // JSON becomes an object
+import notes from './notes.txt?raw'     // file content as a string
+import './App.css'                      // global CSS
+
+function Header() {
+  return (
+    <header>
+      <img src={logo} alt="Company logo" width={120} />
+      {/* public/hero.jpg is served at /hero.jpg */}
+      <img src="/hero.jpg" alt="Hero banner" />
+      <p>{data.title}</p>
+    </header>
+  )
+}`,
+    output: `Dev:     logo -> "/src/assets/logo.png"
+Build:   logo -> "/assets/logo-B3x9k2Qa.png"  (hashed, cached long)
+         very small images are inlined as data: URLs
+public/: hero.jpg is copied as-is to dist/hero.jpg (no hash)`,
+  },
+  {
+    q: 'How do you organise the folder structure of a React project?',
+    level: 'Basics',
+    a: 'For small apps I keep it simple with components, pages, hooks and utils folders under src. As the app grows I move to a feature-based structure, where each feature like auth or cart keeps its components, hooks, API calls and tests together, so one change does not make me jump across the whole project. Shared UI pieces like Button and Modal stay in a common components folder, and I avoid deep nesting.',
+    code: `src/
+  main.jsx              // createRoot + providers
+  App.jsx               // routes and layout
+  components/           // shared UI: Button, Modal, Spinner
+  hooks/                // useDebounce, useLocalStorage
+  lib/                  // api client, helpers, constants
+  pages/                // route-level components
+  assets/               // images, fonts
+  features/
+    auth/
+      LoginForm.jsx
+      useAuth.js
+      authApi.js
+    cart/
+      CartPage.jsx
+      CartItem.jsx
+      cartStore.js
+      CartPage.test.jsx`,
+    output: `Small app   -> group by type (components, hooks, pages)
+Growing app -> group by feature (auth, cart, profile)
+Rule of thumb: files that change together live together.`,
+  },
+  {
+    q: 'What are hooks in React, and what types of hooks are there?',
+    level: 'Basics',
+    a: "Hooks are special functions whose names start with \"use\" that let function components use React features like state, side effects, context and refs, without writing a class. There are two types: built-in hooks that React gives us, like useState and useEffect, and custom hooks that I write myself by combining built-in hooks so I can reuse logic. I follow the rules of hooks: call them only at the top level of a component or custom hook, never inside loops or conditions.",
+    code: `import { useState } from 'react'
+
+// 1. Built-in hook: provided by React
+function Counter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+
+// 2. Custom hook: my own function that uses built-in hooks
+function useSwitch(initial = false) {
+  const [isOn, setIsOn] = useState(initial)
+  return [isOn, () => setIsOn(!isOn)]
+}
+
+function App() {
+  const [isOn, toggle] = useSwitch()
+  return <button onClick={toggle}>{isOn ? 'ON' : 'OFF'}</button>
+}`,
+    output: <HooksIntroDemo />,
+  },
+  {
+    q: 'What built-in hooks does React have?',
+    level: 'Basics',
+    a: 'I group them by job. useState and useReducer hold state, useContext reads context, useRef and useImperativeHandle work with refs, and useEffect, useLayoutEffect and useInsertionEffect run effects. For performance there are useMemo, useCallback, useTransition and useDeferredValue, and there are helpers like useId, useDebugValue and useSyncExternalStore. React 19 added useActionState, useOptimistic, the use() API, and useFormStatus in react-dom, and 19.2 added useEffectEvent.',
+    code: `// State
+const [count, setCount] = useState(0)
+const [state, dispatch] = useReducer(reducer, initialState)
+
+// Context
+const theme = useContext(ThemeContext)
+
+// Refs
+const inputRef = useRef(null)
+useImperativeHandle(ref, () => ({ focus }), [])
+
+// Effects
+useEffect(() => { /* after paint */ }, [deps])
+useLayoutEffect(() => { /* before paint */ }, [deps])
+useInsertionEffect(() => { /* CSS-in-JS libraries */ }, [])
+
+// Performance
+const total = useMemo(() => calc(items), [items])
+const onSave = useCallback(() => save(id), [id])
+const [isPending, startTransition] = useTransition()
+const deferredQuery = useDeferredValue(query)
+
+// Other
+const id = useId()
+useDebugValue(isOnline ? 'Online' : 'Offline')
+const width = useSyncExternalStore(subscribe, getSnapshot)
+
+// React 19
+const [result, formAction, pending] = useActionState(action, init)
+const [optimistic, addOptimistic] = useOptimistic(list, update)
+const user = use(userPromise)
+const { pending: sending } = useFormStatus() // from 'react-dom'`,
+    output: `STATE
+useState
+  Stores a value that, when changed, re-renders the component
+useReducer
+  Stores state updated by a reducer function (state, action)
+
+CONTEXT
+useContext
+  Reads a value from a Context without passing props
+
+REFS
+useRef
+  Keeps a mutable value or a DOM element that doesn't re-render
+useImperativeHandle
+  Chooses what a parent can call through a ref
+
+EFFECTS
+useEffect
+  Runs side effects (fetch, timers, subscriptions) after render
+useLayoutEffect
+  Like useEffect, but runs before the browser paints
+useInsertionEffect
+  Inserts styles before layout effects (for CSS-in-JS libraries)
+useEffectEvent
+  Reads the latest props/state in an effect without re-running it (19.2)
+
+PERFORMANCE
+useMemo
+  Caches the result of an expensive calculation
+useCallback
+  Caches a function so its reference stays the same
+useTransition
+  Marks an update as non-urgent and gives isPending
+useDeferredValue
+  Shows an older value while a newer one renders in the background
+
+OTHER
+useId
+  Creates a unique ID that is stable on server and client
+useDebugValue
+  Shows a label for a custom hook in React DevTools
+useSyncExternalStore
+  Subscribes to a store outside React (browser APIs, libraries)
+
+REACT 19
+useActionState
+  Runs a form action and tracks its result and pending state
+useOptimistic
+  Shows an optimistic value until the real update finishes
+use()
+  Reads a Promise or Context during render (works with Suspense)
+useFormStatus
+  Gives the pending state of the parent <form> (from react-dom)
+
+CUSTOM HOOKS
+useAnything
+  My own function starting with "use" that combines these hooks`,
+  },
+  {
+    q: 'How do you create a simple custom hook to toggle open and close?',
+    level: 'Basics',
+    a: 'I create a function whose name starts with "use", put the useState inside it, and return the value together with a function that flips it. Then any component can call useToggle() and get its own open or closed state without repeating that logic. I use it all the time for dropdowns, modals, accordions and sidebars.',
+    code: `function useToggle(initial = false) {
+  const [isOpen, setIsOpen] = useState(initial)
+  const toggle = () => setIsOpen(!isOpen)
+  return [isOpen, toggle]
+}
+
+function Dropdown() {
+  const [isOpen, toggle] = useToggle()
+
+  return (
+    <div>
+      <button onClick={toggle}>{isOpen ? 'Close' : 'Open'} menu</button>
+      {isOpen && (
+        <ul>
+          <li>Profile</li>
+          <li>Settings</li>
+          <li>Logout</li>
+        </ul>
+      )}
+    </div>
+  )
+}`,
+    output: <ToggleOpenDemo />,
+  },
 
   // ---------- Hooks ----------
   {
@@ -2375,6 +3774,588 @@ function Parent() {
   )
 }`,
     output: <ImperativeDemo />,
+  },
+  {
+    q: 'How do you cancel a fetch in useEffect with AbortController?',
+    level: 'Intermediate',
+    a: 'I create an AbortController inside the effect, pass controller.signal to fetch, and call controller.abort() in the cleanup. When the id changes or the component unmounts, the old request is really cancelled, not just ignored, so it cannot overwrite newer data. In the catch I check err.name === \'AbortError\' so a cancelled request is not shown to the user as an error.',
+    code: `// Fake API that supports a signal, like fetch(url, { signal })
+function fakeFetch(id, signal) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve({ id, title: 'Post #' + id }), 1000)
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer)
+      reject(new DOMException('Aborted', 'AbortError'))
+    })
+  })
+}
+
+function Post() {
+  const [postId, setPostId] = useState(1)
+  const [result, setResult] = useState({ id: null, post: null })
+  const [log, setLog] = useState([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fakeFetch(postId, controller.signal)
+      .then((post) => setResult({ id: postId, post }))
+      .catch((err) => {
+        if (err.name === 'AbortError')
+          setLog((l) => [...l, 'cancelled request ' + postId].slice(-3))
+      })
+    return () => controller.abort() // cancel on change or unmount
+  }, [postId])
+
+  const loading = result.id !== postId
+  return (
+    <>
+      {[1, 2, 3].map((id) => (
+        <button key={id} onClick={() => setPostId(id)}>Post {id}</button>
+      ))}
+      <p>{loading ? 'Loading...' : result.post.title}</p>
+      <p>{log.join(', ')}</p>
+    </>
+  )
+}`,
+    output: <AbortFetchDemo />,
+  },
+  {
+    q: 'How do you write a useLocalStorage custom hook?',
+    level: 'Intermediate',
+    a: 'The hook works like useState but also saves the value to localStorage. I read the saved value once with a lazy initializer and JSON.parse, and write it back with JSON.stringify in an effect whenever the key or value changes. I wrap the storage calls in try/catch, because storage can be full or blocked in private mode, and the hook should then just work in memory.',
+    code: `function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key)
+      return saved !== null ? JSON.parse(saved) : initialValue
+    } catch {
+      return initialValue
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // storage full or blocked
+    }
+  }, [key, value])
+
+  return [value, setValue]
+}
+
+function Settings() {
+  const [name, setName] = useLocalStorage('demo-name', '')
+  const [dark, setDark] = useLocalStorage('demo-dark', false)
+  return (
+    <>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <label>
+        <input type="checkbox" checked={dark}
+          onChange={(e) => setDark(e.target.checked)} />
+        Dark mode
+      </label>
+      <p>Hello {name || 'guest'}, dark mode is {dark ? 'on' : 'off'}</p>
+    </>
+  )
+}`,
+    output: <LocalStorageHookDemo />,
+  },
+  {
+    q: 'How do you close a dropdown when the user clicks outside? (useOnClickOutside)',
+    level: 'Intermediate',
+    a: 'I put a ref on the dropdown wrapper and add a mousedown listener on the document inside an effect. If the click target is not inside ref.current, I call the close handler, and the cleanup removes the listener. I wrap the handler in useCallback so the effect does not re-subscribe on every render, and I usually close on the Escape key too.',
+    code: `function useOnClickOutside(ref, handler) {
+  useEffect(() => {
+    const listener = (e) => {
+      if (!ref.current || ref.current.contains(e.target)) return
+      handler()
+    }
+    document.addEventListener('mousedown', listener)
+    return () => document.removeEventListener('mousedown', listener)
+  }, [ref, handler])
+}
+
+function Dropdown() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const close = useCallback(() => setOpen(false), [])
+  useOnClickOutside(ref, close)
+
+  return (
+    <div ref={ref} style={{ display: 'inline-block' }}>
+      <button onClick={() => setOpen(!open)}>Menu</button>
+      {open && (
+        <ul>
+          <li>Profile</li>
+          <li>Settings</li>
+          <li>Logout</li>
+        </ul>
+      )}
+    </div>
+  )
+}`,
+    output: <ClickOutsideDemo />,
+  },
+  {
+    q: 'How do you build a textarea with a character counter?',
+    level: 'Intermediate',
+    a: 'In React a textarea is controlled just like an input: I pass value and onChange instead of putting text between the tags. The remaining count is derived from text.length during render, so I do not need a second state for it. I also set maxLength so the browser blocks extra typing, and change the color when the user gets close to the limit.',
+    code: `const MAX = 100
+
+function Bio() {
+  const [text, setText] = useState('')
+  const left = MAX - text.length // derived, not stored
+  return (
+    <>
+      <textarea value={text} maxLength={MAX} rows={4}
+        onChange={(e) => setText(e.target.value)} />
+      <p style={{ color: left < 10 ? 'crimson' : 'gray' }}>
+        {left} characters left
+      </p>
+      <button disabled={!text.trim()}>Save</button>
+    </>
+  )
+}`,
+    output: <CharCounterDemo />,
+  },
+  {
+    q: 'How do you build dependent dropdowns (country and city)?',
+    level: 'Intermediate',
+    a: 'I keep only the selected country and city in state, and derive the list of city options from the country during render. When the country changes, I reset the city in the same change handler, not in a useEffect, so there is no extra render and no invalid city left behind. I also disable the second select until the first one has a value.',
+    code: `const CITIES = {
+  India: ['Kochi', 'Bengaluru', 'Mumbai'],
+  USA: ['New York', 'Austin'],
+  UK: ['London', 'Leeds'],
+}
+
+function Location() {
+  const [country, setCountry] = useState('')
+  const [city, setCity] = useState('')
+
+  const changeCountry = (e) => {
+    setCountry(e.target.value)
+    setCity('') // reset the child in the same event
+  }
+
+  return (
+    <>
+      <select value={country} onChange={changeCountry}>
+        <option value="">Select country</option>
+        {Object.keys(CITIES).map((c) => <option key={c}>{c}</option>)}
+      </select>
+      <select value={city} disabled={!country}
+        onChange={(e) => setCity(e.target.value)}>
+        <option value="">Select city</option>
+        {(CITIES[country] || []).map((c) => <option key={c}>{c}</option>)}
+      </select>
+      <p>{city ? city + ', ' + country : 'Nothing selected'}</p>
+    </>
+  )
+}`,
+    output: <DependentSelectDemo />,
+  },
+  {
+    q: 'How do you paginate a list?',
+    level: 'Intermediate',
+    a: 'I keep only the current page number in state and derive the rest: the total pages with Math.ceil and the visible items with slice. Prev and Next are disabled at the edges so the page can never go out of range. With a real API I send page and limit to the server instead of slicing, and I often keep the page in the URL so refresh and the back button work.',
+    code: `const ITEMS = Array.from({ length: 23 }, (_, i) => 'Item ' + (i + 1))
+const PAGE_SIZE = 5
+
+function PagedList() {
+  const [page, setPage] = useState(1)
+  const totalPages = Math.ceil(ITEMS.length / PAGE_SIZE)
+  const start = (page - 1) * PAGE_SIZE
+  const visible = ITEMS.slice(start, start + PAGE_SIZE)
+
+  return (
+    <>
+      <ul>{visible.map((item) => <li key={item}>{item}</li>)}</ul>
+      <button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+        <button key={n} onClick={() => setPage(n)}
+          style={{ fontWeight: n === page ? 'bold' : 'normal' }}>
+          {n}
+        </button>
+      ))}
+      <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
+      <p>Page {page} of {totalPages}</p>
+    </>
+  )
+}`,
+    output: <PaginationDemo />,
+  },
+  {
+    q: 'How do you build a list with search, filter and sort?',
+    level: 'Intermediate',
+    a: 'I keep only the inputs in state, the query, the category and the sort key, and derive the visible list in one chain: filter, filter, then sort. I never store the filtered list in state, because it would get out of sync with the source data. filter returns a new array, so sorting it does not mutate the original; for big lists I wrap the chain in useMemo, and with an API I send these values as query params.',
+    code: `const PRODUCTS = [
+  { id: 1, name: 'Laptop', category: 'tech', price: 900 },
+  { id: 2, name: 'Phone', category: 'tech', price: 600 },
+  { id: 3, name: 'Desk', category: 'home', price: 200 },
+  { id: 4, name: 'Lamp', category: 'home', price: 40 },
+  { id: 5, name: 'Headphones', category: 'tech', price: 150 },
+]
+
+function ProductList() {
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('all')
+  const [sort, setSort] = useState('name')
+
+  const visible = PRODUCTS
+    .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
+    .filter((p) => category === 'all' || p.category === category)
+    .sort((a, b) =>
+      sort === 'name' ? a.name.localeCompare(b.name) : a.price - b.price)
+
+  return (
+    <>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <select value={category} onChange={(e) => setCategory(e.target.value)}>
+        <option value="all">All</option>
+        <option value="tech">Tech</option>
+        <option value="home">Home</option>
+      </select>
+      <select value={sort} onChange={(e) => setSort(e.target.value)}>
+        <option value="name">Sort by name</option>
+        <option value="price">Sort by price</option>
+      </select>
+      <ul>
+        {visible.map((p) => <li key={p.id}>{p.name} - Rs {p.price}</li>)}
+      </ul>
+      {visible.length === 0 && <p>No products found</p>}
+    </>
+  )
+}`,
+    output: <SearchFilterSortDemo />,
+  },
+  {
+    q: 'How do you build an accessible modal that closes on Escape and manages focus?',
+    level: 'Intermediate',
+    a: 'When the modal opens I move focus into it, and when it closes I give focus back to the button that opened it, so keyboard users do not get lost. I listen for the Escape key on the document in an effect and remove the listener in the cleanup. I add role="dialog", aria-modal and aria-labelledby, and render it in a portal; the native <dialog> element with showModal() also gives me much of this for free.',
+    code: `function Dialog({ onClose }) {
+  const cancelRef = useRef(null)
+
+  useEffect(() => {
+    const previous = document.activeElement
+    cancelRef.current.focus() // move focus into the dialog
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      previous?.focus() // give focus back to the opener
+    }
+  }, [onClose])
+
+  return createPortal(
+    <div className="overlay" onClick={onClose}>
+      <div className="box" role="dialog" aria-modal="true"
+        aria-labelledby="dlg-title" onClick={(e) => e.stopPropagation()}>
+        <h2 id="dlg-title">Delete file?</h2>
+        <p>This cannot be undone.</p>
+        <button ref={cancelRef} onClick={onClose}>Cancel</button>
+        <button onClick={onClose}>Delete</button>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+function App() {
+  const [open, setOpen] = useState(false)
+  const close = useCallback(() => setOpen(false), [])
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Delete file</button>
+      {open && <Dialog onClose={close} />}
+    </>
+  )
+}`,
+    output: <AccessibleModalDemo />,
+  },
+  {
+    q: 'How do you build a stopwatch with start, stop and reset?',
+    level: 'Intermediate',
+    a: 'I keep the elapsed time and a running flag in state, and start a setInterval in an effect only while running is true; the cleanup clears it on stop or unmount. I calculate the time from Date.now() and a start time kept in a ref, instead of adding 50 ms per tick, because intervals are not exact and the time would drift. Reset simply stops the timer and sets the time back to 0.',
+    code: `function Stopwatch() {
+  const [ms, setMs] = useState(0)
+  const [running, setRunning] = useState(false)
+  const startRef = useRef(0)
+
+  useEffect(() => {
+    if (!running) return
+    const id = setInterval(() => setMs(Date.now() - startRef.current), 50)
+    return () => clearInterval(id)
+  }, [running])
+
+  const start = () => {
+    startRef.current = Date.now() - ms // continue from paused time
+    setRunning(true)
+  }
+  const stop = () => setRunning(false)
+  const reset = () => {
+    setRunning(false)
+    setMs(0)
+  }
+
+  return (
+    <>
+      <h2>{(ms / 1000).toFixed(2)}s</h2>
+      {running
+        ? <button onClick={stop}>Stop</button>
+        : <button onClick={start}>Start</button>}
+      <button onClick={reset}>Reset</button>
+    </>
+  )
+}`,
+    output: <StopwatchDemo />,
+  },
+  {
+    q: 'How do you build a global store with Context and useReducer?',
+    level: 'Intermediate',
+    a: 'I put useReducer in a Provider component and share both the state and dispatch through context. Any component below can read the state or dispatch an action with a small custom hook like useCart, without prop drilling. It is basically a tiny Redux built into React; for larger apps with frequent updates I split the context or move to Zustand or Redux Toolkit to avoid extra re-renders.',
+    code: `const CartContext = createContext(null)
+
+function cartReducer(state, action) {
+  switch (action.type) {
+    case 'add': return [...state, action.item]
+    case 'clear': return []
+    default: return state
+  }
+}
+
+function CartProvider({ children }) {
+  const [items, dispatch] = useReducer(cartReducer, [])
+  return (
+    <CartContext.Provider value={{ items, dispatch }}>
+      {children}
+    </CartContext.Provider>
+  )
+}
+
+function useCart() {
+  return useContext(CartContext)
+}
+
+function ProductButton({ name }) {
+  const { dispatch } = useCart()
+  return (
+    <button onClick={() => dispatch({ type: 'add', item: name })}>
+      Add {name}
+    </button>
+  )
+}
+
+function CartSummary() {
+  const { items, dispatch } = useCart()
+  return (
+    <p>
+      Cart ({items.length}): {items.join(', ') || 'empty'}
+      <button onClick={() => dispatch({ type: 'clear' })}>Clear</button>
+    </p>
+  )
+}
+
+function App() {
+  return (
+    <CartProvider>
+      <CartSummary />
+      <ProductButton name="Pen" />
+      <ProductButton name="Book" />
+    </CartProvider>
+  )
+}`,
+    output: <GlobalStoreDemo />,
+  },
+  {
+    q: 'If useState can do everything, why do we need useReducer?',
+    level: 'Intermediate',
+    a: 'Both manage state, and anything I can do with one I can do with the other, so I choose by how complex the update logic is, not by capability. useReducer moves all the state transitions into one pure reducer function, and components only dispatch actions like add or reset, which is easier to read, test and keep consistent when several values change together under business rules. dispatch is also stable between renders, so I can pass it down to children without useCallback. For one or two independent values, useState stays simpler.',
+    code: `// useState: the rules live inside each handler
+function QtyWithState() {
+  const [qty, setQty] = useState(1)
+  const [error, setError] = useState('')
+  const add = () => {
+    if (qty >= 5) { setError('Max 5 per order'); return }
+    setQty(qty + 1)
+    setError('')
+  }
+  const remove = () => {
+    if (qty <= 1) { setError('At least 1 item'); return }
+    setQty(qty - 1)
+    setError('')
+  }
+  return (
+    <div>
+      <button onClick={remove}>-</button> Qty: {qty}
+      <button onClick={add}>+</button>
+      <p className="error">{error}</p>
+    </div>
+  )
+}
+
+// useReducer: all transitions in one pure, testable function
+function qtyReducer(state, action) {
+  switch (action.type) {
+    case 'add':
+      return state.qty >= 5
+        ? { ...state, error: 'Max 5 per order' }
+        : { qty: state.qty + 1, error: '' }
+    case 'remove':
+      return state.qty <= 1
+        ? { ...state, error: 'At least 1 item' }
+        : { qty: state.qty - 1, error: '' }
+    case 'reset':
+      return { qty: 1, error: '' }
+    default:
+      return state
+  }
+}
+
+function QtyWithReducer() {
+  const [state, dispatch] = useReducer(qtyReducer, { qty: 1, error: '' })
+  return (
+    <div>
+      <button onClick={() => dispatch({ type: 'remove' })}>-</button>
+      Qty: {state.qty}
+      <button onClick={() => dispatch({ type: 'add' })}>+</button>
+      <button onClick={() => dispatch({ type: 'reset' })}>Reset</button>
+      <p className="error">{state.error}</p>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <>
+      <QtyWithState />
+      <QtyWithReducer />
+    </>
+  )
+}`,
+    output: <StateVsReducerDemo />,
+  },
+  {
+    q: 'When should you use useCallback (and when not)?',
+    level: 'Intermediate',
+    a: 'I use useCallback in three cases: when I pass a function to a child wrapped in React.memo, when a function is a dependency of a useEffect so the effect does not re-run after every render or loop, and when a custom hook returns functions that its users may put in their own dependencies. In the demo, the effect that depends on an inline function runs on every render, while the useCallback one runs only when query changes. I do not wrap every handler, because useCallback itself costs memory and comparisons and gives nothing when the child is cheap or not memoized.',
+    code: `function Results({ fetchResults, label }) {
+  const runs = useRef(0)
+  const out = useRef(null)
+  useEffect(() => {
+    runs.current += 1
+    fetchResults()
+    out.current.textContent = label + ': effect ran ' + runs.current + ' times'
+  }, [fetchResults, label])
+  return <p ref={out} />
+}
+
+function App() {
+  const [query, setQuery] = useState('react')
+  const [theme, setTheme] = useState('light')
+
+  // new function every render -> effect re-runs every render
+  const inlineFetch = () => console.log('fetch', query)
+
+  // same function until query changes
+  const stableFetch = useCallback(() => console.log('fetch', query), [query])
+
+  return (
+    <>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+        Toggle theme ({theme})
+      </button>
+      <Results label="Inline function" fetchResults={inlineFetch} />
+      <Results label="useCallback" fetchResults={stableFetch} />
+    </>
+  )
+}`,
+    output: <CallbackEffectDemo />,
+  },
+  {
+    q: 'useEffect vs useCallback: what is the difference?',
+    level: 'Intermediate',
+    a: 'They solve different problems. useEffect runs code after the render is committed, for side effects like fetching, subscriptions or timers, and it can return a cleanup. useCallback runs nothing by itself; it only returns the same function reference between renders until its dependencies change. They are often used together: I wrap a function in useCallback so I can safely list it as a useEffect dependency.',
+    code: `function UserProfile({ userId }) {
+  const [user, setUser] = useState(null)
+
+  // useCallback: remembers the function, does NOT call it
+  const loadUser = useCallback(() => {
+    return fetch('/api/users/' + userId).then((r) => r.json())
+  }, [userId])
+
+  // useEffect: actually runs the side effect after render
+  useEffect(() => {
+    let ignore = false
+    loadUser().then((data) => {
+      if (!ignore) setUser(data)
+    })
+    return () => { ignore = true }
+  }, [loadUser]) // re-runs only when userId changes
+
+  return <button onClick={loadUser}>Reload</button>
+}`,
+    output: `                 useEffect                    useCallback
+Purpose          run a side effect            keep the same function
+When it runs     after render (commit)        never runs your code itself
+Returns          optional cleanup function    the memoized function
+Typical use      fetch, timers, listeners     memo children, effect deps
+
+Together: useCallback makes loadUser stable,
+so useEffect([loadUser]) does not run after every render.`,
+  },
+  {
+    q: 'How do you validate inputs: real-time, on blur, or on submit?',
+    level: 'Intermediate',
+    a: 'I mix the three. Real-time validation on every change is good for helpful hints like a password length counter, but showing red errors while someone is still typing their email is annoying. So I show a field error only after the field is touched, on blur, and once it is shown I let it update in real time so it disappears as soon as the value is fixed. On submit I always validate everything and mark all fields as touched, because the user may never have visited some fields.',
+    code: `function validate(values) {
+  const errors = {}
+  if (!/^\\S+@\\S+\\.\\S+$/.test(values.email)) errors.email = 'Enter a valid email'
+  if (values.password.length < 8) errors.password = 'At least 8 characters'
+  return errors
+}
+
+function SignupForm() {
+  const [values, setValues] = useState({ email: '', password: '' })
+  const [touched, setTouched] = useState({})
+  const [submitted, setSubmitted] = useState(false)
+  const errors = validate(values) // derived on every render
+
+  const handleChange = (e) => {
+    setValues({ ...values, [e.target.name]: e.target.value })
+    setSubmitted(false)
+  }
+  // On blur: the field counts as touched from now on
+  const handleBlur = (e) => setTouched({ ...touched, [e.target.name]: true })
+  // On submit: validate and show everything
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setTouched({ email: true, password: true })
+    setSubmitted(Object.keys(errors).length === 0)
+  }
+  const show = (name) => touched[name] && errors[name]
+
+  return (
+    <form onSubmit={handleSubmit} noValidate>
+      <input name="email" value={values.email} placeholder="Email"
+        onChange={handleChange} onBlur={handleBlur} />
+      {show('email') && <p className="error">{errors.email}</p>}
+
+      <input name="password" type="password" value={values.password}
+        placeholder="Password" onChange={handleChange} onBlur={handleBlur} />
+      {/* Real-time hint while typing */}
+      <p>{values.password.length}/8 characters</p>
+      {show('password') && <p className="error">{errors.password}</p>}
+
+      <button type="submit">Sign up</button>
+      {submitted && <p>Signed up!</p>}
+    </form>
+  )
+}`,
+    output: <ValidationTimingDemo />,
   },
 
   // ---------- Advanced ----------
@@ -2967,5 +4948,464 @@ test('increments the count when clicked', async () => {
 
  Test Files  1 passed (1)
       Tests  1 passed (1)`,
+  },
+  {
+    q: 'What is the use() API in React 19, and how does Suspense work for data?',
+    level: 'Advanced',
+    a: 'use() reads the value of a promise (or a context) during render. If the promise is still pending, the component suspends and the nearest Suspense boundary shows its fallback; when it resolves React renders again with the value, and if it rejects the nearest error boundary catches it. The key rule is that the promise must be created outside render, in an event handler, a router loader or a Server Component, otherwise every render makes a new promise. Unlike hooks, use() can even be called inside an if.',
+    code: `// Fake API: resolves after 1 second
+function fetchQuote(id) {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve('Quote #' + id + ': Keep it simple.'), 1000))
+}
+
+function Quote({ quotePromise }) {
+  const text = use(quotePromise) // suspends until resolved
+  return <p>{text}</p>
+}
+
+function App() {
+  const [id, setId] = useState(1)
+  const [quotePromise, setQuotePromise] = useState(() => fetchQuote(1))
+
+  const next = () => {
+    setId(id + 1)
+    setQuotePromise(fetchQuote(id + 1)) // created in an event, not in render
+  }
+
+  return (
+    <>
+      <button onClick={next}>Next quote</button>
+      <Suspense fallback={<p>Loading quote...</p>}>
+        <Quote quotePromise={quotePromise} />
+      </Suspense>
+    </>
+  )
+}`,
+    output: <UsePromiseDemo />,
+  },
+  {
+    q: 'What are Server Actions (Server Functions)?',
+    level: 'Advanced',
+    a: 'A Server Action is an async function marked with \'use server\' that runs only on the server, but I can call it from the client, for example as a form action. The framework, like Next.js, turns the call into a POST request for me, so I do not write an API route or fetch code. Because it is still a public endpoint, I always validate the input and check auth inside the action, and on the client I use useActionState or useFormStatus to show pending state and errors.',
+    code: `// app/actions.js
+'use server'
+
+export async function addComment(formData) {
+  const text = formData.get('text')
+  if (!text) return { error: 'Comment is empty' }
+  await db.comment.create({ data: { text } }) // runs on the server
+  revalidatePath('/post')
+}
+
+// app/post/page.jsx (Server Component)
+import { addComment } from '../actions'
+
+export default function PostPage() {
+  return (
+    <form action={addComment}>
+      <input name="text" />
+      <button type="submit">Comment</button>
+    </form>
+  )
+}`,
+    output: `User submits the form
+  -> browser sends a POST with the FormData (no API route written)
+  -> addComment runs on the server and writes to the DB
+  -> revalidatePath refreshes the page data
+  -> the updated comments are sent back to the browser
+
+The form works even before JavaScript has loaded
+(progressive enhancement).`,
+  },
+  {
+    q: 'CSR vs SSR vs SSG: what is hydration?',
+    level: 'Advanced',
+    a: 'With CSR the server sends an almost empty HTML page and JavaScript builds the UI in the browser; that is how this Vite app works, and it is simple but slower for the first paint and SEO. With SSR the server renders HTML on every request, and with SSG the HTML is built once at build time and served from a CDN. Hydration is when React in the browser attaches event handlers to that server HTML to make it interactive; if the server and client render different output I get a hydration mismatch, so I avoid things like Date.now() or window checks during render.',
+    code: `// CSR (Vite): index.html only has <div id="root"></div>
+createRoot(document.getElementById('root')).render(<App />)
+
+// SSR: the server renders HTML for each request
+const html = renderToString(<App />)
+res.send('<div id="root">' + html + '</div>')
+
+// Browser: reuse the server HTML and attach events
+hydrateRoot(document.getElementById('root'), <App />)
+
+// Causes a hydration mismatch: server and client differ
+function Clock() {
+  return <p>{new Date().toLocaleTimeString()}</p>
+}`,
+    output: `       First paint    SEO     Data is fresh      Good for
+CSR    slower         weaker  in the browser     dashboards, admin apps
+SSR    fast           good    every request      e-commerce, news
+SSG    fastest (CDN)  good    at build time      blogs, docs, marketing
+ISR    fast           good    rebuilt on a timer Next.js revalidate
+
+Hydration: HTML is visible first, then React makes it interactive.`,
+  },
+  {
+    q: 'Next.js vs Vite: when would you choose each?',
+    level: 'Advanced',
+    a: 'Vite is a build tool and dev server: it gives me a very fast client-side React app, and I add React Router and a data-fetching library myself. Next.js is a full framework with file-based routing, SSR, SSG, Server Components and Server Actions built in. I pick Vite for dashboards, internal tools and apps behind a login where SEO does not matter, and Next.js when I need SEO, a fast first load, or server-side data access.',
+    code: `// Vite + React Router: routes are defined in code
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/posts/:id" element={<Post />} />
+</Routes>
+
+// Next.js App Router: routes are folders
+// app/page.jsx            -> /
+// app/posts/[id]/page.jsx -> /posts/5
+export default async function Post({ params }) {
+  const { id } = await params
+  const post = await getPost(id) // runs on the server
+  return <h1>{post.title}</h1>
+}`,
+    output: `               Vite (SPA)            Next.js
+Rendering      CSR                   SSR, SSG, ISR, RSC, CSR
+Routing        add React Router      file-based (app/ folder)
+Backend code   separate API          Server Actions, route handlers
+Dev speed      very fast HMR         fast (Turbopack)
+Deploy         any static host       Node / edge server or static export
+Best for       dashboards, SPAs      SEO sites, e-commerce, content`,
+  },
+  {
+    q: 'What is concurrent rendering (and React Fiber)?',
+    level: 'Advanced',
+    a: 'Concurrent rendering means React can start a render, pause it, resume it later, or throw it away if newer input arrives, so an urgent update like typing is never blocked by a slow, non-urgent one. It is not parallel or multi-threaded: everything still runs on the single JavaScript main thread, React just works in small chunks and yields back to the browser between them. This is possible because of Fiber, the internal engine since React 16 that splits the tree into small units of work. It is enabled when I use createRoot (React 18+), and I opt updates into it with useTransition, useDeferredValue and Suspense.',
+    code: `function Search() {
+  const [text, setText] = useState('')
+  const [query, setQuery] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  const handleChange = (e) => {
+    setText(e.target.value)        // urgent: the input updates now
+    startTransition(() => {
+      setQuery(e.target.value)     // low priority, can be interrupted
+    })
+  }
+
+  return (
+    <>
+      <input value={text} onChange={handleChange} />
+      {isPending && <p>Updating...</p>}
+      <HugeList query={query} />
+    </>
+  )
+}`,
+    output: `Old stack reconciler: renders the whole tree in one go -> input freezes
+
+Fiber + concurrent rendering:
+  type "a"  -> urgent render: input shows "a"
+            -> transition render of HugeList starts
+  type "ab" -> React drops the unfinished work, input shows "ab"
+            -> restarts HugeList with "ab"
+
+Result: typing never waits for the slow list.`,
+  },
+  {
+    q: 'Why does React.memo sometimes not help? (inline objects and functions)',
+    level: 'Advanced',
+    a: 'React.memo compares each prop with Object.is, so an object, array or function created during render is a new value every time, and the memoized child re-renders anyway. Passing style={{ color: \'blue\' }} or onClick={() => ...} to a memo child silently cancels the benefit. I fix it by moving constants outside the component, wrapping functions in useCallback and objects in useMemo, or passing primitive props; the React Compiler can now do this memoization for me.',
+    code: `const Child = memo(function Child({ label, style, onClick }) {
+  console.log(label + ' rendered')
+  return <button style={style} onClick={onClick}>{label}</button>
+})
+
+const BLUE = { color: 'blue' } // created once, outside
+
+function Parent() {
+  const [count, setCount] = useState(0)
+  const handleClick = useCallback(() => console.log('clicked'), [])
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+        Re-render parent ({count})
+      </button>
+
+      {/* new object + new function each render: memo is useless */}
+      <Child label="Inline props" style={{ color: 'blue' }}
+        onClick={() => console.log('clicked')} />
+
+      {/* same references: re-render is skipped */}
+      <Child label="Stable props" style={BLUE} onClick={handleClick} />
+    </>
+  )
+}`,
+    output: <MemoPitfallDemo />,
+  },
+  {
+    q: 'How do you make React components accessible?',
+    level: 'Advanced',
+    a: 'I start with semantic HTML: real buttons instead of clickable divs, labels connected to inputs with htmlFor and useId, and headings in order, which gives keyboard and screen reader support for free. For custom widgets I add ARIA attributes like aria-expanded, aria-invalid and aria-describedby, and role="alert" for error messages. I test with the keyboard only, a screen reader, and tools like axe or the jsx-a11y lint rules.',
+    code: `function Faq() {
+  const [open, setOpen] = useState(false)
+  const [email, setEmail] = useState('')
+  const id = useId()
+  const error = email && !email.includes('@') ? 'Email must contain @' : ''
+
+  return (
+    <>
+      <button aria-expanded={open} aria-controls={id + '-panel'}
+        onClick={() => setOpen(!open)}>
+        What is your refund policy?
+      </button>
+      <p id={id + '-panel'} hidden={!open}>30 days, no questions asked.</p>
+
+      <label htmlFor={id + '-email'}>Email</label>
+      <input id={id + '-email'} type="email" value={email}
+        aria-invalid={!!error} aria-describedby={id + '-error'}
+        onChange={(e) => setEmail(e.target.value)} />
+      <p id={id + '-error'} role="alert">{error}</p>
+    </>
+  )
+}`,
+    output: <A11yDemo />,
+  },
+  {
+    q: 'How does React protect against XSS, and when is dangerouslySetInnerHTML risky?',
+    level: 'Advanced',
+    a: 'React escapes every value I render with curly braces, so a string like <img onerror=...> shows up as plain text and never runs. The risk is dangerouslySetInnerHTML, which inserts raw HTML, so I only use it with HTML I trust or after sanitizing it with a library like DOMPurify. I also watch out for javascript: URLs in href built from user input, and never pass user input to eval.',
+    code: `function escapeHtml(text) {
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+}
+
+function Comment() {
+  const [text, setText] = useState('<img src=x onerror="alert(1)"> Hello')
+  return (
+    <>
+      <input value={text} onChange={(e) => setText(e.target.value)} />
+
+      {/* Safe: React escapes it, the tags show as text */}
+      <p>{text}</p>
+
+      {/* The HTML React actually writes */}
+      <code>{escapeHtml(text)}</code>
+
+      {/* Dangerous: would run the onerror script */}
+      {/* <p dangerouslySetInnerHTML={{ __html: text }} /> */}
+
+      {/* If you must, sanitize first */}
+      {/* <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text) }} /> */}
+    </>
+  )
+}`,
+    output: <XssDemo />,
+  },
+  {
+    q: 'How do environment variables work in Vite?',
+    level: 'Advanced',
+    a: 'Vite loads variables from .env files but exposes only the ones starting with VITE_ to my code, through import.meta.env instead of process.env. They are replaced at build time, so they end up inside the JavaScript bundle where anyone can read them; I never put secrets like private API keys there, those stay on a server. I use .env.development and .env.production for per-mode values, and .env.local for my own machine, which is git-ignored.',
+    code: `# .env
+VITE_API_URL=https://api.example.com
+DB_PASSWORD=secret123          # not exposed: no VITE_ prefix
+
+# .env.development
+VITE_API_URL=http://localhost:3000
+
+// src/api.js
+const API_URL = import.meta.env.VITE_API_URL
+console.log(import.meta.env.MODE)        // 'development' or 'production'
+console.log(import.meta.env.DEV)         // true in dev
+console.log(import.meta.env.DB_PASSWORD) // undefined
+
+fetch(API_URL + '/users')`,
+    output: `npm run dev    -> VITE_API_URL = http://localhost:3000, MODE = development
+npm run build  -> VITE_API_URL = https://api.example.com, MODE = production
+DB_PASSWORD    -> undefined (only VITE_ variables reach the browser)
+
+VITE_ values are baked into the bundle: never put secrets there.`,
+  },
+  {
+    q: 'Coding task: build a counter with undo and redo',
+    level: 'Advanced',
+    a: 'I store three things together: the past values, the present value and the future values. A new change pushes the present into past and clears future; undo moves the present into future and takes the last item from past; redo does the opposite. Keeping them in one state object (or a reducer) means they always update together, and I disable the buttons when there is nothing to undo or redo.',
+    code: `function UndoCounter() {
+  const [history, setHistory] = useState({ past: [], present: 0, future: [] })
+  const { past, present, future } = history
+
+  const change = (delta) => setHistory({
+    past: [...past, present],
+    present: present + delta,
+    future: [], // a new change clears redo
+  })
+
+  const undo = () => setHistory({
+    past: past.slice(0, -1),
+    present: past[past.length - 1],
+    future: [present, ...future],
+  })
+
+  const redo = () => setHistory({
+    past: [...past, present],
+    present: future[0],
+    future: future.slice(1),
+  })
+
+  return (
+    <>
+      <h2>{present}</h2>
+      <button onClick={() => change(-1)}>-1</button>
+      <button onClick={() => change(1)}>+1</button>
+      <button onClick={undo} disabled={!past.length}>Undo</button>
+      <button onClick={redo} disabled={!future.length}>Redo</button>
+      <p>History: {past.join(' -> ') || 'none'}</p>
+    </>
+  )
+}`,
+    output: <UndoRedoDemo />,
+  },
+  {
+    q: 'Coding task: todo list with All / Active / Completed filters',
+    level: 'Advanced',
+    a: 'I store the todos and the current filter name in state, but never a separate filtered list; the visible todos are derived with todos.filter(FILTERS[filter]). Keeping the filter functions in an object makes adding a new filter a one-line change, and I can build the filter buttons from its keys. The items-left counter is derived the same way, so everything stays in sync automatically.',
+    code: `const FILTERS = {
+  all: () => true,
+  active: (t) => !t.done,
+  completed: (t) => t.done,
+}
+
+function TodoApp() {
+  const [todos, setTodos] = useState([
+    { id: 1, text: 'Learn React', done: true },
+    { id: 2, text: 'Practice hooks', done: false },
+    { id: 3, text: 'Build a project', done: false },
+  ])
+  const [text, setText] = useState('')
+  const [filter, setFilter] = useState('all')
+
+  const add = (e) => {
+    e.preventDefault()
+    if (!text.trim()) return
+    setTodos([...todos, { id: Date.now(), text: text.trim(), done: false }])
+    setText('')
+  }
+  const toggle = (id) =>
+    setTodos(todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+  const clearCompleted = () => setTodos(todos.filter((t) => !t.done))
+
+  const visible = todos.filter(FILTERS[filter])
+  const left = todos.filter((t) => !t.done).length
+
+  return (
+    <>
+      <form onSubmit={add}>
+        <input value={text} onChange={(e) => setText(e.target.value)} />
+        <button type="submit">Add</button>
+      </form>
+      {Object.keys(FILTERS).map((f) => (
+        <button key={f} onClick={() => setFilter(f)}
+          style={{ fontWeight: f === filter ? 'bold' : 'normal' }}>
+          {f}
+        </button>
+      ))}
+      <ul>
+        {visible.map((t) => (
+          <li key={t.id}>
+            <input type="checkbox" checked={t.done} onChange={() => toggle(t.id)} />
+            {t.text}
+          </li>
+        ))}
+      </ul>
+      <p>
+        {left} items left
+        <button onClick={clearCompleted}>Clear completed</button>
+      </p>
+    </>
+  )
+}`,
+    output: <FilteredTodoDemo />,
+  },
+  {
+    q: 'Coding task: build a star rating component',
+    level: 'Advanced',
+    a: 'I make the component controlled: the parent owns the rating and passes value and onChange, while the hover preview is local state inside the stars. A star is filled when its number is less than or equal to the hovered star, or to the saved value when nothing is hovered. I use real buttons with an aria-label for each star, so it also works with the keyboard and screen readers.',
+    code: `function StarRating({ max = 5, value, onChange }) {
+  const [hover, setHover] = useState(0)
+  return (
+    <div onMouseLeave={() => setHover(0)}>
+      {Array.from({ length: max }, (_, i) => {
+        const star = i + 1
+        const filled = star <= (hover || value)
+        return (
+          <button key={star} aria-label={star + ' stars'}
+            onMouseEnter={() => setHover(star)}
+            onClick={() => onChange(star)}
+            style={{ fontSize: 28, border: 'none', background: 'none',
+              color: filled ? 'gold' : 'lightgray' }}>
+            ★
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function App() {
+  const [rating, setRating] = useState(3)
+  return (
+    <>
+      <StarRating value={rating} onChange={setRating} />
+      <p>You rated {rating} / 5</p>
+    </>
+  )
+}`,
+    output: <StarRatingDemo />,
+  },
+  {
+    q: 'Coding task: build an OTP input with auto-focus and paste',
+    level: 'Advanced',
+    a: 'I keep the digits in an array state and store a ref to every input in a refs array. On change I keep only the last typed digit and move focus to the next box; on Backspace in an empty box I move focus back. I also handle paste on the wrapper, so pasting a full code fills all boxes at once, and I use inputMode="numeric" so phones show the number keyboard.',
+    code: `const LENGTH = 4
+
+function OtpInput() {
+  const [digits, setDigits] = useState(Array(LENGTH).fill(''))
+  const inputs = useRef([])
+
+  const handleChange = (i, e) => {
+    const value = e.target.value.replace(/\\D/g, '').slice(-1) // last digit only
+    const next = [...digits]
+    next[i] = value
+    setDigits(next)
+    if (value && i < LENGTH - 1) inputs.current[i + 1].focus()
+  }
+
+  const handleKeyDown = (i, e) => {
+    if (e.key === 'Backspace' && !digits[i] && i > 0) {
+      inputs.current[i - 1].focus()
+    }
+  }
+
+  const handlePaste = (e) => {
+    const pasted = e.clipboardData.getData('text').replace(/\\D/g, '').slice(0, LENGTH)
+    if (!pasted) return
+    e.preventDefault()
+    setDigits(Array.from({ length: LENGTH }, (_, i) => pasted[i] || ''))
+    inputs.current[Math.min(pasted.length, LENGTH - 1)].focus()
+  }
+
+  const code = digits.join('')
+  return (
+    <>
+      <div onPaste={handlePaste}>
+        {digits.map((d, i) => (
+          <input key={i} value={d} inputMode="numeric"
+            ref={(el) => { inputs.current[i] = el }}
+            aria-label={'Digit ' + (i + 1)}
+            onChange={(e) => handleChange(i, e)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+            style={{ width: 40, textAlign: 'center', fontSize: 20 }} />
+        ))}
+      </div>
+      <p>{code.length === LENGTH ? 'Verifying ' + code : 'Enter the ' + LENGTH + '-digit code'}</p>
+    </>
+  )
+}`,
+    output: <OtpDemo />,
   },
 ]

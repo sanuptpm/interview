@@ -1,5 +1,5 @@
 // Docker interview questions, basics to advanced.
-// Each item: { q, a, code, output }. Outputs are realistic examples
+// Each item: { q, level, a, code, output }. Outputs are realistic examples
 // in Docker 29 CLI format; IDs, digests and timings are shortened
 // or illustrative.
 
@@ -187,31 +187,19 @@ docker logs -f web              # Ctrl+C to stop following`,
     a: "A Dockerfile is a recipe for building an image. FROM picks the base image, WORKDIR sets and creates the working directory, COPY copies files from the build context, RUN executes a command at build time and saves the result as a layer, EXPOSE documents the port the app listens on, and CMD sets the default command when the container starts. Remember that RUN happens at build time and CMD at run time, and EXPOSE does not actually publish the port; -p does.",
     code: `# Dockerfile
 FROM python:3.12-slim
-
 WORKDIR /app
-
-# Install dependencies (build time)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the source code
+# RUN = build time
+RUN pip install -r requirements.txt
 COPY . .
-
-# Documentation only - publish with -p
+# EXPOSE is documentation only (publish with -p); CMD = run time
 EXPOSE 8000
-
-# Default command (run time)
 CMD ["python", "app.py"]`,
     output: `$ docker build -t hello-py .
-[+] Building 14.2s (10/10) FINISHED                        docker:desktop-linux
- => [internal] load build definition from Dockerfile                       0.0s
- => [internal] load metadata for docker.io/library/python:3.12-slim        1.1s
- => [1/5] FROM docker.io/library/python:3.12-slim@sha256:9c4e2f7a...       3.4s
  => [2/5] WORKDIR /app                                                     0.1s
  => [3/5] COPY requirements.txt .                                          0.0s
- => [4/5] RUN pip install --no-cache-dir -r requirements.txt               8.6s
+ => [4/5] RUN pip install -r requirements.txt                              8.6s
  => [5/5] COPY . .                                                         0.0s
- => exporting to image                                                     0.6s
  => => naming to docker.io/library/hello-py:latest                         0.0s
 
 $ docker run --rm -p 8000:8000 hello-py
@@ -259,6 +247,133 @@ docker images myapi --format "{{.Repository}}:{{.Tag}}  {{.ID}}"`,
     output: `myapi:1.4.2  b4d6e8f0a2c4
 myapi:1.4  b4d6e8f0a2c4
 myapi:sha-3f9c1a7  b4d6e8f0a2c4`,
+  },
+  {
+    q: "How do you filter and format the output of docker images and docker ps?",
+    level: 'Basics',
+    a: "Both commands take --filter to narrow the list, for example dangling=true for untagged leftover images, reference= for a repository pattern, or status=exited for stopped containers. --format with a Go template picks exactly the columns I want, and the 'table' prefix keeps the headers. I use -q to print only IDs, which is perfect for piping into docker rm or docker rmi in scripts.",
+    code: `# Untagged leftovers from rebuilds
+docker images --filter dangling=true
+
+# Only my app images, custom columns
+docker images --filter "reference=myapi:*" \\
+  --format "table {{.Repository}}:{{.Tag}}\\t{{.ID}}\\t{{.Size}}"
+
+# Stopped containers, names and status only
+docker ps -a --filter status=exited --format "{{.Names}}: {{.Status}}"
+
+# IDs only -> remove all exited containers
+docker rm $(docker ps -aq --filter status=exited)`,
+    output: `REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+<none>       <none>    5e8a1c3b7d90   2 hours ago    162MB
+REPOSITORY:TAG   IMAGE ID       SIZE
+myapi:1.4.2      b4d6e8f0a2c4   162MB
+myapi:1.4.1      9a7c5e3b1d2f   161MB
+migrate: Exited (0) 3 hours ago
+worker: Exited (137) 20 minutes ago
+4c2e9a7b1f3d
+8b1d5f2a6c9e`,
+  },
+  {
+    q: "What states can a container be in, and how do you move between them?",
+    level: 'Basics',
+    a: "A container is created (exists but never started), running, paused (processes frozen), restarting, exited (main process ended) or dead. docker create, start, pause, unpause, stop and rm move it between those states, and docker ps -a shows all of them, not just running ones. When something looks wrong I check the state and exit code first, because an exited container keeps its filesystem and logs until I remove it.",
+    code: `docker create --name web nginx:alpine
+docker ps -a --filter name=web --format "{{.Names}}  {{.State}}"
+docker start web
+docker pause web
+docker ps --filter name=web --format "{{.Names}}  {{.Status}}"
+docker unpause web
+docker stop web
+docker inspect --format '{{.State.Status}} exit={{.State.ExitCode}}' web
+docker rm web`,
+    output: `3f7a9c1e5b2d8f4a6c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6e8b0d2f4a
+web  created
+web
+web
+web  Up 6 seconds (Paused)
+web
+web
+exited exit=0
+web`,
+  },
+  {
+    q: "How do you copy files between a container and the host with docker cp?",
+    level: 'Basics',
+    a: "docker cp copies files or folders in either direction: container:path to the host, or host path to container:path, and it works even on a stopped container. I use it to pull out a log file, a crash dump or a generated report, or to drop a config file into a container while debugging. For anything permanent I use a volume or rebuild the image instead, because copied files disappear when the container is removed.",
+    code: `docker run -d --name web nginx:alpine
+
+# Container -> host
+docker cp web:/etc/nginx/conf.d/default.conf ./default.conf
+head -3 default.conf
+
+# Host -> container, then reload nginx
+docker cp ./maintenance.html web:/usr/share/nginx/html/
+docker exec web ls /usr/share/nginx/html
+docker exec web nginx -s reload`,
+    output: `Successfully copied 3.07kB to /home/dev/default.conf
+server {
+    listen       80;
+    listen  [::]:80;
+Successfully copied 2.05kB to web:/usr/share/nginx/html/
+50x.html
+index.html
+maintenance.html
+2026/11/12 10:15:02 [notice] 31#31: signal process started`,
+  },
+  {
+    q: "How do you see live resource usage and processes of running containers?",
+    level: 'Basics',
+    a: "docker stats streams CPU, memory, network and disk I/O for every running container, like top for containers, and --no-stream gives a one-time snapshot. docker top shows the processes running inside one container as seen from the host. When an app is slow, I check docker stats first to see whether it is hitting its memory or CPU limit before I dig into the code.",
+    code: `# One snapshot for all running containers
+docker stats --no-stream
+
+# Only the columns I care about
+docker stats --no-stream --format "table {{.Name}}\\t{{.CPUPerc}}\\t{{.MemPerc}}"
+
+# Processes inside the api container
+docker top api`,
+    output: `CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+a1b2c3d4e5f6   api       12.41%    187.3MiB / 512MiB     36.58%    2.31MB / 4.87MB   12.3MB / 0B      9
+b2c3d4e5f6a7   db        1.87%     64.12MiB / 7.66GiB    0.82%     4.12MB / 1.95MB   48.1MB / 31MB    11
+c3d4e5f6a7b8   web       0.00%     9.25MiB / 7.66GiB     0.12%     1.02MB / 3.4MB    0B / 4.1kB       9
+NAME      CPU %     MEM %
+api       12.41%    36.58%
+db        1.87%     0.82%
+web       0.00%     0.12%
+UID     PID     PPID    C   STIME   TTY   TIME       CMD
+1000    41522   41501   2   10:02   ?     00:00:09   /usr/local/bin/python /usr/local/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
+1000    41580   41522   5   10:02   ?     00:00:21   /usr/local/bin/python -c from multiprocessing.spawn import spawn_main ...
+1000    41581   41522   5   10:02   ?     00:00:20   /usr/local/bin/python -c from multiprocessing.spawn import spawn_main ...`,
+  },
+  {
+    q: "How do you see what changed inside a container and how an image was built?",
+    level: 'Basics',
+    a: "docker diff lists files added (A), changed (C) or deleted (D) in a container's writable layer compared to its image, which tells me if an app is writing where it shouldn't. docker history shows the layers of an image with the instruction that created each one and its size. I use history to spot the one fat layer, like a forgotten cache or a big COPY, when an image is larger than expected.",
+    code: `docker run -d --name web nginx:alpine
+docker exec web sh -c 'echo hi > /tmp/note.txt && rm /etc/nginx/conf.d/default.conf'
+docker diff web
+
+# Layers, newest first, with the instruction that made them
+docker history --format "table {{.CreatedBy}}\\t{{.Size}}" myapi:1.4.2`,
+    output: `C /etc
+C /etc/nginx
+C /etc/nginx/conf.d
+D /etc/nginx/conf.d/default.conf
+C /run
+A /run/nginx.pid
+C /tmp
+A /tmp/note.txt
+CREATED BY                                      SIZE
+CMD ["uvicorn" "main:app" "--host" "0.0.0.0"…   0B
+USER app                                        0B
+COPY . . # buildkit                             48.2kB
+RUN /bin/sh -c pip install --no-cache-dir -r…   41.3MB
+COPY requirements.txt . # buildkit              92B
+WORKDIR /app                                    0B
+CMD ["python3"]                                 0B
+RUN /bin/sh -c set -eux;  savedAptMark="$(ap…   38.9MB
+...`,
   },
   {
     q: "What is the difference between CMD and ENTRYPOINT?",
@@ -316,25 +431,23 @@ RUN ls /data /opt/vendor`,
   {
     q: "What is the difference between ARG and ENV?",
     level: 'Intermediate',
-    a: "ARG is a build-time variable: I pass it with --build-arg and it exists only while the image is building. ENV sets an environment variable that is baked into the image and is visible to the running container, and it can be overridden with -e at run time. I never put secrets in either, because both can be seen in docker history or docker inspect.",
+    a: "ARG is a build-time variable: I pass it with --build-arg and it exists only while the image is building, which is why version is empty when the container runs. ENV sets an environment variable that is baked into the image and is visible to the running container, and it can be overridden with -e at run time. I never put secrets in either, because both can be seen in docker history or docker inspect.",
     code: `# Dockerfile
 FROM alpine:3.22
+# ARG: build time only. ENV: build time and run time
 ARG APP_VERSION=dev
 ENV APP_ENV=production
-# ARG -> ENV to keep the value at run time
-ENV APP_VERSION=\${APP_VERSION}
-RUN echo "building version \${APP_VERSION}"
+RUN echo "building version $APP_VERSION"
 CMD ["sh", "-c", "echo env=$APP_ENV version=$APP_VERSION"]
 
-# Commands
 docker build --build-arg APP_VERSION=1.2.0 -t argenv .
 docker run --rm argenv
 docker run --rm -e APP_ENV=staging argenv`,
     output: ` => [2/2] RUN echo "building version 1.2.0"                                0.2s
  => => # building version 1.2.0
 
-env=production version=1.2.0
-env=staging version=1.2.0`,
+env=production version=
+env=staging version=`,
   },
   {
     q: "What are layers and how does the build cache work?",
@@ -343,26 +456,19 @@ env=staging version=1.2.0`,
     code: `# Dockerfile - cache-friendly order
 FROM node:22-alpine
 WORKDIR /app
-
-# 1. Dependencies change rarely -> cached
+# Dependencies change rarely -> these layers stay cached
 COPY package.json package-lock.json ./
 RUN npm ci
-
-# 2. Source changes often -> only this rebuilds
+# Source changes often -> only these rerun
 COPY . .
 RUN npm run build
 
-# After editing src/App.jsx:
-#   docker build -t web .`,
-    output: `[+] Building 6.1s (11/11) FINISHED                         docker:desktop-linux
- => [internal] load build context                                          0.1s
- => [1/6] FROM docker.io/library/node:22-alpine@sha256:b2a5...             0.0s
- => CACHED [2/6] WORKDIR /app                                              0.0s
+docker build -t web .    # after editing src/App.jsx`,
+    output: ` => CACHED [2/6] WORKDIR /app                                              0.0s
  => CACHED [3/6] COPY package.json package-lock.json ./                    0.0s
  => CACHED [4/6] RUN npm ci                                                0.0s
  => [5/6] COPY . .                                                         0.1s
- => [6/6] RUN npm run build                                                4.9s
- => exporting to image                                                     0.6s`,
+ => [6/6] RUN npm run build                                                4.9s`,
   },
   {
     q: "What is a .dockerignore file?",
@@ -372,15 +478,11 @@ RUN npm run build
 node_modules
 dist
 .git
-.gitignore
 .env
 .env.*
 !.env.example
 __pycache__
-*.pyc
-.venv
-Dockerfile
-docker-compose*.yml`,
+.venv`,
     output: `# Without .dockerignore
  => [internal] load build context                                          7.9s
  => => transferring context: 312.48MB                                      7.8s
@@ -394,27 +496,18 @@ docker-compose*.yml`,
     level: 'Intermediate',
     a: "A multi-stage build uses several FROM stages in one Dockerfile; I build in a heavy stage that has compilers and dev dependencies, then copy only the finished artifacts into a small final stage. The final image contains no Node, no node_modules and no source code. For a React app the result is just Nginx plus static files, which shrinks the image from over a gigabyte to around 50 MB and reduces the attack surface.",
     code: `# Dockerfile
-# ---- Stage 1: build ----
+# Stage 1: build
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
 COPY . .
-RUN npm run build              # outputs /app/dist
+RUN npm ci && npm run build        # outputs /app/dist
 
-# ---- Stage 2: serve ----
+# Stage 2: serve only the static files
 FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-
-# Commands
-docker build -t react-web .
-docker run -d -p 8080:80 react-web`,
-    output: ` => [build 4/6] RUN npm ci                                                12.4s
- => [build 6/6] RUN npm run build                                          6.2s
+COPY --from=build /app/dist /usr/share/nginx/html`,
+    output: `$ docker build -t react-web .
+ => [build 4/4] RUN npm ci && npm run build                               18.6s
  => [stage-1 2/2] COPY --from=build /app/dist /usr/share/nginx/html        0.1s
- => => naming to docker.io/library/react-web:latest                        0.0s
 
 $ docker images --format "{{.Repository}}:{{.Tag}}  {{.Size}}"
 react-web:latest  82.1MB
@@ -423,22 +516,17 @@ node:22-alpine  226MB`,
   {
     q: "How would you write a multi-stage build for a Python app?",
     level: 'Intermediate',
-    a: "For Python I install dependencies in a builder stage, often into a virtual environment, because some packages need gcc and headers to compile. Then I copy just the virtual environment and the code into a clean slim image, so build tools never reach production. I also set PYTHONDONTWRITEBYTECODE and PYTHONUNBUFFERED so logs appear immediately.",
+    a: "For Python I install dependencies in a builder stage into a virtual environment, because that is where build tools like gcc live when some packages need compiling. Then I copy just the virtual environment and the code into a clean slim image, so build tools never reach production. In real projects I also set PYTHONUNBUFFERED=1 so logs appear immediately.",
     code: `# Dockerfile
 FROM python:3.12-slim AS builder
-RUN apt-get update && apt-get install -y --no-install-recommends gcc \\
-    && rm -rf /var/lib/apt/lists/*
 RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN /venv/bin/pip install -r requirements.txt
 
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH="/venv/bin:$PATH"
 COPY --from=builder /venv /venv
-WORKDIR /app
-COPY . .
-CMD ["python", "main.py"]`,
+COPY . /app
+CMD ["/venv/bin/python", "/app/main.py"]`,
     output: `$ docker images --format "table {{.Repository}}\\t{{.Size}}"
 REPOSITORY       SIZE
 py-single-stage  612MB
@@ -448,12 +536,7 @@ py-multi-stage   187MB`,
     q: "How do you reduce Docker image size?",
     level: 'Intermediate',
     a: "I start from a small base like alpine or a -slim variant, use multi-stage builds so build tools stay out of the final image, and combine related RUN commands so package-manager caches are deleted in the same layer they were created. I also use --no-cache-dir for pip, --no-install-recommends for apt, and a good .dockerignore. docker history shows me which layer is the heavy one.",
-    code: `# Bad: cache stays in an earlier layer
-#   RUN apt-get update
-#   RUN apt-get install -y curl
-#   RUN rm -rf /var/lib/apt/lists/*
-
-# Good: one layer, cleaned in the same step
+    code: `# One layer: install and clean up in the same step
 FROM debian:bookworm-slim
 RUN apt-get update \\
  && apt-get install -y --no-install-recommends curl \\
@@ -494,18 +577,13 @@ tmpfs                     3.8G         0      3.8G   0% /cache`,
     code: `docker volume create pgdata
 docker run -d --name db -e POSTGRES_PASSWORD=secret \\
   -v pgdata:/var/lib/postgresql/data postgres:17-alpine
-
 docker exec db psql -U postgres -c "CREATE TABLE t(id int); INSERT INTO t VALUES (1);"
 
-# Remove the container completely...
+# Remove the container, start a new one on the same volume
 docker rm -f db
-# ...start a new one on the same volume
 docker run -d --name db -e POSTGRES_PASSWORD=secret \\
   -v pgdata:/var/lib/postgresql/data postgres:17-alpine
-docker exec db psql -U postgres -c "SELECT * FROM t;"
-
-# Backup
-docker exec db pg_dump -U postgres postgres > backup.sql`,
+docker exec db psql -U postgres -c "SELECT * FROM t;"`,
     output: `pgdata
 d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6e8b0d2f4
 INSERT 0 1
@@ -546,7 +624,7 @@ round-trip min/avg/max = 0.112/0.112/0.112 ms`,
   {
     q: "How does port mapping work?",
     level: 'Intermediate',
-    a: "Containers have their own network namespace, so a port the app listens on is not reachable from the host until I publish it with -p HOST:CONTAINER. I can bind to a specific host IP like 127.0.0.1 so a database isn't exposed to the whole network, and -P publishes all EXPOSEd ports on random high ports. Containers talking to each other on the same network don't need -p at all; they use the container port directly.",
+    a: "Containers have their own network namespace, so a port the app listens on is not reachable from the host until I publish it with -p HOST:CONTAINER. I can bind to a specific host IP like 127.0.0.1 so a database isn't exposed to the whole network. Containers talking to each other on the same network don't need -p at all; they use the container port directly.",
     code: `# host 8080 -> container 80
 docker run -d --name web -p 8080:80 nginx:alpine
 
@@ -554,17 +632,11 @@ docker run -d --name web -p 8080:80 nginx:alpine
 docker run -d --name db -p 127.0.0.1:5432:5432 \\
   -e POSTGRES_PASSWORD=secret postgres:17-alpine
 
-# random host ports for all EXPOSEd ports
-docker run -d --name web2 -P nginx:alpine
-
 docker port web
-docker port db
-docker port web2`,
+docker port db`,
     output: `80/tcp -> 0.0.0.0:8080
 80/tcp -> [::]:8080
-5432/tcp -> 127.0.0.1:5432
-80/tcp -> 0.0.0.0:32768
-80/tcp -> [::]:32768`,
+5432/tcp -> 127.0.0.1:5432`,
   },
   {
     q: "How do you handle environment variables and secrets?",
@@ -573,19 +645,12 @@ docker port web2`,
     code: `# Run-time config from a file (not committed to git)
 docker run --rm --env-file .env alpine sh -c 'echo $DB_HOST'
 
-# Build-time secret: available only during this RUN,
-# never stored in a layer
+# Build-time secret: only visible during this RUN, never in a layer
 #   RUN --mount=type=secret,id=npm_token \\
 #       NPM_TOKEN=$(cat /run/secrets/npm_token) npm ci
-docker build --secret id=npm_token,src=./npm_token.txt -t web .
-
-# Compose secret mounted as a file
-#   secrets:
-#     db_password:
-#       file: ./db_password.txt`,
+docker build --secret id=npm_token,src=./npm_token.txt -t web .`,
     output: `db.internal
 
-[+] Building 18.7s (10/10) FINISHED                        docker:desktop-linux
  => [4/5] RUN --mount=type=secret,id=npm_token NPM_TOKEN=$(cat /run/secr  14.2s
  => => naming to docker.io/library/web:latest                              0.0s
 
@@ -595,42 +660,26 @@ $ docker history web | grep -c npm_token
   {
     q: "What is Docker Compose? Show a FastAPI + PostgreSQL + React stack.",
     level: 'Intermediate',
-    a: "Docker Compose lets me describe a multi-container app in one YAML file: services, networks, volumes and environment, then start everything with one command. Compose creates a network for the project automatically, so services reach each other by service name, like 'db'. I use depends_on with a healthcheck condition so the API waits for Postgres, a named volume for the database data and env_file for config.",
-    code: `# docker-compose.yml
-services:
+    a: "Docker Compose lets me describe a multi-container app in one YAML file: services, networks, volumes and environment, then start everything with one command. Compose creates a network for the project automatically, so services reach each other by service name, like 'db' in the DATABASE_URL. I use depends_on to start the API after Postgres (in production with a healthcheck condition so it really waits), and a named volume for the database data.",
+    code: `services:
   db:
     image: postgres:17-alpine
-    env_file: .env                 # POSTGRES_USER / PASSWORD / DB
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $\${POSTGRES_USER}"]
-      interval: 5s
-      retries: 5
+    environment: { POSTGRES_PASSWORD: secret }
+    volumes: ["pgdata:/var/lib/postgresql/data"]
   api:
     build: ./backend
-    environment:
-      DATABASE_URL: postgresql://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@db:5432/\${POSTGRES_DB}
-    depends_on:
-      db:
-        condition: service_healthy
+    environment: { DATABASE_URL: "postgresql://postgres:secret@db:5432/postgres" }
+    depends_on: [db]
     ports: ["8000:8000"]
-  web:
-    build: ./frontend
-    ports: ["3000:80"]
-    depends_on: [api]
-volumes:
-  pgdata:`,
+  web: { build: ./frontend, ports: ["3000:80"], depends_on: [api] }
+volumes: { pgdata: {} }`,
     output: `$ docker compose up -d --build
-[+] Building 2/2
- ✔ shop-api  Built                                                         0.0s
- ✔ shop-web  Built                                                         0.0s
-[+] Running 6/6
+[+] Running 5/5
  ✔ Network shop_default    Created                                         0.1s
  ✔ Volume shop_pgdata      Created                                         0.0s
- ✔ Container shop-db-1     Healthy                                         5.8s
- ✔ Container shop-api-1    Started                                         6.0s
- ✔ Container shop-web-1    Started                                         6.2s`,
+ ✔ Container shop-db-1     Started                                         0.6s
+ ✔ Container shop-api-1    Started                                         0.8s
+ ✔ Container shop-web-1    Started                                         1.0s`,
   },
   {
     q: "What are the most used docker compose commands?",
@@ -706,6 +755,157 @@ crash
 crash`,
   },
   {
+    q: "What are Compose profiles and override files?",
+    level: 'Intermediate',
+    a: "Profiles let me mark optional services, like Adminer or a mail catcher, so they only start when I ask for that profile with --profile. Override files let me layer config: docker compose automatically merges compose.override.yaml on top of compose.yaml, and with several -f flags later files win. I keep production-like settings in compose.yaml and put dev-only things like bind mounts and debug ports in the override, then check the merged result with docker compose config.",
+    code: `# compose.yaml
+services:
+  api: { image: "myapi:1.4.2" }
+  adminer: { image: adminer, profiles: [debug] }   # only with --profile debug
+
+# compose.override.yaml (merged automatically)
+services:
+  api: { ports: ["8000:8000"] }
+
+docker compose up -d
+docker compose --profile debug up -d`,
+    output: `$ docker compose up -d
+[+] Running 2/2
+ ✔ Network shop_default  Created    0.1s
+ ✔ Container shop-api-1  Started    0.8s
+
+$ docker compose --profile debug up -d
+[+] Running 2/2
+ ✔ Container shop-api-1      Running    0.0s
+ ✔ Container shop-adminer-1  Started    0.4s`,
+  },
+  {
+    q: "How do you get hot reload in development with Docker Compose?",
+    level: 'Intermediate',
+    a: "The classic way is a bind mount of my source folder plus a dev server with reload, like uvicorn --reload or Vite. Compose watch (the develop.watch section, started with docker compose watch or up --watch) is the newer option: sync copies changed files into the container, and rebuild rebuilds the image when files like package.json change. It avoids bind-mount performance and permission problems on Mac and Windows.",
+    code: `# compose.yaml
+services:
+  web:
+    build: .
+    command: npm run dev -- --host
+    ports: ["5173:5173"]
+    develop:
+      watch:
+        - { action: sync, path: ./src, target: /app/src }   # copy changes in
+        - { action: rebuild, path: package.json }           # new dependency
+
+docker compose watch`,
+    output: `Watch enabled
+web-1  |   VITE v7.2.2  ready in 412 ms
+Syncing service "web" after 1 changes were detected
+web-1  | 10:21:44 AM [vite] (client) hmr update /src/App.jsx
+Rebuilding service(s) ["web"] after changes were detected...
+ ✔ Container web-web-1  Recreated    0.9s`,
+  },
+  {
+    q: "What are BuildKit cache mounts and how do they speed up builds?",
+    level: 'Intermediate',
+    a: "A normal RUN layer is thrown away when its input changes, so one new dependency means downloading everything again. RUN --mount=type=cache keeps a folder, like the pip, npm or apt cache, between builds without putting it into the image. Dependency installs then only fetch what is new, and the image stays small because the cache is never part of a layer. In CI I combine it with a registry or GitHub Actions cache backend.",
+    code: `# syntax=docker/dockerfile:1
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+# pip's cache survives between builds but never enters the image
+RUN --mount=type=cache,target=/root/.cache/pip \\
+    pip install -r requirements.txt
+COPY . .
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]
+
+# Node equivalent:
+#   RUN --mount=type=cache,target=/root/.npm npm ci`,
+    output: `$ docker build -t myapi .           # first build
+ => [4/5] RUN --mount=type=cache,target=/root/.cache/pip pip install ...   38.4s
+
+# add one package to requirements.txt and rebuild
+$ docker build -t myapi .
+ => [4/5] RUN --mount=type=cache,target=/root/.cache/pip pip install ...    4.1s
+Using cached fastapi-0.121.1-py3-none-any.whl
+Using cached pydantic-2.12.4-py3-none-any.whl
+Downloading orjson-3.11.4-cp312-cp312-manylinux_2_17_x86_64.whl (136 kB)`,
+  },
+  {
+    q: "Alpine vs slim vs distroless base images: what are the trade-offs?",
+    level: 'Intermediate',
+    a: "Alpine is tiny but uses musl instead of glibc, so some Python wheels and native libraries must be compiled or behave differently. Debian slim is bigger but compatible with almost everything, and distroless has only the runtime and my app: no shell or package manager, which means a much smaller attack surface. My default is slim for the build stage and slim or distroless for the final stage; with distroless I debug through a :debug variant or an ephemeral debug container.",
+    code: `FROM python:3.12-slim AS build
+COPY requirements.txt .
+RUN pip install --target=/deps -r requirements.txt
+
+# Final stage: no shell, no package manager, runs as nonroot
+FROM gcr.io/distroless/python3-debian12:nonroot
+COPY --from=build /deps /deps
+COPY main.py /app/
+ENV PYTHONPATH=/deps
+CMD ["/app/main.py"]`,
+    output: `$ docker images --format "table {{.Repository}}:{{.Tag}}\\t{{.Size}}"
+REPOSITORY:TAG                         SIZE
+python:3.12-alpine                     47.1MB
+python:3.12-slim                       124MB
+gcr.io/distroless/python3-debian12     52.8MB
+myapi:distroless                       96.4MB
+
+$ docker exec -it api sh
+OCI runtime exec failed: exec failed: unable to start container process: exec: "sh": executable file not found in $PATH: unknown`,
+  },
+  {
+    q: "How do you build multi-architecture images with docker buildx?",
+    level: 'Intermediate',
+    a: "Many teams build on Apple Silicon (arm64) but deploy to x86 servers, or run cheaper ARM instances like AWS Graviton, so one tag should work on both. docker buildx build --platform linux/amd64,linux/arm64 builds both variants and pushes a manifest list, and each host pulls the right one automatically. Emulated builds with QEMU are slow, so for heavy builds I use native ARM runners or cross-compile in the build stage.",
+    code: `# A builder that supports multi-platform output
+docker buildx create --name multi --driver docker-container --use
+
+docker buildx build \\
+  --platform linux/amd64,linux/arm64 \\
+  -t ghcr.io/acme/api:1.5.0 \\
+  --push .
+
+# One tag, two images
+docker buildx imagetools inspect ghcr.io/acme/api:1.5.0`,
+    output: `multi
+[+] Building 96.3s (24/24) FINISHED                docker-container:multi
+ => [linux/amd64 4/5] RUN pip install -r requirements.txt            21.7s
+ => [linux/arm64 4/5] RUN pip install -r requirements.txt            63.2s
+ => pushing manifest for ghcr.io/acme/api:1.5.0                       1.4s
+Name:      ghcr.io/acme/api:1.5.0
+MediaType: application/vnd.oci.image.index.v1+json
+Digest:    sha256:5f2c8e1a9b7d3f6e0c4a2b8d1e7f9a3c5b0d2e4f6a8c0b2d4e6f8a0c2e4b6d8f
+
+Manifests:
+  Name:      ghcr.io/acme/api:1.5.0@sha256:1a3c5e7b9d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c
+  Platform:  linux/amd64
+
+  Name:      ghcr.io/acme/api:1.5.0@sha256:7e9a1c3e5b7d9f0a2c4e6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a
+  Platform:  linux/arm64`,
+  },
+  {
+    q: "What is the difference between named and anonymous volumes, and how do you back up a volume?",
+    level: 'Intermediate',
+    a: "A named volume has a name I choose, like pgdata, so it is easy to reuse and survives docker compose down; an anonymous volume gets a random ID, often from a VOLUME line in a Dockerfile, and is easy to lose or leave behind as clutter. docker run --rm -v removes anonymous volumes with the container, but never named ones. To back up a volume I mount it read-only into a throwaway container and tar it to a bind-mounted folder, and I restore the same way in reverse (for databases, pg_dump is even safer).",
+    code: `docker run -d --name db -v pgdata:/var/lib/postgresql/data postgres:17
+docker run -d --name cache redis:8     # VOLUME /data -> anonymous
+docker volume ls
+
+# Backup: volume -> tar file on the host
+docker run --rm -v pgdata:/data:ro -v "$PWD":/backup alpine \\
+  tar czf /backup/pgdata-2026-11-12.tgz -C /data .
+ls -lh pgdata-2026-11-12.tgz
+
+# Restore into a new volume
+docker run --rm -v pgdata_restored:/data -v "$PWD":/backup alpine \\
+  tar xzf /backup/pgdata-2026-11-12.tgz -C /data`,
+    output: `9c1e3a5b7d9f...
+2b4d6f8a0c2e...
+DRIVER    VOLUME NAME
+local     8f3a1c5e7b9d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a
+local     pgdata
+-rw-r--r--  1 dev  staff   7.9M Nov 12 10:30 pgdata-2026-11-12.tgz`,
+  },
+  {
     q: "Why should containers run as a non-root user?",
     level: 'Advanced',
     a: "By default the process inside a container runs as root, and if an attacker escapes the app or the container, root makes the damage far worse. I create a dedicated user in the Dockerfile and switch with USER, after installing packages but before the CMD, and make sure the files it needs are owned by it with COPY --chown. Many official images already ship a user, like node in the node images, and I can enforce it at run time with --user.",
@@ -762,12 +962,7 @@ docker stats --no-stream --format \\
 # Going over the memory limit -> OOM killed
 docker run --name oom --memory 32m python:3.12-slim \\
   python -c "x = bytearray(100 * 1024 * 1024)"
-docker inspect --format 'OOMKilled={{.State.OOMKilled}} exit={{.State.ExitCode}}' oom
-
-# Compose
-#   deploy:
-#     resources:
-#       limits: { cpus: "0.5", memory: 256M }`,
+docker inspect --format 'OOMKilled={{.State.OOMKilled}} exit={{.State.ExitCode}}' oom`,
     output: `NAME      CPU %     MEM USAGE / LIMIT
 limited   0.00%     9.25MiB / 256MiB
 OOMKilled=true exit=137`,
@@ -882,65 +1077,42 @@ ls: cannot access '/app': No such file or directory`,
   {
     q: "How do you Dockerize a FastAPI app?",
     level: 'Advanced',
-    a: "I use python slim, install dependencies first for caching, copy the code, switch to a non-root user and run uvicorn in exec form bound to 0.0.0.0, because 127.0.0.1 inside a container is not reachable from outside. I add a healthcheck against a /health endpoint. In production I'd run multiple workers or let the orchestrator scale replicas instead.",
-    code: `# backend/Dockerfile
+    a: "I use python slim, install dependencies first for caching, copy the code, switch to a non-root user and run uvicorn in exec form bound to 0.0.0.0, because 127.0.0.1 inside a container is not reachable from outside. I also expose a /health endpoint for health checks. In production I'd run multiple workers or let the orchestrator scale replicas instead.",
+    code: `# Dockerfile
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
-RUN useradd --system --uid 1001 api && chown -R api /app
-USER api
-EXPOSE 8000
-HEALTHCHECK CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+USER nobody
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-# Commands
-docker build -t fastapi-app ./backend
+docker build -t fastapi-app .
 docker run -d --name api -p 8000:8000 fastapi-app
 curl -s localhost:8000/health`,
-    output: `[+] Building 21.3s (11/11) FINISHED                        docker:desktop-linux
- => => naming to docker.io/library/fastapi-app:latest                      0.0s
+    output: ` => => naming to docker.io/library/fastapi-app:latest                      0.0s
 b6d8f0a2c4e6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8
-{"status":"ok"}
-
-$ docker logs api
-INFO:     Started server process [1]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     172.17.0.1:53812 - "GET /health HTTP/1.1" 200 OK`,
+{"status":"ok"}`,
   },
   {
     q: "How do you Dockerize a React (Vite) app for production, including client-side routing?",
     level: 'Advanced',
-    a: "I use a multi-stage build: Node builds the static files, and Nginx serves them. Vite reads VITE_ variables at build time, so I pass them as build args, not at run time. For React Router I add an Nginx config with try_files falling back to index.html, otherwise refreshing a deep link like /users/5 returns a 404. I also cache hashed assets for a long time.",
-    code: `# frontend/Dockerfile
-FROM node:22-alpine AS build
+    a: "I use a multi-stage build: Node builds the static files, and Nginx serves them. Vite reads VITE_ variables at build time, so I pass them as build args, not at run time. For React Router I add an Nginx config with try_files falling back to index.html, otherwise refreshing a deep link like /users/5 returns a 404.",
+    code: `FROM node:22-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
 COPY . .
+# VITE_ variables are read at build time
 ARG VITE_API_URL
-ENV VITE_API_URL=\${VITE_API_URL}
-RUN npm run build
+RUN npm ci && npm run build
 
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# frontend/nginx.conf
-server {
-  listen 80;
-  root /usr/share/nginx/html;
-  location / { try_files $uri $uri/ /index.html; }
-  location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }
-}`,
-    output: `$ docker build --build-arg VITE_API_URL=https://api.example.com -t react-app ./frontend
- => [build 7/7] RUN npm run build                                          5.8s
+# nginx.conf (deep links -> index.html):
+#   location / { try_files $uri $uri/ /index.html; }`,
+    output: `$ docker build --build-arg VITE_API_URL=https://api.example.com -t react-app .
+ => [build 5/5] RUN npm ci && npm run build                               17.9s
  => [stage-1 3/3] COPY --from=build /app/dist /usr/share/nginx/html        0.1s
- => => naming to docker.io/library/react-app:latest                        0.0s
 
 $ docker run -d -p 3000:80 react-app
 $ curl -s -o /dev/null -w "%{http_code}\\n" localhost:3000/users/5
@@ -949,39 +1121,25 @@ $ curl -s -o /dev/null -w "%{http_code}\\n" localhost:3000/users/5
   {
     q: "How do you use Docker in CI/CD, for example GitHub Actions build and push?",
     level: 'Advanced',
-    a: "In CI I build the image once per commit, run tests against it, scan it, and push it to a registry tagged with the commit SHA, so the exact same image is promoted to staging and production. In GitHub Actions I use the official docker actions: login, buildx setup and build-push-action, with registry credentials stored as repository secrets. I enable the GitHub Actions cache backend so layers are reused between runs.",
+    a: "In CI I build the image once per commit and push it to a registry tagged with the commit SHA, so the exact same image is promoted to staging and production. In GitHub Actions I use the official docker actions, login and build-push-action, with registry credentials coming from secrets. In real pipelines I also run tests and a scan on the image, and turn on the GitHub Actions cache so layers are reused between runs.",
     code: `# .github/workflows/docker.yml
-name: docker
 on: { push: { branches: [main] } }
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: { contents: read, packages: write }
+    permissions: { packages: write }
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: \${{ github.actor }}
-          password: \${{ secrets.GITHUB_TOKEN }}
+        with: { registry: ghcr.io, username: "\${{ github.actor }}",
+                password: "\${{ secrets.GITHUB_TOKEN }}" }
       - uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: true
-          tags: ghcr.io/\${{ github.repository }}/api:\${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max`,
+        with: { push: true, tags: "ghcr.io/\${{ github.repository }}:\${{ github.sha }}" }`,
     output: `build  Set up job
-build  Run actions/checkout@v4
-build  Run docker/setup-buildx-action@v3
 build  Run docker/login-action@v3
        Login Succeeded!
 build  Run docker/build-push-action@v6
-       #12 exporting to image
        #12 pushing layers 2.1s done
-       #12 pushing manifest for ghcr.io/acme/shop/api:3f9c1a7e... done
-       #12 DONE 3.4s
+       #12 pushing manifest for ghcr.io/acme/shop:3f9c1a7e... done
 build  Complete job`,
   },
   {
@@ -991,22 +1149,10 @@ build  Complete job`,
     code: `# Docker: one container on one host
 docker run -d --name api -p 8000:8000 myapi:1.4.2
 
-# Kubernetes: desired state across a cluster
-# deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: api }
-spec:
-  replicas: 3
-  selector: { matchLabels: { app: api } }
-  template:
-    metadata: { labels: { app: api } }
-    spec:
-      containers:
-        - name: api
-          image: ghcr.io/acme/api:1.4.2
-          ports: [{ containerPort: 8000 }]`,
-    output: `$ kubectl apply -f deployment.yaml
+# Kubernetes: "keep 3 copies running" across a cluster
+kubectl create deployment api --image=myapi:1.4.2 --replicas=3
+kubectl get pods`,
+    output: `$ kubectl create deployment api --image=myapi:1.4.2 --replicas=3
 deployment.apps/api created
 
 $ kubectl get pods
@@ -1049,16 +1195,16 @@ web scaled to 5`,
     level: 'Advanced',
     a: "I keep images small and reproducible: slim or alpine bases pinned to a version, multi-stage builds, a .dockerignore and cache-friendly instruction order. For security I run as non-root, never bake in secrets, scan images in CI and rebuild regularly for base image patches. At run time I use one process per container, log to stdout, add healthchecks, set resource limits and restart policies, and store state in volumes, not in the container.",
     code: `# Dockerfile checklist in practice
-FROM python:3.12-slim                 # pinned, small base
+# Pinned, small base image
+FROM python:3.12-slim
 WORKDIR /app
-COPY requirements.txt .               # deps first (cache)
+# Dependencies first so they stay cached
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .                              # .dockerignore keeps it clean
-RUN useradd --system app
-USER app                              # non-root
-EXPOSE 8000
-HEALTHCHECK CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]   # exec form, PID 1`,
+COPY . .
+# Non-root user and exec-form CMD (gets SIGTERM as PID 1)
+USER nobody
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]`,
     output: `[x] Pinned, minimal base image
 [x] Multi-stage build where there is a build step
 [x] .dockerignore + cache-friendly layer order
@@ -1069,5 +1215,130 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]   # exec form, PID 1`,
 [x] HEALTHCHECK, resource limits, restart policy
 [x] Data in volumes
 [x] Image scanned (docker scout / trivy) in CI`,
+  },
+  {
+    q: "How do you harden a container at runtime (capabilities, read-only filesystem, seccomp)?",
+    level: 'Advanced',
+    a: "I start from least privilege: run as a non-root user, drop all Linux capabilities with --cap-drop ALL and add back only what is needed, like NET_BIND_SERVICE, and set no-new-privileges so setuid binaries can't escalate. --read-only makes the root filesystem immutable, with a tmpfs for the few folders the app must write to. Docker's default seccomp profile already blocks dangerous syscalls, so I never run with --privileged or seccomp=unconfined in production.",
+    code: `docker run -d --name api \\
+  --user 1000:1000 \\
+  --cap-drop ALL \\
+  --security-opt no-new-privileges \\
+  --read-only \\
+  --tmpfs /tmp \\
+  -p 8000:8000 myapi:1.4.2
+
+docker exec api touch /app/hack.txt
+docker exec api sh -c 'touch /tmp/ok.txt && echo tmp ok'`,
+    output: `6d8f0a2c4e6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f
+touch: cannot touch '/app/hack.txt': Read-only file system
+tmp ok`,
+  },
+  {
+    q: "What is rootless Docker and why would you use it?",
+    level: 'Advanced',
+    a: "Normally the Docker daemon runs as root, so anyone who can talk to the Docker socket is effectively root on the host. Rootless mode runs the daemon and containers as a normal user inside a user namespace, so even a container escape only gets that user's permissions. The trade-offs are that ports below 1024 and some storage and networking features need extra setup, so I use it on shared CI runners and developer servers where the security gain matters most.",
+    code: `# As a normal user (not root)
+dockerd-rootless-setuptool.sh install
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
+
+docker info --format '{{.SecurityOptions}}'
+
+# "root" inside the container is my user on the host
+docker run -d --name sleeper alpine sleep 300
+ps -o user,pid,cmd -C sleep`,
+    output: `[INFO] Creating /home/dev/.config/systemd/user/docker.service
+[INFO] Installed docker.service successfully.
+[INFO] To control docker.service, run: \`systemctl --user (start|stop|restart) docker.service\`
+[INFO] Make sure the following environment variable(s) are set (or add them to ~/.bashrc):
+export DOCKER_HOST=unix:///run/user/1000/docker.sock
+[name=seccomp,profile=builtin name=rootless name=cgroupns]
+USER       PID CMD
+dev      52817 sleep 300`,
+  },
+  {
+    q: "What are image signing and SBOMs, and why do they matter?",
+    level: 'Advanced',
+    a: "An SBOM (software bill of materials) is a list of every package and version inside an image, so when a new CVE appears I can quickly find which images are affected; BuildKit can attach one at build time with --sbom=true and docker scout or syft can read it. Signing, for example with Sigstore cosign, proves the image was built by our pipeline and not changed afterwards. In a mature setup CI signs every image by digest, and the cluster's admission policy refuses unsigned images.",
+    code: `# Build with SBOM and provenance attestations attached
+docker buildx build --sbom=true --provenance=mode=max \\
+  -t ghcr.io/acme/api:1.5.0 --push .
+
+# Read the SBOM
+docker scout sbom --format list ghcr.io/acme/api:1.5.0 | head -6
+
+# Sign by digest (keyless, using the CI's OIDC identity) and verify
+cosign sign --yes ghcr.io/acme/api@sha256:5f2c8e1a...
+cosign verify ghcr.io/acme/api:1.5.0 \\
+  --certificate-identity-regexp 'https://github.com/acme/api/' \\
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com`,
+    output: `           Name               Version            Type
+──────────────────────────────────────────────────────────
+  fastapi                   0.121.1         pypi
+  openssl                   3.5.4-1~deb13u1 deb
+  pydantic                  2.12.4          pypi
+  uvicorn                   0.38.0          pypi
+
+Verification for ghcr.io/acme/api:1.5.0 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates`,
+  },
+  {
+    q: "How do you debug networking between two containers?",
+    level: 'Advanced',
+    a: "First I check that both containers are on the same user-defined network, because only there do they resolve each other by name; the default bridge has no DNS. Then I test from inside: DNS lookup, then the port, using a tools image like nicolaka/netshoot attached to the target's network namespace so I don't have to install tools into my app image. The classic bugs are using localhost (which means the container itself), the host port instead of the container port, or an app listening only on 127.0.0.1 instead of 0.0.0.0.",
+    code: `docker network inspect shop_default \\
+  --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{"\\n"}}{{end}}'
+
+# Borrow the api container's network namespace with a tools image
+docker run --rm --network container:shop-api-1 nicolaka/netshoot \\
+  sh -c 'nslookup db; nc -zv db 5432; nc -zv localhost 5432'
+
+# Is the app listening on 0.0.0.0 or only 127.0.0.1?
+docker run --rm --network container:shop-api-1 nicolaka/netshoot ss -tlnp`,
+    output: `shop-db-1 172.19.0.2/16
+shop-api-1 172.19.0.3/16
+
+Server:		127.0.0.11
+Address:	127.0.0.11#53
+
+Non-authoritative answer:
+Name:	db
+Address: 172.19.0.2
+
+Connection to db (172.19.0.2) 5432 port [tcp/postgresql] succeeded!
+nc: connect to localhost (127.0.0.1) port 5432 (tcp) failed: Connection refused
+State   Recv-Q  Send-Q   Local Address:Port   Peer Address:Port  Process
+LISTEN  0       2048         127.0.0.1:8000        0.0.0.0:*
+LISTEN  0       4096        127.0.0.11:41237       0.0.0.0:*
+# api listens on 127.0.0.1 only -> fix: uvicorn --host 0.0.0.0`,
+  },
+  {
+    q: "As a Docker user, what are the Kubernetes basics: Pods, Deployments and Services?",
+    level: 'Advanced',
+    a: "A Pod is the smallest unit in Kubernetes, one or more containers that share a network, roughly like one docker run. A Deployment keeps a number of identical Pods running and rolls out new image versions, and a Service gives those Pods one stable DNS name and load-balances across them, like a Compose service name. The commands map nicely: kubectl logs, exec and port-forward are the Kubernetes versions of docker logs, exec and -p, and I always set readiness probes and resource requests.",
+    code: `# service.yaml: one stable name for the Deployment's Pods (app: api)
+apiVersion: v1
+kind: Service
+metadata: { name: api, labels: { app: api } }
+spec:
+  selector: { app: api }
+  ports: [{ port: 80, targetPort: 8000 }]
+
+kubectl apply -f service.yaml
+kubectl get pods,svc -l app=api
+kubectl port-forward svc/api 8080:80`,
+    output: `service/api created
+NAME                       READY   STATUS    RESTARTS   AGE
+pod/api-6d4b8c9f7d-2xkqp   1/1     Running   0          15s
+pod/api-6d4b8c9f7d-8mzrt   1/1     Running   0          15s
+pod/api-6d4b8c9f7d-tq5wn   1/1     Running   0          15s
+
+NAME          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/api   ClusterIP   10.96.142.17   <none>        80/TCP    15s
+Forwarding from 127.0.0.1:8080 -> 8000
+Forwarding from [::1]:8080 -> 8000`,
   },
 ]

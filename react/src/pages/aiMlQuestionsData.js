@@ -1,5 +1,5 @@
 // AI/ML interview questions, basics to advanced.
-// Each item: { q, a, code, output }. Every output is the real stdout from
+// Each item: { q, level, a, code, output }. Every output is the real stdout from
 // running the code with Python 3.15 + numpy, pandas, scikit-learn.
 
 export const questions = [
@@ -93,6 +93,27 @@ export const questions = [
     a: "train_test_split randomly splits my data into train and test parts; I set random_state so the split is the same every run. The stratify option keeps the class proportions the same in both parts, which is very important for imbalanced data. Without it, a small class could end up almost missing from the test set.",
     code: "import numpy as np\nfrom sklearn.model_selection import train_test_split\n\ny = np.array([0] * 90 + [1] * 10)        # 10% positive class\nX = np.arange(100).reshape(-1, 1)\n\n_, _, _, y_te = train_test_split(X, y, test_size=0.2, random_state=3)\nprint(\"Without stratify, positives in test:\", y_te.sum(), \"of\", len(y_te))\n\n_, _, _, y_te = train_test_split(X, y, test_size=0.2, random_state=3,\n                                 stratify=y)\nprint(\"With stratify, positives in test:\", y_te.sum(), \"of\", len(y_te))",
     output: "Without stratify, positives in test: 4 of 20\nWith stratify, positives in test: 2 of 20",
+  },
+  {
+    q: "How do you clean data with pandas, like removing duplicates and outliers?",
+    level: 'Basics',
+    a: "I start by dropping exact duplicate rows with drop_duplicates(), or duplicates on a key column like an ID with subset=. For outliers I like the IQR rule: anything below Q1 - 1.5*IQR or above Q3 + 1.5*IQR is suspicious. I don't delete outliers blindly; I first check if they are data errors or real rare cases, and sometimes I clip them instead.",
+    code: "import pandas as pd\n\ndf = pd.DataFrame({\n    \"id\":     [1, 2, 2, 3, 4, 5, 6, 7],\n    \"salary\": [50, 52, 52, 48, 51, 55, 49, 400],\n})\ndf = df.drop_duplicates()\nprint(\"Rows after dedup:\", len(df))\n\nq1, q3 = df[\"salary\"].quantile([0.25, 0.75])\niqr = q3 - q1\nlow, high = q1 - 1.5 * iqr, q3 + 1.5 * iqr\nprint(\"Bounds:\", low, high)\n\noutliers = df[(df[\"salary\"] < low) | (df[\"salary\"] > high)]\nprint(\"Outliers:\", outliers[\"id\"].tolist())\nclean = df[df[\"salary\"].between(low, high)]\nprint(\"Clean mean:\", round(clean[\"salary\"].mean(), 2))\nprint(\"Clipped max:\", df[\"salary\"].clip(low, high).max())",
+    output: "Rows after dedup: 7\nBounds: 43.5 59.5\nOutliers: [7]\nClean mean: 50.83\nClipped max: 59.5",
+  },
+  {
+    q: "How do you do quick exploratory data analysis (EDA) with pandas?",
+    level: 'Basics',
+    a: "My first steps are shape, info() and isna().sum() to see size, types and missing values. Then describe() gives me the spread of numeric columns, value_counts() shows category balance, and corr() shows which features move together with the target. I always look at the target distribution early, because a heavily imbalanced target changes my whole approach.",
+    code: "import pandas as pd\n\ndf = pd.DataFrame({\n    \"age\":     [25, 32, 47, 51, 38, 29, 60, None],\n    \"income\":  [30, 45, 80, 90, 60, 40, 95, 50],\n    \"city\":    [\"A\", \"B\", \"A\", \"C\", \"A\", \"B\", \"C\", \"A\"],\n    \"churned\": [1, 0, 0, 0, 0, 1, 0, 1],\n})\nprint(\"Shape:\", df.shape)\nprint(\"Missing:\", df.isna().sum().to_dict())\nprint(df[[\"age\", \"income\"]].describe().round(1).loc[[\"mean\", \"min\", \"max\"]])\nprint(df[\"city\"].value_counts().to_dict())\nprint(df[[\"age\", \"income\", \"churned\"]].corr()[\"churned\"].round(2).to_dict())",
+    output: "Shape: (8, 4)\nMissing: {'age': 1, 'income': 0, 'city': 0, 'churned': 0}\n       age  income\nmean  40.3    61.2\nmin   25.0    30.0\nmax   60.0    95.0\n{'A': 4, 'B': 2, 'C': 2}\n{'age': -0.71, 'income': -0.72, 'churned': 1.0}",
+  },
+  {
+    q: "How do you create time series features like moving averages and lags?",
+    level: 'Basics',
+    a: "For time series I sort by date first, then build lag features with shift() and rolling statistics with rolling().mean(). The key rule is that each feature may only use past values, otherwise I leak the future into training. The first rows will have NaN because there's no history yet, so I drop them or fill them carefully.",
+    code: "import pandas as pd\n\nsales = pd.DataFrame({\n    \"day\": pd.date_range(\"2024-01-01\", periods=7, freq=\"D\"),\n    \"units\": [10, 12, 9, 15, 14, 18, 20],\n})\nsales[\"lag_1\"] = sales[\"units\"].shift(1)                 # yesterday\nsales[\"ma_3\"] = sales[\"units\"].shift(1).rolling(3).mean() # past 3 days only\nsales[\"change\"] = sales[\"units\"].diff()\n\nsales[\"day\"] = sales[\"day\"].dt.strftime(\"%m-%d\")\nprint(sales.round(2).to_string(index=False))\nprint(\"Rows usable for training:\", len(sales.dropna()))",
+    output: "  day  units  lag_1  ma_3  change\n01-01     10    NaN   NaN     NaN\n01-02     12   10.0   NaN     2.0\n01-03      9   12.0   NaN    -3.0\n01-04     15    9.0 10.33     6.0\n01-05     14   15.0 12.00    -1.0\n01-06     18   14.0 12.67     4.0\n01-07     20   18.0 15.67     2.0\nRows usable for training: 4",
   },
   {
     q: "How does linear regression work?",
@@ -242,6 +263,76 @@ export const questions = [
     output: "Steps: ['impute', 'scale', 'model']\nCV accuracy (no leakage): 0.981",
   },
   {
+    q: "How do you split time series data for training and validation?",
+    level: 'Intermediate',
+    a: "With time series I never shuffle, because a random split lets the model peek at the future. I keep the order: train on the past, validate on the next period and test on the most recent data. For cross-validation I use TimeSeriesSplit, which keeps growing the training window and always validates on later data.",
+    code: "import numpy as np\nfrom sklearn.model_selection import TimeSeriesSplit\n\ndays = np.arange(12)          # 12 days in order\n\ntrain, val, test = days[:8], days[8:10], days[10:]\nprint(\"Train:\", train.tolist(), \"Val:\", val.tolist(), \"Test:\", test.tolist())\n\ntscv = TimeSeriesSplit(n_splits=3)\nfor fold, (tr, va) in enumerate(tscv.split(days), 1):\n    print(f\"Fold {fold}: train {tr.min()}-{tr.max()}  validate {va.tolist()}\")",
+    output: "Train: [0, 1, 2, 3, 4, 5, 6, 7] Val: [8, 9] Test: [10, 11]\nFold 1: train 0-2  validate [3, 4, 5]\nFold 2: train 0-5  validate [6, 7, 8]\nFold 3: train 0-8  validate [9, 10, 11]",
+  },
+  {
+    q: "How do you do feature selection?",
+    level: 'Intermediate',
+    a: "I first remove obvious junk: constant columns, near-duplicates and features that leak the target. Then I use filter methods like SelectKBest with mutual information or ANOVA F-scores, or model-based methods like L1 regularization or tree importances. Fewer good features usually means a faster, simpler model that overfits less, and I do the selection inside a pipeline so it is fit only on training data.",
+    code: "import numpy as np\nfrom sklearn.datasets import make_classification\nfrom sklearn.feature_selection import SelectKBest, VarianceThreshold, f_classif\n\nX, y = make_classification(n_samples=200, n_features=6, n_informative=2,\n                           n_redundant=0, random_state=0, shuffle=False)\nX = np.column_stack([X, np.ones(200)])          # add a constant column\n\nvt = VarianceThreshold().fit(X)\nprint(\"Kept by variance:\", vt.get_support().astype(int).tolist())\n\nX = vt.transform(X)\nskb = SelectKBest(f_classif, k=2).fit(X, y)\nprint(\"F-scores:\", skb.scores_.round(1).tolist())\nprint(\"Selected columns:\", np.flatnonzero(skb.get_support()).tolist())",
+    output: "Kept by variance: [1, 1, 1, 1, 1, 1, 0]\nF-scores: [0.0, 375.4, 3.6, 2.2, 0.4, 0.2]\nSelected columns: [1, 2]",
+  },
+  {
+    q: "How do you handle categorical features with very many categories?",
+    level: 'Intermediate',
+    a: "One-hot encoding a column like city or product ID with thousands of values creates a huge sparse matrix. Instead I group rare categories into 'Other', use frequency encoding, or use target encoding, which replaces each category with the average target. Target encoding must be computed only on training data, ideally with cross-fitting and smoothing, otherwise it leaks the label.",
+    code: "import pandas as pd\n\ndf = pd.DataFrame({\n    \"city\": [\"Kochi\", \"Delhi\", \"Kochi\", \"Pune\", \"Delhi\", \"Kochi\", \"Agra\", \"Goa\"],\n    \"bought\": [1, 0, 1, 0, 1, 1, 0, 1],\n})\ncounts = df[\"city\"].value_counts()\ndf[\"city_grouped\"] = df[\"city\"].where(df[\"city\"].map(counts) >= 2, \"Other\")\ndf[\"city_freq\"] = df[\"city\"].map(counts / len(df))\n\nprior, m = df[\"bought\"].mean(), 2               # smoothing strength\nstats = df.groupby(\"city_grouped\")[\"bought\"].agg([\"mean\", \"count\"])\nsmooth = (stats[\"count\"] * stats[\"mean\"] + m * prior) / (stats[\"count\"] + m)\ndf[\"city_target\"] = df[\"city_grouped\"].map(smooth).round(3)\nprint(df.drop(columns=\"bought\").to_string(index=False))",
+    output: " city city_grouped  city_freq  city_target\nKochi        Kochi      0.375        0.850\nDelhi        Delhi      0.250        0.562\nKochi        Kochi      0.375        0.850\n Pune        Other      0.125        0.450\nDelhi        Delhi      0.250        0.562\nKochi        Kochi      0.375        0.850\n Agra        Other      0.125        0.450\n  Goa        Other      0.125        0.450",
+  },
+  {
+    q: "How does oversampling like SMOTE help with class imbalance?",
+    level: 'Intermediate',
+    a: "When the minority class is tiny, the model can just ignore it. Random oversampling duplicates minority rows, while SMOTE creates new synthetic points on the line between a minority sample and one of its minority neighbors. I only oversample the training set, never the test set, and I compare it against class_weight='balanced', which is often just as good and simpler.",
+    code: "import numpy as np\n\nrng = np.random.default_rng(0)\nX_major = rng.normal(0, 1, size=(20, 2))\nX_minor = np.array([[3.0, 3.0], [3.5, 2.5], [4.0, 3.5], [3.2, 4.0]])\n\ndef smote(X, n_new, k=2):\n    new = []\n    for _ in range(n_new):\n        i = rng.integers(len(X))\n        dists = np.linalg.norm(X - X[i], axis=1)\n        nb = X[rng.choice(np.argsort(dists)[1:k + 1])]\n        new.append(X[i] + rng.random() * (nb - X[i]))   # point on the line\n    return np.array(new)\n\nsynthetic = smote(X_minor, 16)\nprint(\"Before:\", len(X_major), \"vs\", len(X_minor))\nprint(\"After: \", len(X_major), \"vs\", len(X_minor) + len(synthetic))\nprint(\"First synthetic points:\", synthetic[:2].round(2).tolist())",
+    output: "Before: 20 vs 4\nAfter:  20 vs 20\nFirst synthetic points: [[3.68, 3.34], [3.66, 3.33]]",
+  },
+  {
+    q: "How do you use a precision-recall curve to tune the decision threshold?",
+    level: 'Intermediate',
+    a: "A classifier gives probabilities, and the default 0.5 cut-off is rarely the best for the business. The precision-recall curve shows precision and recall at every threshold, so I can pick one that hits a goal like 'recall at least 0.9' or maximizes F1. I tune the threshold on a validation set, not the test set, and the PR curve is more informative than ROC when positives are rare.",
+    code: "import numpy as np\nfrom sklearn.datasets import make_classification\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import precision_recall_curve\nfrom sklearn.model_selection import train_test_split\n\nX, y = make_classification(n_samples=600, weights=[0.85], random_state=1)\nX_tr, X_val, y_tr, y_val = train_test_split(X, y, stratify=y, random_state=1)\nproba = LogisticRegression().fit(X_tr, y_tr).predict_proba(X_val)[:, 1]\n\nprec, rec, thr = precision_recall_curve(y_val, proba)\nf1 = 2 * prec[:-1] * rec[:-1] / (prec[:-1] + rec[:-1] + 1e-12)\nbest = int(np.argmax(f1))\nprint(f\"Best F1 threshold: {thr[best]:.2f}  F1={f1[best]:.3f}\")\nfor t in [0.3, 0.5, 0.7]:\n    i = int(np.searchsorted(thr, t))\n    print(f\"t={t}: precision={prec[i]:.2f} recall={rec[i]:.2f}\")",
+    output: "Best F1 threshold: 0.47  F1=0.757\nt=0.3: precision=0.79 recall=0.65\nt=0.5: precision=1.00 recall=0.52\nt=0.7: precision=1.00 recall=0.30",
+  },
+  {
+    q: "What are learning curves and what do they tell you?",
+    level: 'Intermediate',
+    a: "A learning curve plots training and validation scores as the training set grows. If both scores are low and close, the model is underfitting and more data won't help much; I need better features or a stronger model. If training is high but validation is much lower, it's overfitting, and more data or regularization should help.",
+    code: "import numpy as np\nfrom sklearn.datasets import load_digits\nfrom sklearn.model_selection import learning_curve\nfrom sklearn.tree import DecisionTreeClassifier\n\nX, y = load_digits(return_X_y=True)\nsizes, train_sc, val_sc = learning_curve(\n    DecisionTreeClassifier(random_state=0), X, y,\n    train_sizes=[0.1, 0.4, 0.7, 1.0], cv=5)\n\nfor n, tr, va in zip(sizes, train_sc.mean(1), val_sc.mean(1)):\n    print(f\"n={n:4d}  train={tr:.2f}  val={va:.2f}  gap={tr - va:.2f}\")",
+    output: "n= 143  train=1.00  val=0.52  gap=0.48\nn= 574  train=1.00  val=0.72  gap=0.28\nn=1005  train=1.00  val=0.76  gap=0.24\nn=1437  train=1.00  val=0.79  gap=0.21",
+  },
+  {
+    q: "How do you build a text classification pipeline with TF-IDF?",
+    level: 'Intermediate',
+    a: "TF-IDF turns text into numbers: a word gets a high weight if it is frequent in this document but rare across all documents, so common words like 'the' count for little. I put TfidfVectorizer and a linear model like LogisticRegression in one Pipeline, so the vocabulary is learned only from training data. It is a strong, fast baseline I try before reaching for transformers.",
+    code: "from sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.pipeline import make_pipeline\n\ntexts = [\"refund my money please\", \"item arrived broken, want refund\",\n         \"love this product\", \"great quality, very happy\",\n         \"terrible, asking for a refund\", \"happy with the fast delivery\"]\nlabels = [\"complaint\", \"complaint\", \"praise\", \"praise\", \"complaint\", \"praise\"]\n\nmodel = make_pipeline(TfidfVectorizer(), LogisticRegression())\nmodel.fit(texts, labels)\nprint(model.predict([\"I want a refund\", \"really happy, great product\"]).tolist())\n\ntfidf = model.named_steps[\"tfidfvectorizer\"]\nvec = tfidf.transform([\"refund refund please\"]).toarray()[0]\nwords = tfidf.get_feature_names_out()\nprint({w: round(float(v), 2) for w, v in zip(words, vec) if v > 0})",
+    output: "['complaint', 'praise']\n{'please': 0.59, 'refund': 0.81}",
+  },
+  {
+    q: "How does anomaly detection with Isolation Forest work?",
+    level: 'Intermediate',
+    a: "Isolation Forest builds random trees that split the data at random points; anomalies are easy to isolate, so they end up with short paths from the root. It needs no labels, which suits fraud or sensor-failure detection where anomalies are rare. I set contamination to my expected anomaly rate, and I always have someone review the flagged points before acting on them.",
+    code: "import numpy as np\nfrom sklearn.ensemble import IsolationForest\n\nrng = np.random.default_rng(42)\nnormal = rng.normal(100, 5, size=(50, 1))           # typical amounts\nodd = np.array([[160.0], [20.0], [190.0]])          # suspicious amounts\nX = np.vstack([normal, odd])\n\niso = IsolationForest(contamination=0.05, random_state=0).fit(X)\npred = iso.predict(X)                               # -1 = anomaly\nflagged = sorted(X[pred == -1].ravel().round(1).tolist())\nprint(\"Flagged amounts:\", flagged)\nprint(\"Scores for 100 and 190:\", iso.score_samples([[100.0], [190.0]]).round(3).tolist())",
+    output: "Flagged amounts: [20.0, 160.0, 190.0]\nScores for 100 and 190: [-0.366, -0.805]",
+  },
+  {
+    q: "How do you run a simple A/B test?",
+    level: 'Intermediate',
+    a: "I split users randomly into control (A) and variant (B), decide the metric and sample size before starting, and then compare the groups with a statistical test. For an average like time on page I use a t-test; for conversion rates a two-proportion z-test or chi-square. A p-value below 0.05 suggests a real difference, but I also check that the effect is large enough to matter for the business.",
+    code: "import numpy as np\nfrom scipy import stats\n\nrng = np.random.default_rng(7)\na = rng.normal(5.0, 1.5, 400)        # minutes on page, old design\nb = rng.normal(5.3, 1.5, 400)        # new design\n\nt, p = stats.ttest_ind(b, a, equal_var=False)\nprint(f\"Mean A={a.mean():.2f}  Mean B={b.mean():.2f}\")\nprint(f\"t={t:.2f}  p={p:.4f}  significant={p < 0.05}\")\n\ntable = [[120, 880], [150, 850]]     # conversions vs non-conversions\nchi2, p2, _, _ = stats.chi2_contingency(table)\nprint(f\"Conversion A=12.0%  B=15.0%  p={p2:.4f}  significant={p2 < 0.05}\")",
+    output: "Mean A=4.84  Mean B=5.14\nt=2.98  p=0.0029  significant=True\nConversion A=12.0%  B=15.0%  p=0.0577  significant=False",
+  },
+  {
+    q: "How do you explain which features a model relies on?",
+    level: 'Intermediate',
+    a: "Tree models give feature_importances_, which are quick but can favor features with many unique values. Permutation importance is more reliable: I shuffle one feature at a time on validation data and see how much the score drops. For explaining single predictions I use tools like SHAP, and I always sanity-check that the top features make business sense.",
+    code: "import numpy as np\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.inspection import permutation_importance\nfrom sklearn.model_selection import train_test_split\n\nrng = np.random.default_rng(0)\nX = rng.normal(size=(400, 3))                  # income, age, noise\ny = (2 * X[:, 0] + X[:, 1] > 0).astype(int)\nnames = [\"income\", \"age\", \"noise\"]\nX_tr, X_val, y_tr, y_val = train_test_split(X, y, random_state=0)\n\nrf = RandomForestClassifier(n_estimators=100, random_state=0).fit(X_tr, y_tr)\nprint(\"Impurity:\", dict(zip(names, rf.feature_importances_.round(2).tolist())))\nperm = permutation_importance(rf, X_val, y_val, n_repeats=10, random_state=0)\nprint(\"Permutation:\", dict(zip(names, perm.importances_mean.round(3).tolist())))",
+    output: "Impurity: {'income': 0.62, 'age': 0.27, 'noise': 0.11}\nPermutation: {'income': 0.434, 'age': 0.165, 'noise': 0.012}",
+  },
+  {
     q: "What is a neural network and a neuron?",
     level: 'Advanced',
     a: "A neuron takes inputs, multiplies each by a weight, adds a bias, and passes the sum through an activation function. A neural network stacks layers of these neurons, so it can learn complex, non-linear patterns. Training means adjusting the weights and biases to reduce the loss. This tiny perceptron learns the AND gate with plain numpy.",
@@ -373,5 +464,61 @@ export const questions = [
     a: "Responsible AI means building systems that are fair, transparent, private, safe and accountable. A model can learn bias from historical data, for example approving loans less often for one group. I check metrics per group, like approval rate and recall, remove or carefully handle sensitive features and their proxies, explain predictions with tools like SHAP, and keep a human in the loop for high-impact decisions.",
     code: "import pandas as pd\n\ndf = pd.DataFrame({\n    \"group\":    [\"A\"] * 6 + [\"B\"] * 6,\n    \"approved\": [1, 1, 1, 1, 0, 1,  1, 0, 0, 1, 0, 0],\n})\n\nrates = df.groupby(\"group\")[\"approved\"].mean()\nprint(\"Approval rate by group:\")\nprint(rates.round(3))\n\nratio = rates.min() / rates.max()\nprint(\"Disparate impact ratio:\", round(ratio, 3))\nprint(\"Passes 80% rule?\", ratio >= 0.8)",
     output: "Approval rate by group:\ngroup\nA    0.833\nB    0.333\nName: approved, dtype: float64\nDisparate impact ratio: 0.4\nPasses 80% rule? False",
+  },
+  {
+    q: "What is early stopping?",
+    level: 'Advanced',
+    a: "Early stopping means I watch the validation loss while training and stop when it hasn't improved for a few epochs, called the patience. It is a simple form of regularization, because training longer usually starts to overfit. I keep the weights from the best epoch, not the last one, and most libraries support it, like n_iter_no_change in scikit-learn or the EarlyStopping callback in Keras.",
+    code: "val_losses = [0.90, 0.70, 0.55, 0.48, 0.46, 0.47, 0.49, 0.50, 0.53]\npatience, best, best_epoch, waited = 2, float(\"inf\"), 0, 0\n\nfor epoch, loss in enumerate(val_losses, 1):\n    if loss < best:\n        best, best_epoch, waited = loss, epoch, 0\n    else:\n        waited += 1\n    if waited >= patience:\n        print(f\"Stop at epoch {epoch}, restore epoch {best_epoch} (loss {best})\")\n        break\n\nfrom sklearn.datasets import make_classification\nfrom sklearn.ensemble import GradientBoostingClassifier\nX, y = make_classification(n_samples=500, random_state=0)\ngb = GradientBoostingClassifier(n_estimators=500, validation_fraction=0.2,\n                                n_iter_no_change=5, random_state=0).fit(X, y)\nprint(\"Trees used:\", gb.n_estimators_, \"of 500\")",
+    output: "Stop at epoch 7, restore epoch 5 (loss 0.46)\nTrees used: 44 of 500",
+  },
+  {
+    q: "What do dropout and batch normalization do?",
+    level: 'Advanced',
+    a: "Dropout randomly switches off a fraction of neurons during training, so the network can't rely on any single neuron, which reduces overfitting; at inference it is turned off. Batch normalization normalizes each layer's inputs to mean 0 and standard deviation 1 per batch, then scales and shifts them with learned parameters, which makes training faster and more stable. A common tip: use dropout mostly in dense layers, and remember to switch the model to eval mode for predictions.",
+    code: "import numpy as np\n\nrng = np.random.default_rng(0)\nacts = np.ones((2, 8))                       # activations of a layer\n\np = 0.5                                      # dropout rate\nmask = rng.random(acts.shape) > p\ntrain_out = acts * mask / (1 - p)            # inverted dropout keeps the mean\nprint(\"Dropout (train):\", train_out[0].tolist())\nprint(\"Dropout (eval): \", acts[0].tolist())\n\nbatch = np.array([[10.0, 200.0], [12.0, 220.0], [14.0, 240.0], [16.0, 260.0]])\nmean, var = batch.mean(0), batch.var(0)\nnormed = (batch - mean) / np.sqrt(var + 1e-5)\ngamma, beta = np.array([1.0, 2.0]), np.array([0.0, 0.5])\nprint(\"BatchNorm mean:\", normed.mean(0).round(3).tolist(),\n      \"std:\", normed.std(0).round(3).tolist())\nprint(\"Scaled + shifted:\", (gamma * normed + beta)[0].round(3).tolist())",
+    output: "Dropout (train): [2.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 2.0]\nDropout (eval):  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]\nBatchNorm mean: [0.0, 0.0] std: [1.0, 1.0]\nScaled + shifted: [-1.342, -2.183]",
+  },
+  {
+    q: "What is the difference between one-hot vectors and word embeddings?",
+    level: 'Advanced',
+    a: "A one-hot vector has one slot per word in the vocabulary, so it is huge, sparse, and every pair of words is equally different. A word embedding is a short dense vector learned from data, where words used in similar contexts end up close together, so 'king' and 'queen' are near each other. I use pre-trained embeddings or a transformer's embeddings because they carry meaning that one-hot can't.",
+    code: "import numpy as np\n\nvocab = [\"king\", \"queen\", \"apple\"]\none_hot = np.eye(len(vocab))\nemb = {\"king\":  np.array([0.80, 0.65, 0.10]),     # toy learned vectors\n       \"queen\": np.array([0.78, 0.70, 0.12]),\n       \"apple\": np.array([0.05, 0.10, 0.90])}\n\ndef cos(a, b):\n    return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))\n\nprint(\"One-hot king:\", one_hot[0].tolist())\nprint(\"One-hot king~queen:\", cos(one_hot[0], one_hot[1]))\nprint(\"Embedding king~queen:\", round(cos(emb[\"king\"], emb[\"queen\"]), 3))\nprint(\"Embedding king~apple:\", round(cos(emb[\"king\"], emb[\"apple\"]), 3))\nprint(\"Size with 50k words: one-hot 50000 dims vs embedding ~300 dims\")",
+    output: "One-hot king: [1.0, 0.0, 0.0]\nOne-hot king~queen: 0.0\nEmbedding king~queen: 0.999\nEmbedding king~apple: 0.208\nSize with 50k words: one-hot 50000 dims vs embedding ~300 dims",
+  },
+  {
+    q: "How does a recommendation system with collaborative filtering work?",
+    level: 'Advanced',
+    a: "Collaborative filtering recommends items based on what similar users liked, without knowing anything about the items themselves. In item-based filtering I compute similarity between item columns of the user-item rating matrix and score unseen items by how similar they are to what the user already rated highly. At scale I use matrix factorization, and I handle the cold-start problem for new users with popular or content-based recommendations.",
+    code: "import numpy as np\n\nitems = [\"Matrix\", \"Inception\", \"Titanic\", \"Notebook\"]\nR = np.array([[5, 4, 0, 1],        # rows = users, 0 = not rated\n              [4, 5, 1, 0],\n              [1, 0, 5, 4],\n              [0, 1, 4, 5],\n              [5, 0, 0, 1]])        # user 4: what next?\n\nnorms = np.linalg.norm(R, axis=0)\nsim = (R.T @ R) / np.outer(norms, norms)       # item-item cosine\nprint(\"Matrix~Inception:\", round(sim[0, 1], 3), \"Matrix~Titanic:\", round(sim[0, 2], 3))\n\nuser = R[4]\nscores = sim @ user / np.abs(sim).sum(axis=1)\nunseen = [i for i in range(len(items)) if user[i] == 0]\nranked = sorted(unseen, key=lambda i: -scores[i])\nprint(\"Recommend:\", [(items[i], round(float(scores[i]), 2)) for i in ranked])",
+    output: "Matrix~Inception: 0.754 Matrix~Titanic: 0.17\nRecommend: [('Inception', 1.83), ('Titanic', 0.77)]",
+  },
+  {
+    q: "How do LLM agents and tool calling work?",
+    level: 'Advanced',
+    a: "An agent is an LLM in a loop: it reads the goal, decides whether to call a tool like search, a calculator or an API, gets the tool result back, and repeats until it can answer. With tool calling the model doesn't run code itself; it returns a structured request with the tool name and JSON arguments, my code runs the tool and sends the result back. In production I validate the arguments, limit the number of steps, and log every call.",
+    code: "import json\n\nTOOLS = {\n    \"get_weather\": lambda city: {\"Kochi\": \"31C, humid\"}.get(city, \"unknown\"),\n    \"add\": lambda a, b: a + b,\n}\n\ndef fake_llm(history):               # stands in for the real model\n    if len(history) == 1:\n        return {\"tool\": \"get_weather\", \"args\": {\"city\": \"Kochi\"}}\n    return {\"answer\": f\"It is {history[-1]['content']} in Kochi.\"}\n\nhistory = [{\"role\": \"user\", \"content\": \"Weather in Kochi?\"}]\nfor step in range(5):                # always cap the loop\n    reply = fake_llm(history)\n    if \"answer\" in reply:\n        print(\"Final:\", reply[\"answer\"])\n        break\n    print(\"Tool call:\", json.dumps(reply))\n    result = TOOLS[reply[\"tool\"]](**reply[\"args\"])\n    history.append({\"role\": \"tool\", \"content\": result})",
+    output: "Tool call: {\"tool\": \"get_weather\", \"args\": {\"city\": \"Kochi\"}}\nFinal: It is 31C, humid in Kochi.",
+  },
+  {
+    q: "How do you chunk documents for RAG?",
+    level: 'Advanced',
+    a: "I split documents into chunks small enough to be precise in retrieval but big enough to keep meaning, often a few hundred tokens. I add an overlap between chunks so a sentence cut at a boundary still appears whole in one chunk, and I prefer splitting on paragraphs or sentences rather than in the middle of words. I also store metadata like the source and section with each chunk, so I can cite and filter results.",
+    code: "text = (\"Refunds are allowed within 30 days. Items must be unused. \"\n        \"Shipping takes 3 to 5 days. Express shipping costs extra. \"\n        \"Support is open 9am to 5pm. Chat is available on weekdays.\")\n\ndef chunk_words(text, size=12, overlap=4):\n    words = text.split()\n    step = size - overlap\n    starts = range(0, max(len(words) - overlap, 1), step)\n    return [\" \".join(words[i:i + size]) for i in starts]\n\nfor i, c in enumerate(chunk_words(text)):\n    print(i, \"|\", c)\n\nsentences = [s.strip() + \".\" for s in text.split(\".\") if s.strip()]\nby_two = [\" \".join(sentences[i:i + 2]) for i in range(0, len(sentences), 2)]\nprint(\"Sentence chunks:\", len(by_two), \"->\", by_two[0])",
+    output: "0 | Refunds are allowed within 30 days. Items must be unused. Shipping takes\n1 | be unused. Shipping takes 3 to 5 days. Express shipping costs extra.\n2 | Express shipping costs extra. Support is open 9am to 5pm. Chat is\n3 | to 5pm. Chat is available on weekdays.\nSentence chunks: 3 -> Refunds are allowed within 30 days. Items must be unused.",
+  },
+  {
+    q: "How do you evaluate the retrieval part of a RAG system?",
+    level: 'Advanced',
+    a: "I build a small test set of questions where I know which document holds the answer. Then I measure hit rate at k, meaning how often the right document appears in the top k results, and MRR, which rewards putting it near the top. I evaluate retrieval separately from the final answer, because if retrieval fails, no prompt can fix the answer.",
+    code: "results = {   # question -> ranked doc ids returned by the retriever\n    \"refund window?\":   [\"d3\", \"d1\", \"d7\"],\n    \"shipping time?\":   [\"d2\", \"d5\", \"d9\"],\n    \"support hours?\":   [\"d4\", \"d8\", \"d6\"],\n    \"express cost?\":    [\"d9\", \"d2\", \"d1\"],\n}\nrelevant = {\"refund window?\": \"d1\", \"shipping time?\": \"d2\",\n            \"support hours?\": \"d6\", \"express cost?\": \"d5\"}\n\ndef hit_rate(k):\n    return sum(relevant[q] in docs[:k] for q, docs in results.items()) / len(results)\n\ndef mrr():\n    total = 0.0\n    for q, docs in results.items():\n        if relevant[q] in docs:\n            total += 1 / (docs.index(relevant[q]) + 1)\n    return total / len(results)\n\nprint(\"Hit@1:\", hit_rate(1), \"Hit@3:\", hit_rate(3))\nprint(\"MRR:\", round(mrr(), 3))",
+    output: "Hit@1: 0.25 Hit@3: 0.75\nMRR: 0.458",
+  },
+  {
+    q: "How do you think about cost and latency tradeoffs in LLM apps?",
+    level: 'Advanced',
+    a: "Cost is mostly tokens: input tokens times the input price plus output tokens times the output price, multiplied by traffic. Latency grows with output length and model size, so I keep prompts lean, cap max output tokens, and stream responses so users see text early. My usual tricks are routing easy requests to a smaller model, caching repeated prompts or answers, and trimming retrieved context.",
+    code: "PRICES = {\"large\": (3.00, 15.00), \"small\": (0.25, 1.25)}   # $ per 1M tokens (example)\n\ndef monthly_cost(model, in_tok, out_tok, requests):\n    p_in, p_out = PRICES[model]\n    return requests * (in_tok * p_in + out_tok * p_out) / 1_000_000\n\nreqs = 100_000\nbig = monthly_cost(\"large\", 2000, 300, reqs)\nsmall = monthly_cost(\"small\", 2000, 300, reqs)\nrouted = 0.2 * big + 0.8 * small                 # 80% easy -> small model\ntrimmed = monthly_cost(\"large\", 800, 300, reqs)  # smaller RAG context\n\nprint(f\"All large:  ${big:,.2f}\")\nprint(f\"All small:  ${small:,.2f}\")\nprint(f\"Routed:     ${routed:,.2f}\")\nprint(f\"Trimmed:    ${trimmed:,.2f}\")\nprint(f\"Approx latency at 50 tok/s for 300 tokens: {300 / 50:.0f}s\")",
+    output: "All large:  $1,050.00\nAll small:  $87.50\nRouted:     $280.00\nTrimmed:    $690.00\nApprox latency at 50 tok/s for 300 tokens: 6s",
   },
 ]

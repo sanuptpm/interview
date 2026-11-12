@@ -237,6 +237,32 @@ user.email             // undefined (missing key)`,
     result: `Hello ${name}, score is ${score}`,
   },
   {
+    title: "How do you use escape characters in strings?",
+    note: "Inside a string, the backslash starts an escape sequence: \\n is a new line, \\t is a tab, \\' puts a quote of the same kind inside the string, and \\\\ is one real backslash. \\u followed by a code gives any Unicode character. Note that JSON output shows a backslash as \\\\ again, but the length proves it's a single character; often I just switch quote types or use a template literal instead of escaping.",
+    code: String.raw`const quote = 'It\'s easy'       // \' escapes the quote
+const path = 'C:\\Users\\Anu'    // \\ is one backslash
+const lines = 'Line 1\nLine 2'   // \n is a new line
+const heart = '\u2764'           // Unicode escape
+
+quote
+path.length                      // 12: each \\ counts as 1
+lines.split('\n')
+'Name\tAge'.includes('\t')       // \t is a tab
+heart`,
+    result: (() => {
+      const quote = 'It\'s easy'
+      const path = 'C:\\Users\\Anu'
+      const lines = 'Line 1\nLine 2'
+      return {
+        quote,
+        pathLength: path.length,
+        lines: lines.split('\n'),
+        hasTab: 'Name\tAge'.includes('\t'),
+        heart: '\u2764',
+      }
+    })(),
+  },
+  {
     title: "What is the spread operator with arrays?",
     note: "The spread operator, three dots, expands an array into its individual items. I use it to copy an array or combine several arrays into a new one, without changing the originals. That's important in React, where state must not be changed directly.",
     code: 'const a = [1, 2]\nconst b = [3, 4]\nconst all = [...a, ...b, 5]',
@@ -247,6 +273,32 @@ user.email             // undefined (missing key)`,
     note: "With objects, spread copies all the properties into a new object. If I add a property after the spread, it overrides or adds to the copy. I use it all the time to update React state, like { ...user, city: 'Kochi' }.",
     code: "const user = { age: 26 }\nconst newUser = { ...user, city: 'Kochi' }",
     result: { ...user, city: 'Kochi' },
+  },
+  {
+    title: "What happens when you spread a string?",
+    note: "A string is iterable, so spreading it gives an array of its characters. Combined with Set, it's a quick way to get the unique letters, and spreading into Math.max works on a string of digits too. Spread also splits by real characters, so an emoji stays in one piece, while length and split('') count it as two UTF-16 units.",
+    code: `const word = 'hello'
+const letters = [...word]
+letters
+const unique = [...new Set(word)].join('')
+unique                      // 'helo'
+Math.max(...'3172')         // each digit becomes an argument
+
+const text = 'hi👋'
+text.length                 // 4: the emoji takes 2 code units
+const chars = [...text]
+chars.length                // 3: spread keeps the emoji whole`,
+    result: (() => {
+      const word = 'hello'
+      const text = 'hi👋'
+      return {
+        letters: [...word],
+        unique: [...new Set(word)].join(''),
+        max: Math.max(...'3172'),
+        length: text.length,
+        spreadLength: [...text].length,
+      }
+    })(),
   },
   {
     title: "What are rest parameters?",
@@ -262,6 +314,28 @@ user.email             // undefined (missing key)`,
       const [first, second] = fruits
       const { name, age } = people[0]
       return { first, second, name, age }
+    })(),
+  },
+  {
+    title: "How do default values and rest work in array destructuring?",
+    note: "In array destructuring I can give each variable a default with =, and it's used only when the value is undefined, not when it's null. I can skip positions with an empty comma, and collect the remaining items with ...rest, which must come last. This is handy for functions that return an array, like React's useState.",
+    code: `const [a = 1, b = 2, c = 3] = [10, undefined, null]
+a      // 10: value was given
+b      // 2: undefined uses the default
+c      // null: null does NOT use the default
+
+const [first, , third = 'none'] = ['x', 'y']   // skip with a comma
+first
+third
+
+const [head, ...rest] = [1, 2, 3, 4]
+head
+rest`,
+    result: (() => {
+      const [a = 1, b = 2, c = 3] = [10, undefined, null]
+      const [first, , third = 'none'] = ['x', 'y']
+      const [head, ...rest] = [1, 2, 3, 4]
+      return { a, b, c, first, third, head, rest }
     })(),
   },
   {
@@ -535,6 +609,50 @@ const { role, ...withoutRole } = user   // "remove" role`,
     ],
   },
   {
+    title: "What are Number.MAX_SAFE_INTEGER and Number.EPSILON?",
+    note: "Numbers are 64-bit floating point, so whole numbers are only exact up to Number.MAX_SAFE_INTEGER, which is 2 to the power 53 minus 1; above that, adding 1 or 2 can give the wrong answer. I check with Number.isSafeInteger and use BigInt, with an n suffix, for bigger values like database IDs. Number.EPSILON is the tiny gap after 1, and I use it to compare decimals like 0.1 + 0.2 safely.",
+    code: `Number.MAX_SAFE_INTEGER               // 2 ** 53 - 1
+Number.MAX_SAFE_INTEGER + 2           // wrong: ends in 2, not 3
+Number.isSafeInteger(2 ** 53)         // false
+9007199254740993n + 2n                // BigInt stays exact
+
+Number.EPSILON
+0.1 + 0.2 === 0.3                     // false
+Math.abs(0.1 + 0.2 - 0.3) < Number.EPSILON   // true`,
+    result: {
+      maxSafe: Number.MAX_SAFE_INTEGER,
+      maxSafePlus2: Number.MAX_SAFE_INTEGER + 2,
+      isSafe: Number.isSafeInteger(2 ** 53),
+      bigint: String(9007199254740993n + 2n) + 'n',
+      epsilon: Number.EPSILON,
+      directCompare: 0.1 + 0.2 === 0.3,
+      epsilonCompare: Math.abs(0.1 + 0.2 - 0.3) < Number.EPSILON,
+    },
+  },
+  {
+    title: "How do you format money and numbers with Intl.NumberFormat?",
+    note: "Intl.NumberFormat formats numbers for a locale, with the right separators and currency symbol, so I never build currency strings by hand. en-IN groups digits in lakhs and crores, while de-DE uses dots and a comma for decimals. It also does compact numbers like 1.2M and percentages, and toLocaleString is a shortcut for the same thing.",
+    code: `const price = 1234567.891
+
+new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(price)
+new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)
+new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(price)
+new Intl.NumberFormat('en-US', { notation: 'compact' }).format(price)
+new Intl.NumberFormat('en-US', { style: 'percent' }).format(0.256)
+price.toLocaleString('en-IN')`,
+    result: (() => {
+      const price = 1234567.891
+      return [
+        new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(price),
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price),
+        new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(price),
+        new Intl.NumberFormat('en-US', { notation: 'compact' }).format(price),
+        new Intl.NumberFormat('en-US', { style: 'percent' }).format(0.256),
+        price.toLocaleString('en-IN'),
+      ]
+    })(),
+  },
+  {
     title: "How do you convert between strings, numbers and arrays?",
     note: "To get a string I use String(value) or template literals, and to get a number I use Number(value) or the unary plus, like +'7'. To turn a string into an array of characters I use split(''), spread or Array.from, and join('') goes back. A classic trick is getting the digits of a number with String(n).split('').map(Number).",
     code: "String(42)                          // '42'\nNumber('7') + +'3'                  // 10\n'hello'.split('')                   // ['h','e','l','l','o']\n[...'hi']                           // ['h','i']\n['a', 'b', 'c'].join('')            // 'abc'\nString([1, 2, 3])                   // '1,2,3'\nString(1234).split('').map(Number)  // [1, 2, 3, 4]",
@@ -585,6 +703,29 @@ const { role, ...withoutRole } = user   // "remove" role`,
     })(),
   },
   {
+    title: "How do you format dates with Intl.DateTimeFormat?",
+    note: "Instead of building date strings by hand, I use Intl.DateTimeFormat or toLocaleDateString with a locale and options like dateStyle, or separate day, month and year settings. The timeZone option shows the same moment in any time zone, which matters because a Date is stored in UTC. Intl.RelativeTimeFormat gives friendly text like 'yesterday' or 'in 3 days'.",
+    code: `const date = new Date(Date.UTC(2024, 0, 15, 9, 30))   // 15 Jan 2024, 09:30 UTC
+
+new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeZone: 'UTC' }).format(date)
+new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
+date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
+date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })
+new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(-1, 'day')
+new Intl.RelativeTimeFormat('en').format(3, 'day')`,
+    result: (() => {
+      const date = new Date(Date.UTC(2024, 0, 15, 9, 30))
+      return [
+        new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeZone: 'UTC' }).format(date),
+        new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: 'UTC' }).format(date),
+        date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }),
+        date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
+        new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(-1, 'day'),
+        new Intl.RelativeTimeFormat('en').format(3, 'day'),
+      ]
+    })(),
+  },
+  {
     title: "What are Object.keys, values and entries?",
     note: "Object.keys returns an array of an object's property names, Object.values returns the values, and Object.entries returns key-value pairs. They let me use array methods like map and filter on an object's data.",
     code: "const car = { brand: 'Kia', year: 2024 }\nObject.keys(car)\nObject.values(car)\nObject.entries(car)",
@@ -609,6 +750,30 @@ const { role, ...withoutRole } = user   // "remove" role`,
         error = e.name
       }
       return { settings, config, error, isFrozen: Object.isFrozen(config) }
+    })(),
+  },
+  {
+    title: "What do Object.groupBy and Map.groupBy do?",
+    note: "Object.groupBy takes an array and a callback, and returns an object where each key is what the callback returned and each value is the list of items with that key. Map.groupBy does the same but returns a Map, so the keys can be any type, like booleans or objects. It replaces the reduce pattern I used to write for grouping.",
+    code: `const people = [
+  { name: 'Anu', age: 22 },
+  { name: 'Ravi', age: 30 },
+  { name: 'Meera', age: 27 },
+]
+const byGroup = Object.groupBy(people, (p) => (p.age < 25 ? 'young' : 'adult'))
+byGroup.young
+byGroup.adult.map((p) => p.name)
+
+const byAdult = Map.groupBy(people, (p) => p.age >= 25)   // keys can be booleans
+byAdult.get(true).length`,
+    result: (() => {
+      const byGroup = Object.groupBy(people, (p) => (p.age < 25 ? 'young' : 'adult'))
+      const byAdult = Map.groupBy(people, (p) => p.age >= 25)
+      return {
+        young: byGroup.young,
+        adultNames: byGroup.adult.map((p) => p.name),
+        adultCount: byAdult.get(true).length,
+      }
     })(),
   },
   {
@@ -637,6 +802,39 @@ const { role, ...withoutRole } = user   // "remove" role`,
     result: (() => {
       const emp = { address: null }
       return emp.address?.city ?? 'No city'
+    })(),
+  },
+  {
+    title: "How does optional chaining work with function calls and arrays?",
+    note: "Optional chaining also works for calling methods and reading array items: obj.method?.() only calls the method if it exists, and arr?.[0] only reads the index if the array exists. If anything on the left is null or undefined, the whole chain stops and returns undefined. I use it for optional callback props in React, like onClose?.().",
+    code: `const user = {
+  name: 'Anu',
+  greet() { return 'Hi ' + this.name },
+  orders: [{ id: 7 }],
+}
+const guest = null
+
+user.greet?.()             // calls it: 'Hi Anu'
+user.logout?.()            // no such method: undefined, no error
+user.orders?.[0]?.id       // 7
+guest?.orders?.[0]?.id     // undefined
+user.orders?.[5]?.id ?? 'no order'`,
+    result: (() => {
+      const user = {
+        name: 'Anu',
+        greet() {
+          return 'Hi ' + this.name
+        },
+        orders: [{ id: 7 }],
+      }
+      const guest = null
+      return [
+        user.greet?.(),
+        String(user.logout?.()),
+        user.orders?.[0]?.id,
+        String(guest?.orders?.[0]?.id),
+        user.orders?.[5]?.id ?? 'no order',
+      ]
     })(),
   },
   {

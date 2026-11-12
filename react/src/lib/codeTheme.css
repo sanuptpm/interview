@@ -1,0 +1,65 @@
+/*
+  Code colors for the read-only examples, matching the Sandpack light theme
+  used by the React "Try it" editor:
+  keyword #7C5AE3 (purple) · definition #85A600 (olive) · string #2E6BD0 (blue)
+  tag #0971F1 (blue) · comment #999 italic · plain #151515 · punctuation #3B3B3B
+*/
+.code-theme {
+  color: #151515;
+}
+.code-theme .hljs-comment,
+.code-theme .hljs-quote {
+  color: #999;
+  font-style: italic;
+}
+.code-theme .hljs-keyword,
+.code-theme .hljs-meta,
+.code-theme .hljs-meta .hljs-keyword,
+.code-theme .hljs-type,
+.code-theme .hljs-selector-pseudo,
+.code-theme .hljs-doctag,
+.code-theme .hljs-attribute {
+  color: #7c5ae3;
+}
+.code-theme .hljs-title,
+.code-theme .hljs-title.function_,
+.code-theme .hljs-title.class_,
+.code-theme .hljs-built_in,
+.code-theme .hljs-section {
+  color: #85a600;
+}
+.code-theme .hljs-string,
+.code-theme .hljs-regexp,
+.code-theme .hljs-meta .hljs-string,
+.code-theme .hljs-symbol,
+.code-theme .hljs-link {
+  color: #2e6bd0;
+}
+.code-theme .hljs-name,
+.code-theme .hljs-selector-tag,
+.code-theme .hljs-selector-class,
+.code-theme .hljs-selector-id,
+.code-theme .hljs-selector-attr {
+  color: #0971f1;
+}
+.code-theme .hljs-tag,
+.code-theme .hljs-punctuation,
+.code-theme .hljs-operator {
+  color: #3b3b3b;
+}
+.code-theme .hljs-attr,
+.code-theme .hljs-property,
+.code-theme .hljs-variable,
+.code-theme .hljs-template-variable,
+.code-theme .hljs-params,
+.code-theme .hljs-number,
+.code-theme .hljs-literal,
+.code-theme .hljs-subst {
+  color: #3b3b3b;
+}
+.code-theme .hljs-addition {
+  color: #22863a;
+}
+.code-theme .hljs-deletion {
+  color: #b31d28;
+}

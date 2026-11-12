@@ -1,0 +1,175 @@
+// Sub-topic order for the database page: related questions are shown together.
+// Each question title appears in exactly one topic, in the order shown on the page.
+export default [
+  {
+    topic: 'Database basics',
+    questions: [
+      'What is a database, a DBMS and an RDBMS?',
+      'What are tables, rows and columns?',
+      'What are common SQL data types?',
+      'What is the difference between DDL, DML, DCL and TCL?',
+      'What is the difference between SQL and NoSQL databases?',
+    ],
+  },
+  {
+    topic: 'Keys & constraints',
+    questions: [
+      'What is a primary key?',
+      'What is a foreign key?',
+      'What do UNIQUE, NOT NULL, CHECK and DEFAULT constraints do?',
+      'How does ON DELETE CASCADE work?',
+    ],
+  },
+  {
+    topic: 'CRUD & querying',
+    questions: [
+      'How do you do CRUD operations in SQL?',
+      'How do WHERE, ORDER BY and LIMIT work in a SELECT?',
+      'What are aliases in SQL?',
+      'What does DISTINCT do?',
+      'In what order does SQL actually run the clauses of a SELECT?',
+      'What is the difference between DELETE, TRUNCATE and DROP?',
+      'How do you do an upsert (insert or update) with ON CONFLICT?',
+      'How do you copy rows into another table with INSERT ... SELECT?',
+      'How do you UPDATE or DELETE rows using data from another table?',
+    ],
+  },
+  {
+    topic: 'Filtering & functions',
+    questions: [
+      'How do LIKE, IN and BETWEEN work?',
+      'How do you handle NULL values in SQL?',
+      'Why is NULL = NULL not true? Explain three-valued logic.',
+      'How do you use CASE in ORDER BY for a custom sort order?',
+      'Which string functions do you use most in SQL?',
+      'How do you work with dates in SQL?',
+      'How does CASE WHEN work?',
+      'How do you query JSON data stored in a column?',
+    ],
+  },
+  {
+    topic: 'Aggregation & grouping',
+    questions: [
+      'What are aggregate functions?',
+      'What is the difference between COUNT(*), COUNT(column) and COUNT(DISTINCT column)?',
+      'How does GROUP BY work?',
+      'What is the difference between WHERE and HAVING?',
+      'How do you combine values from many rows into one string (GROUP_CONCAT / STRING_AGG)?',
+      'How do you pivot rows into columns?',
+    ],
+  },
+  {
+    topic: 'Joins',
+    questions: [
+      'What is an INNER JOIN?',
+      'What is a LEFT JOIN?',
+      'What is a RIGHT JOIN?',
+      'What is a FULL OUTER JOIN?',
+      'What is a CROSS JOIN?',
+      'What is a SELF JOIN?',
+    ],
+  },
+  {
+    topic: 'Subqueries & set operations',
+    questions: [
+      'What is the difference between IN, EXISTS and JOIN for matching rows in another table?',
+      'What is the difference between UNION and UNION ALL?',
+      'What is a subquery and a correlated subquery?',
+      'What does EXISTS do?',
+    ],
+  },
+  {
+    topic: 'Views, procedures & triggers',
+    questions: [
+      'What is a view?',
+      'What is the difference between a view and a materialized view?',
+      'What is the difference between a stored procedure and a function?',
+      'What is a trigger?',
+    ],
+  },
+  {
+    topic: 'Window functions & CTEs',
+    questions: [
+      'What are window functions? Explain ROW_NUMBER, RANK and DENSE_RANK.',
+      'How do you use LAG and LEAD?',
+      'What is a window frame (ROWS BETWEEN), and how do you compute a moving average?',
+      'What do NTILE, PERCENT_RANK and CUME_DIST do?',
+      'What is a CTE and a recursive CTE?',
+      'What is the gaps and islands problem, and how do you solve it?',
+    ],
+  },
+  {
+    topic: 'Indexes & performance',
+    questions: [
+      'What is an index and how do you check if a query uses it?',
+      'Does column order matter in a composite index?',
+      'How do you optimize a slow SQL query?',
+      'What is the N+1 query problem?',
+      'What is connection pooling?',
+      'ORM vs raw SQL: which do you prefer?',
+      'What is SQL injection and how do you prevent it?',
+    ],
+  },
+  {
+    topic: 'Design & normalization',
+    questions: [
+      'What is normalization? Explain 1NF, 2NF and 3NF.',
+      'What is denormalization and when would you use it?',
+      'How would you design a database for a simple shop (users, products, orders)?',
+      'What is the difference between OLTP and OLAP, and what is a star schema?',
+    ],
+  },
+  {
+    topic: 'Transactions & concurrency',
+    questions: [
+      'What is a transaction and what does ACID mean?',
+      'What are isolation levels and the read anomalies they prevent?',
+      'What is the difference between optimistic and pessimistic locking?',
+      'What is a deadlock and how do you prevent it?',
+      'What is MVCC?',
+    ],
+  },
+  {
+    topic: 'Scaling, NoSQL & operations',
+    questions: [
+      'What is database replication?',
+      'How do you handle backups and point-in-time recovery?',
+      'What is the difference between sharding and partitioning?',
+      'What is the CAP theorem?',
+      'What are the types of NoSQL databases? Show a MongoDB example.',
+      'How would you use Redis as a cache?',
+    ],
+  },
+  {
+    topic: 'Coding: top-N & ranking',
+    questions: [
+      'How do you find the second highest salary?',
+      'How do you find the Nth highest salary?',
+      'How do you find the highest-paid employee in each department?',
+      'How do you count rows per group?',
+      'How do you get the top N rows per group?',
+      'How do you find the 3rd highest salary in each department?',
+      'How do you rank products by total sales within each category?',
+      'How do you calculate the median salary?',
+    ],
+  },
+  {
+    topic: 'Coding: duplicates, gaps & joins',
+    questions: [
+      'How do you find duplicate records?',
+      'How do you delete duplicates but keep one row?',
+      'How do you find missing IDs (gaps) in a sequence?',
+      'How do you find customers who have never placed an order?',
+      'How do you find employees who earn more than their manager?',
+      'How do you list every pair of employees in the same department?',
+    ],
+  },
+  {
+    topic: 'Coding: running totals & trends',
+    questions: [
+      'How do you calculate a running total?',
+      'How do you calculate month-over-month revenue growth?',
+      'How do you find users who logged in on 3 or more consecutive days?',
+    ],
+  },
+]

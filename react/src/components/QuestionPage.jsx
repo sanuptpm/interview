@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import CodeBlock from './CodeBlock.jsx'
 import LevelSections from './LevelSections.jsx'
 import TryIt from '../tryit/TryIt.jsx'
 import TryItButton from '../tryit/TryItButton.jsx'
@@ -8,7 +9,7 @@ import TryItButton from '../tryit/TryItButton.jsx'
 // a string (shown as text) or a React element (a live demo).
 
 // tryKind: which "Try it" editor to offer for this question (or nothing).
-export function QuestionCard({ number, q, a, code, output, tryKind }) {
+export function QuestionCard({ number, q, a, code, output, tryKind, language }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -25,9 +26,7 @@ export function QuestionCard({ number, q, a, code, output, tryKind }) {
         <p className="mt-1 text-sm leading-relaxed text-slate-700">{a}</p>
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Example</p>
-        <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
-          {code}
-        </pre>
+        <CodeBlock code={code} language={language} className="mt-1" />
       </div>
 
       <div className="flex min-w-0 flex-col">
@@ -53,7 +52,9 @@ export function QuestionCard({ number, q, a, code, output, tryKind }) {
 }
 
 // tryKind(item) returns the editor kind for a question ('js', 'python', ...) or null.
-function QuestionPage({ title, intro, questions, tryKind }) {
+// language: highlight.js language for the examples, or a function item => language.
+// topics: sub-topic order (see src/pages/topics/).
+function QuestionPage({ title, intro, questions, tryKind, language, topics }) {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
@@ -63,12 +64,14 @@ function QuestionPage({ title, intro, questions, tryKind }) {
 
       <LevelSections
         questions={questions}
+        topics={topics}
         renderItem={(item, number) => (
           <QuestionCard
             key={item.q}
             number={number}
             {...item}
             tryKind={tryKind ? tryKind(item) : null}
+            language={typeof language === 'function' ? language(item) : language}
           />
         )}
       />

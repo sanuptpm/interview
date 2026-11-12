@@ -1,5 +1,5 @@
 // Git interview questions, basics to advanced.
-// Each item: { q, a, code, output }. Outputs were produced by running the
+// Each item: { q, level, a, code, output }. Outputs were produced by running the
 // commands in throwaway repositories (fixed author/date, so hashes are
 // stable); the branching-strategies answer is a written summary.
 
@@ -493,6 +493,222 @@ $ git switch -q -c feature
 
 $ cat .git/HEAD
 ref: refs/heads/feature`,
+  },
+  {
+    q: "How do you configure Git with git config (global vs local)?",
+    level: 'Basics',
+    a: "git config sets options at three levels: --system for the machine, --global for my user (~/.gitconfig) and --local for one repository (.git/config), and the more specific level wins. The first thing I set on a new machine is user.name and user.email, because they are written into every commit. I use a local override when one repo needs a different identity, like my work email, and git config --list --show-origin tells me exactly which file a value comes from.",
+    code: `git config --global user.name "Asha Dev"
+git config --global user.email "asha@example.com"
+# Only for this repo, e.g. a work email
+git config --local user.email "asha@work.example.com"
+git config user.email          # local wins over global
+git config --list --show-origin | grep user
+cat ~/.gitconfig`,
+    output: `$ git config --global user.name "Asha Dev"
+
+$ git config --global user.email "asha@example.com"
+
+$ git config --local user.email "asha@work.example.com"
+
+$ git config user.email
+asha@work.example.com
+
+$ git config --list --show-origin | grep user
+file:/home/dev/.gitconfig	user.name=Asha Dev
+file:/home/dev/.gitconfig	user.email=asha@example.com
+file:.git/config	user.email=asha@work.example.com
+
+$ cat ~/.gitconfig
+[init]
+	defaultBranch = main
+[color]
+	ui = false
+[core]
+	pager = cat
+[advice]
+	defaultBranchName = false
+[protocol "file"]
+	allow = always
+[user]
+	name = Asha Dev
+	email = asha@example.com`,
+  },
+  {
+    q: "How do you create Git aliases?",
+    level: 'Basics',
+    a: "An alias is a shortcut I define with git config alias.<name>, and Git expands it before running the command. I keep a few in my global config, like st for status --short, lg for a graph log and unstage for restore --staged. They save a lot of typing, but I still learn the full commands so I can work on any machine.",
+    code: `git config --global alias.st "status --short"
+git config --global alias.lg "log --oneline --graph --all"
+git config --global alias.unstage "restore --staged"
+echo "version 2" > app.txt
+git add app.txt
+git st
+git unstage app.txt
+git st
+git lg
+git config --get-regexp "^alias"`,
+    output: `$ git config --global alias.st "status --short"
+
+$ git config --global alias.lg "log --oneline --graph --all"
+
+$ git config --global alias.unstage "restore --staged"
+
+$ echo "version 2" > app.txt
+
+$ git add app.txt
+
+$ git st
+M  app.txt
+
+$ git unstage app.txt
+
+$ git st
+ M app.txt
+
+$ git lg
+* a755f5d Add search
+* 4b4ae9b Initial commit
+
+$ git config --get-regexp "^alias"
+alias.st status --short
+alias.lg log --oneline --graph --all
+alias.unstage restore --staged`,
+  },
+  {
+    q: "How do you rename, move or delete files with git mv and git rm?",
+    level: 'Basics',
+    a: "git mv renames or moves a file and stages the change in one step, and git rm deletes the file and stages the deletion. If I rename a file with plain mv, Git first sees a deleted and a new file, but after git add it still detects the rename by comparing content. I prefer git mv and git rm because the status is correct immediately and nothing gets forgotten.",
+    code: `git mv helpers.js utils.js
+git rm old-notes.txt
+git status --short
+git commit -q -m "Rename helpers and remove old notes"
+git show --stat --format="%s" HEAD
+ls`,
+    output: `$ git mv helpers.js utils.js
+
+$ git rm old-notes.txt
+rm 'old-notes.txt'
+
+$ git status --short
+D  old-notes.txt
+R  helpers.js -> utils.js
+
+$ git commit -q -m "Rename helpers and remove old notes"
+
+$ git show --stat --format="%s" HEAD
+Rename helpers and remove old notes
+
+ old-notes.txt          | 1 -
+ helpers.js => utils.js | 0
+ 2 files changed, 1 deletion(-)
+
+$ ls
+app.txt
+utils.js`,
+  },
+  {
+    q: "How do you stop tracking a file that is already committed?",
+    level: 'Basics',
+    a: "Adding a path to .gitignore does nothing for files Git already tracks, so I also remove them from the index with git rm --cached (-r for folders). That deletes them from the repository in the next commit but keeps them on my disk. Teammates' copies are deleted when they pull, so for local config files I warn the team or ship a template like config.example.json instead.",
+    code: `git ls-files
+echo "dist/" >> .gitignore
+git rm -r --cached dist      # remove from Git, keep on disk
+git add .gitignore
+git commit -q -m "Stop tracking build output"
+git ls-files
+ls dist
+git check-ignore -v dist/bundle.js`,
+    output: `$ git ls-files
+app.txt
+dist/bundle.js
+
+$ echo "dist/" >> .gitignore
+
+$ git rm -r --cached dist
+rm 'dist/bundle.js'
+
+$ git add .gitignore
+
+$ git commit -q -m "Stop tracking build output"
+
+$ git ls-files
+.gitignore
+app.txt
+
+$ ls dist
+bundle.js
+
+$ git check-ignore -v dist/bundle.js
+.gitignore:1:dist/	dist/bundle.js`,
+  },
+  {
+    q: "How do you compare two branches?",
+    level: 'Basics',
+    a: "git log main..feature lists the commits that are on feature but not on main, which is what a pull request would bring in. For file changes, git diff main...feature (three dots) compares feature with the point where it branched off, so it shows only my work; two dots compares the two branch tips directly, so main's new commits show up reversed. I usually start with --stat or --name-only to get an overview before reading the full diff.",
+    code: `git log --oneline main..feature    # commits only on feature
+git diff --stat main...feature     # only the feature's changes
+git diff --stat main..feature      # tip vs tip, includes main's new work
+git diff main...feature -- search.txt`,
+    output: `$ git log --oneline main..feature
+848de79 Add filters
+430a6f5 Add search
+
+$ git diff --stat main...feature
+ filter.txt | 1 +
+ search.txt | 1 +
+ 2 files changed, 2 insertions(+)
+
+$ git diff --stat main..feature
+ filter.txt | 1 +
+ hotfix.txt | 1 -
+ search.txt | 1 +
+ 3 files changed, 2 insertions(+), 1 deletion(-)
+
+$ git diff main...feature -- search.txt
+diff --git a/search.txt b/search.txt
+new file mode 100644
+index 0000000..c2f79de
+--- /dev/null
++++ b/search.txt
+@@ -0,0 +1 @@
++search box`,
+  },
+  {
+    q: "How do you list, rename and remove remotes, and check tracking branches?",
+    level: 'Basics',
+    a: "git remote -v lists remotes with their fetch and push URLs; git remote rename, set-url and remove manage them, for example after a repository moves to a new organization. Renaming a remote also updates the branches that track it. git branch -vv and git status -sb show which remote branch each local branch tracks and how far ahead or behind it is, which I check before pushing.",
+    code: `git remote -v
+git remote rename origin github
+git remote set-url github https://github.com/dev/app.git
+git remote add backup ../backup.git
+git remote -v
+git remote remove backup
+git branch -vv
+git status -sb`,
+    output: `$ git remote -v
+origin	../origin.git (fetch)
+origin	../origin.git (push)
+
+$ git remote rename origin github
+
+$ git remote set-url github https://github.com/dev/app.git
+
+$ git remote add backup ../backup.git
+
+$ git remote -v
+backup	../backup.git (fetch)
+backup	../backup.git (push)
+github	https://github.com/dev/app.git (fetch)
+github	https://github.com/dev/app.git (push)
+
+$ git remote remove backup
+
+$ git branch -vv
+* main b1fc101 [github/main: ahead 1] Add login
+
+$ git status -sb
+## main...github/main [ahead 1]`,
   },
   {
     q: "What is the difference between a fast-forward merge and a three-way merge?",
@@ -1003,6 +1219,218 @@ $ git show HEAD~1:app.txt
 version 1`,
   },
   {
+    q: "How do you stash untracked files and use named stashes?",
+    level: 'Intermediate',
+    a: "By default git stash only saves changes to tracked files, so a new file stays behind; git stash push -u includes untracked files too. I always give a stash a message with -m, then pick a specific one from git stash list with stash@{n}. apply keeps the stash in the list and drop deletes it, so I apply first and drop only when everything looks right.",
+    code: `echo "version 2" > app.txt              # change to a tracked file
+echo "draft" > todo.txt                 # new, untracked file
+git stash push -m "wip: header"
+git status --short                      # todo.txt was left behind
+git stash push -u -m "wip: todo notes"  # -u includes untracked files
+git stash list
+git stash show --include-untracked --stat stash@{0}
+git stash apply stash@{1}
+git stash drop stash@{1}
+git status --short
+git stash list`,
+    output: `$ echo "version 2" > app.txt
+
+$ echo "draft" > todo.txt
+
+$ git stash push -m "wip: header"
+Saved working directory and index state On main: wip: header
+
+$ git status --short
+?? todo.txt
+
+$ git stash push -u -m "wip: todo notes"
+Saved working directory and index state On main: wip: todo notes
+
+$ git stash list
+stash@{0}: On main: wip: todo notes
+stash@{1}: On main: wip: header
+
+$ git stash show --include-untracked --stat stash@{0}
+ todo.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+$ git stash apply stash@{1}
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   app.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git stash drop stash@{1}
+Dropped stash@{1} (6b752a472f546c93b147cf19a072e59639f8d6d6)
+
+$ git status --short
+ M app.txt
+
+$ git stash list
+stash@{0}: On main: wip: todo notes`,
+  },
+  {
+    q: "How do you restore a file from an older commit or another branch?",
+    level: 'Intermediate',
+    a: "First I find the commit with git log -- <file> and look at the old content with git show <commit>:<file>, which changes nothing. Then git restore --source=<commit> <file> puts that version back in my working directory, and I commit it like any other change. The same works with a branch name as the source, which is handy to grab one file from another branch without merging it.",
+    code: `git log --oneline -- price.txt
+git show HEAD~2:price.txt                # view only
+git restore --source=HEAD~2 price.txt    # bring the old version back
+cat price.txt
+git restore --source=feature -- theme.css
+git status --short`,
+    output: `$ git log --oneline -- price.txt
+2bca403 Bug: price set to zero
+5e67f76 Raise price
+af7f724 Add price
+
+$ git show HEAD~2:price.txt
+price = 10
+
+$ git restore --source=HEAD~2 price.txt
+
+$ cat price.txt
+price = 10
+
+$ git restore --source=feature -- theme.css
+
+$ git status --short
+ M price.txt
+?? theme.css`,
+  },
+  {
+    q: "How do you see a file's history across renames (git log --follow)?",
+    level: 'Intermediate',
+    a: "git log -- <path> only shows commits that touched that exact path, so a file's history seems to start at the commit where it was renamed. --follow tells Git to detect renames and keep going back through the old name. I also add --name-status so I can see the R (rename) entry and the old file name.",
+    code: `git log --oneline -- helpers.js             # stops at the rename
+git log --oneline --follow -- helpers.js    # follows the old name
+git log --follow --name-status --format="%h %s" -- helpers.js`,
+    output: `$ git log --oneline -- helpers.js
+0d7f4cf Add sq
+db11b78 Rename utils to helpers
+
+$ git log --oneline --follow -- helpers.js
+0d7f4cf Add sq
+db11b78 Rename utils to helpers
+70fd774 Add div
+ee56dd5 Add math utils
+
+$ git log --follow --name-status --format="%h %s" -- helpers.js
+0d7f4cf Add sq
+
+M	helpers.js
+db11b78 Rename utils to helpers
+
+R100	utils.js	helpers.js
+70fd774 Add div
+
+M	utils.js
+ee56dd5 Add math utils
+
+A	utils.js`,
+  },
+  {
+    q: "How do you cherry-pick a range of commits?",
+    level: 'Intermediate',
+    a: "git cherry-pick A..B applies every commit after A up to and including B, so A itself is excluded; to include A I write A^..B. The commits are applied one by one, and if one conflicts I fix it and run git cherry-pick --continue, or --abort to go back. I use this to backport a small series of fixes to a release branch while leaving work-in-progress commits behind.",
+    code: `git log --oneline main..feature
+# A^..B includes A itself
+git cherry-pick 962762f^..07edb24
+git log --oneline    # copies with new hashes, WIP left behind`,
+    output: `$ git log --oneline main..feature
+8ef80af WIP: new checkout
+07edb24 Fix footer link
+2cfa6aa Fix cart total rounding
+962762f Fix login redirect
+
+$ git cherry-pick 962762f^..07edb24
+[main 377dff1] Fix login redirect
+ Date: Thu Jan 1 10:00:00 2026 +0000
+ 1 file changed, 1 insertion(+)
+ create mode 100644 a.txt
+[main 129d377] Fix cart total rounding
+ Date: Thu Jan 1 10:00:00 2026 +0000
+ 1 file changed, 1 insertion(+)
+ create mode 100644 b.txt
+[main 55cdde8] Fix footer link
+ Date: Thu Jan 1 10:00:00 2026 +0000
+ 1 file changed, 1 insertion(+)
+ create mode 100644 c.txt
+
+$ git log --oneline
+55cdde8 Fix footer link
+129d377 Fix cart total rounding
+377dff1 Fix login redirect
+0d94f37 Prepare release 1.4
+4b4ae9b Initial commit`,
+  },
+  {
+    q: "How do you revert a merge commit?",
+    level: 'Intermediate',
+    a: "A merge commit has two parents, so git revert needs -m to know which side is the mainline; -m 1 means keep the first parent (main) and undo what the merged branch brought in. It creates a new commit, so it is safe on a shared branch. The catch is that Git now thinks the branch is already merged, so to bring the work back later I revert the revert instead of merging again.",
+    code: `git log --oneline --graph
+git revert -m 1 --no-edit HEAD    # keep parent 1 (main)
+git log --oneline -3
+ls`,
+    output: `$ git log --oneline --graph
+*   703aa50 Merge branch 'feature'
+|\\
+| * 0bdd21c Add filters
+| * a755f5d Add search
+* | a0219fd Hotfix on main
+|/
+* 4b4ae9b Initial commit
+
+$ git revert -m 1 --no-edit HEAD
+[main 6be0f6c] Revert "Merge branch 'feature'"
+ Date: Thu Jan 1 10:00:00 2026 +0000
+ 2 files changed, 2 deletions(-)
+ delete mode 100644 filter.txt
+ delete mode 100644 search.txt
+
+$ git log --oneline -3
+6be0f6c Revert "Merge branch 'feature'"
+703aa50 Merge branch 'feature'
+a0219fd Hotfix on main
+
+$ ls
+app.txt
+hotfix.txt`,
+  },
+  {
+    q: "What does a release workflow with tags look like?",
+    level: 'Intermediate',
+    a: "I follow semantic versioning: MAJOR for breaking changes, MINOR for new features, PATCH for fixes. Before a release I list what changed since the last tag with git log v1.0.0..HEAD, create an annotated tag and push that tag, which usually triggers the CI release job. git describe --tags is handy in builds because it tells me how many commits I am past the last release.",
+    code: `git describe --tags
+git log --oneline v1.0.0..HEAD      # what goes into the release
+git tag -a v1.1.0 -m "Release 1.1.0"
+git describe --tags
+git push -q origin v1.1.0
+git ls-remote --tags origin`,
+    output: `$ git describe --tags
+v1.0.0-2-gef1036e
+
+$ git log --oneline v1.0.0..HEAD
+ef1036e fix: cart total rounding
+e10e2b6 feat: add search
+
+$ git tag -a v1.1.0 -m "Release 1.1.0"
+
+$ git describe --tags
+v1.1.0
+
+$ git push -q origin v1.1.0
+
+$ git ls-remote --tags origin
+00f8c41d056ebf6e791a43366bc58aafb70fd62d	refs/tags/v1.0.0
+4b4ae9be9c41c15a6cce39038e4f7c369abd1590	refs/tags/v1.0.0^{}
+1d1a8c81925f93fb22dbac43e7f29f7f1f2656da	refs/tags/v1.1.0
+ef1036e33bf20830375845c284603fa057e6d195	refs/tags/v1.1.0^{}`,
+  },
+  {
     q: "What is git reflog and how do you recover a deleted branch or commit?",
     level: 'Advanced',
     a: "The reflog is a local log of every position HEAD and branches have pointed to, including commits that no branch points to anymore. If I delete a branch or do a bad reset --hard, I find the old hash in git reflog and create a branch at it. Entries are kept for about 90 days, so lost work is almost never really lost.",
@@ -1405,5 +1833,154 @@ $ git status --short
 $ git log --oneline -- .env
 b2cc016 Stop tracking .env
 0f92377 Add config`,
+  },
+  {
+    q: "How does Git store data internally (blobs, trees, commits)?",
+    level: 'Advanced',
+    a: "Git is a content-addressed key-value store: every object is named by the hash of its content. A blob holds a file's content, a tree is a folder listing names to blobs and other trees, and a commit points to one root tree, its parent commits, the author and the message. I can inspect any of them with git cat-file -t (type) and -p (pretty-print), and because names come from content, identical files are stored only once.",
+    code: `echo "hello" > hello.txt
+git hash-object hello.txt          # the blob id, from the content
+git add hello.txt && git commit -q -m "Add hello"
+git cat-file -t HEAD
+git cat-file -p HEAD               # commit -> tree + parent
+git cat-file -p HEAD^{tree}        # tree -> blobs
+git cat-file -p HEAD:hello.txt     # blob -> content`,
+    output: `$ echo "hello" > hello.txt
+
+$ git hash-object hello.txt
+ce013625030ba8dba906f756967f9e9ca394464a
+
+$ git add hello.txt && git commit -q -m "Add hello"
+
+$ git cat-file -t HEAD
+commit
+
+$ git cat-file -p HEAD
+tree f6d2ad2e2cbc0b88932dc7ed06336f79d77a8c30
+parent 4b4ae9be9c41c15a6cce39038e4f7c369abd1590
+author Dev <dev@example.com> 1767261600 +0000
+committer Dev <dev@example.com> 1767261600 +0000
+
+Add hello
+
+$ git cat-file -p HEAD^{tree}
+100644 blob 83baae61804e65cc73a7201a7252750c76066a30	app.txt
+100644 blob ce013625030ba8dba906f756967f9e9ca394464a	hello.txt
+
+$ git cat-file -p HEAD:hello.txt
+hello`,
+  },
+  {
+    q: "What are packfiles and what does git gc do?",
+    level: 'Advanced',
+    a: "New objects are first stored as separate zlib-compressed 'loose' files under .git/objects. git gc packs them into a packfile, where similar versions are stored as deltas, and it removes unreachable objects that are older than the expiry time. Git runs gc automatically now and then, but git count-objects -v is a quick way to see how many loose objects and how much space the repo uses.",
+    code: `git count-objects -v
+git gc -q
+git count-objects -v
+ls .git/objects/pack`,
+    output: `$ git count-objects -v
+count: 33
+size: 132
+in-pack: 0
+packs: 0
+size-pack: 0
+prune-packable: 0
+garbage: 0
+size-garbage: 0
+
+$ git gc -q
+
+$ git count-objects -v
+count: 0
+size: 0
+in-pack: 33
+packs: 1
+size-pack: 4
+prune-packable: 0
+garbage: 0
+size-garbage: 0
+
+$ ls .git/objects/pack
+pack-7bf4a63591af1b21b043fbcaa8c6699fc3b07da1.idx
+pack-7bf4a63591af1b21b043fbcaa8c6699fc3b07da1.pack
+pack-7bf4a63591af1b21b043fbcaa8c6699fc3b07da1.rev`,
+  },
+  {
+    q: "What is git rerere?",
+    level: 'Advanced',
+    a: "rerere stands for 'reuse recorded resolution': when it is enabled, Git remembers how I resolved a conflict and applies the same fix automatically the next time that exact conflict appears; Git still pauses so I can check the file, then I just git add and commit. It is very useful when I rebase a long-lived branch again and again, or redo a merge. I still review the result and run the tests, because Git only replays the text, it doesn't know if it is still correct.",
+    code: `git config rerere.enabled true
+git merge feature                       # conflict
+echo 'greeting = "Hello team"' > config.txt
+git add config.txt
+git commit -q --no-edit
+# Undo the merge and do it again
+git reset -q --hard HEAD~1
+git merge feature                       # rerere reuses my fix
+cat config.txt
+git add config.txt
+git commit -q --no-edit
+git log --oneline -1`,
+    output: `$ git config rerere.enabled true
+
+$ git merge feature
+Auto-merging config.txt
+CONFLICT (content): Merge conflict in config.txt
+Recorded preimage for 'config.txt'
+Automatic merge failed; fix conflicts and then commit the result.
+
+$ echo 'greeting = "Hello team"' > config.txt
+
+$ git add config.txt
+
+$ git commit -q --no-edit
+Recorded resolution for 'config.txt'.
+
+$ git reset -q --hard HEAD~1
+
+$ git merge feature
+Auto-merging config.txt
+CONFLICT (content): Merge conflict in config.txt
+Resolved 'config.txt' using previous resolution.
+Automatic merge failed; fix conflicts and then commit the result.
+
+$ cat config.txt
+greeting = "Hello team"
+
+$ git add config.txt
+
+$ git commit -q --no-edit
+
+$ git log --oneline -1
+abff9c3 Merge branch 'feature'`,
+  },
+  {
+    q: "What is git worktree and when do you use it?",
+    level: 'Advanced',
+    a: "git worktree lets one repository have several working directories, each with a different branch checked out at the same time. When an urgent hotfix comes in, I add a worktree for it instead of stashing my half-done feature, fix and commit there, then remove the worktree. All worktrees share the same .git data, so it is much lighter than a second clone, and Git won't let two worktrees check out the same branch.",
+    code: `git worktree add -q ../hotfix -b hotfix/login
+git worktree list
+cd ../hotfix && echo "fix" > login.txt && git add . && git commit -q -m "Fix login"
+cd ../app
+git log --oneline -1 hotfix/login
+git worktree remove ../hotfix
+git worktree list`,
+    output: `$ git worktree add -q ../hotfix -b hotfix/login
+
+$ git worktree list
+/home/dev/app    4b4ae9b [main]
+/home/dev/hotfix 4b4ae9b [hotfix/login]
+
+$ cd ../hotfix && echo "fix" > login.txt && git add . && git commit -q -m "Fix login"
+
+$ cd ../app
+
+$ git log --oneline -1 hotfix/login
+7534a85 Fix login
+
+$ git worktree remove ../hotfix
+
+$ git worktree list
+/home/dev/app 4b4ae9b [main]`,
   },
 ]

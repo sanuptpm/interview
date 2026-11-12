@@ -1,5 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
+import { highlightLines } from './lib/highlight.js'
+import TryIt from './tryit/TryIt.jsx'
+import TryItButton from './tryit/TryItButton.jsx'
 import postSearchSource from './pages/PostSearch.jsx?raw'
 import bubbleSortSource from './pages/BubbleSort.jsx?raw'
 import stringReverseSource from './pages/StringReverse.jsx?raw'
@@ -239,14 +242,17 @@ function Home() {
 }
 
 function CodeView({ source }) {
-  const lines = source.trimEnd().split('\n')
+  const lines = highlightLines(source.trimEnd(), 'javascript')
 
   return (
-    <pre className="p-4 font-mono text-[13px] leading-6">
-      {lines.map((line, i) => (
+    <pre className="code-theme p-4 font-mono text-[13px] leading-6">
+      {lines.map((html, i) => (
         <div key={i} className="flex">
           <span className="w-10 shrink-0 pr-4 text-right text-slate-400 select-none">{i + 1}</span>
-          <code className="whitespace-pre text-slate-800">{line}</code>
+          <code
+            className="whitespace-pre"
+            dangerouslySetInnerHTML={{ __html: html || ' ' }}
+          />
         </div>
       ))}
     </pre>
@@ -262,6 +268,9 @@ function PaneLabel({ children }) {
 }
 
 function ProgramPage({ title, source, Page }) {
+  // "Try it" swaps the code + output view for a live editor of the same program
+  const [editing, setEditing] = useState(false)
+
   return (
     <div className="flex h-screen flex-col bg-white max-md:h-auto">
       <header className="flex items-center gap-4 border-b border-slate-200 px-4 py-3 text-slate-900 sm:px-6">
@@ -273,9 +282,20 @@ function ProgramPage({ title, source, Page }) {
         </Link>
         <span className="text-slate-300">/</span>
         <h1 className="font-semibold">{title}</h1>
+        {source && (
+          <div className="ml-auto">
+            <TryItButton open={editing} onClick={() => setEditing(!editing)} />
+          </div>
+        )}
       </header>
 
-      <div className={`grid min-h-0 flex-1 ${source ? 'md:grid-cols-2' : ''}`}>
+      {editing && (
+        <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
+          <TryIt kind="react" code={source} tailwind height={560} />
+        </div>
+      )}
+
+      <div className={`grid min-h-0 flex-1 ${source ? 'md:grid-cols-2' : ''} ${editing ? 'hidden' : ''}`}>
         {source && (
           <section className="min-w-0 overflow-auto border-r border-slate-200 bg-white max-md:max-h-[70vh] max-md:border-r-0 max-md:border-b">
             <PaneLabel>

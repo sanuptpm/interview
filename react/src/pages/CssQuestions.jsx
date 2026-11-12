@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import CodeBlock from '../components/CodeBlock.jsx'
 import LevelSections from '../components/LevelSections.jsx'
+import topics from './topics/cssTopics.js'
 import TryIt from '../tryit/TryIt.jsx'
 import TryItButton from '../tryit/TryItButton.jsx'
 
@@ -10,17 +12,14 @@ const questions = [
     q: 'What is CSS and how is a CSS rule written?',
     level: 'Basics',
     a: "CSS stands for Cascading Style Sheets, and it controls how HTML looks: colors, fonts, spacing and layout. A rule has a selector that picks the elements, and a block of declarations, each made of a property and a value ending with a semicolon. I keep HTML for structure and CSS for styling, so I can change the design without touching the content.",
-    html: '<h1 class="title">Hello CSS</h1>\n<p>Plain paragraph</p>',
-    css: `/* selector  { property: value; } */
+    html: `<h1 class="title">Hello CSS</h1>
+<p>Plain paragraph</p>`,
+    css: `/* selector { property: value; } */
 .title {
-  color: #6366f1;        /* declaration 1 */
-  font-size: 28px;       /* declaration 2 */
-  margin: 0;
+  color: #6366f1;
+  font-size: 28px;
 }
-
-p {
-  color: gray;
-}`,
+p { color: gray; }`,
   },
   {
     q: 'Inline vs internal vs external CSS?',
@@ -38,14 +37,9 @@ p {
     html: `<h4>Heading</h4>
 <p>Paragraph</p>
 <button>Button</button>`,
-    css: `/* universal: every element, even html and body */
-* { outline: 1px dashed #a5b4fc; }
-
-/* type: every p */
-p { color: #16a34a; }
-
-/* group: one rule for both selectors */
-h4, button { color: #6366f1; margin: 0 0 8px; }`,
+    css: `* { outline: 1px dashed #a5b4fc; }  /* universal */
+p { color: #16a34a; }                /* type */
+h4, button { color: #6366f1; }       /* group */`,
   },
   {
     q: 'id vs class?',
@@ -98,17 +92,15 @@ input, a { display: block; margin-bottom: 6px; }`,
     q: 'How do you write colors in CSS (hex, rgb, hsl)?',
     level: 'Basics',
     a: "I can use named colors like red, hex codes like #6366f1, rgb() with red, green and blue values, or hsl() with hue, saturation and lightness. rgb and hsl also take an alpha value for transparency. I like hsl for design systems, because making a color lighter or darker just means changing the lightness.",
-    html: `<div class="named">named: tomato</div>
-<div class="hex">hex: #6366f1</div>
-<div class="rgb">rgb(16 185 129)</div>
-<div class="hsl">hsl(38 92% 50%)</div>
-<div class="alpha">rgb with 40% alpha</div>`,
-    css: `div { padding: 6px; margin-bottom: 4px; color: white; }
-.named { background: tomato; }
+    html: `<div class="hex">hex</div>
+<div class="rgb">rgb</div>
+<div class="hsl">hsl</div>
+<div class="alpha">rgb, 40% alpha</div>`,
+    css: `div { padding: 6px; color: white; }
 .hex   { background: #6366f1; }
 .rgb   { background: rgb(16 185 129); }
 .hsl   { background: hsl(38 92% 50%); }
-.alpha { background: rgb(99 102 241 / 0.4); color: black; }`,
+.alpha { background: rgb(99 102 241 / 0.4); }`,
   },
   {
     q: 'px vs em vs rem vs %?',
@@ -122,6 +114,18 @@ input, a { display: block; margin-bottom: 6px; }`,
 .parent { font-size: 10px; }
 .em  { font-size: 2em; }  /* 2 × 10px = 20px */
 .rem { font-size: 2rem; } /* 2 × 16px = 32px */`,
+  },
+  {
+    q: 'What are ch and ex units?',
+    level: 'Basics',
+    a: "1ch is the width of the 0 character in the current font, and 1ex is roughly the height of a lowercase x. I use max-width: 60ch on paragraphs to keep lines at a comfortable reading length, and ch is also handy for sizing an input to fit a number of characters, like a 4-digit PIN. ex is rarer; I sometimes use it to line up small icons with lowercase text.",
+    html: `<input class="pin" value="1234" />
+<p class="short">This paragraph is limited to 25ch, so the lines stay short.</p>`,
+    css: `.pin { width: 4ch; font: 20px monospace; }  /* 4 digits wide */
+.short {
+  max-width: 25ch;   /* about 25 characters per line */
+  background: #e0e7ff;
+}`,
   },
   {
     q: 'What are vh and vw?',
@@ -138,39 +142,27 @@ input, a { display: block; margin-bottom: 6px; }`,
     q: 'Which CSS properties do you use to style text?',
     level: 'Basics',
     a: "I use text-transform for uppercase or capitalize, letter-spacing for the gap between letters, text-align for alignment, and text-decoration for underlines. For fonts I like the font shorthand, which sets style, weight, size, line-height and family in one line. I keep line-height unitless, like 1.5, so it scales with the font size.",
-    html: `<h4 class="label">Small caps label</h4>
-<p class="body">Centered paragraph with a comfortable line height that wraps onto two lines.</p>
-<a href="#" class="link">Wavy underline</a>`,
+    html: `<h4 class="label">Label</h4>
+<p class="body">Centered italic text with a comfortable line height.</p>`,
     css: `.label {
   text-transform: uppercase;
-  letter-spacing: 3px;          /* space between letters */
-  margin: 0;
-  color: #6366f1;
+  letter-spacing: 3px;
+  text-decoration: underline;
 }
 .body {
-  /* style weight size/line-height family */
-  font: italic 400 14px/1.6 Georgia, serif;
+  font: italic 14px/1.6 Georgia, serif; /* style size/line-height family */
   text-align: center;
-}
-.link { text-decoration: underline wavy #f59e0b; }`,
+}`,
   },
   {
     q: 'How do you set fonts and use web fonts?',
     level: 'Basics',
     a: "I set fonts with font-family, giving a list of fallbacks that ends with a generic family like sans-serif, in case the first font isn't available. For custom fonts, I load them with @font-face or a service like Google Fonts. I also use font-display: swap so text shows straight away in a fallback font while the web font loads.",
-    html: `<p class="system">System font stack</p>
-<p class="serif">Serif fallback</p>
-<p class="mono">Monospace font</p>`,
-    css: `/* Web font example:
-@font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter.woff2") format("woff2");
-  font-display: swap;
-} */
-
-.system { font-family: "Inter", system-ui, sans-serif; font-weight: 600; }
-.serif  { font-family: Georgia, "Times New Roman", serif; font-style: italic; }
-.mono   { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }`,
+    html: `<p class="sans">Sans-serif stack</p>
+<p class="serif">Serif stack</p>`,
+    css: `/* @font-face { font-family: "Inter"; src: url(inter.woff2); font-display: swap; } */
+.sans  { font-family: "Inter", system-ui, sans-serif; }
+.serif { font-family: Georgia, "Times New Roman", serif; }`,
   },
   {
     q: 'What is the CSS box model?',
@@ -212,6 +204,20 @@ input, a { display: block; margin-bottom: 6px; }`,
 }
 .a { box-sizing: content-box; } /* real width = 250px */
 .b { box-sizing: border-box; }  /* real width = 200px */`,
+  },
+  {
+    q: 'What is a CSS reset, and how is it different from normalize.css?',
+    level: 'Basics',
+    a: "Browsers add their own default styles, like margins on headings and padding on lists, so pages look slightly different everywhere. A reset removes most of those defaults so I start from zero, while normalize.css keeps the useful defaults and only fixes the differences between browsers. Today I use a small modern reset: box-sizing: border-box, margin: 0, block images with max-width: 100%, and font: inherit on form controls.",
+    html: `<h4>Default margins</h4>
+<ul><li>Default padding</li></ul>
+<div class="reset">
+  <h4>After reset</h4>
+  <ul><li>No padding</li></ul>
+</div>`,
+    css: `h4, ul { background: #e0e7ff; }
+/* a small reset, scoped to .reset for this demo */
+.reset * { box-sizing: border-box; margin: 0; padding: 0; list-style: none; }`,
   },
   {
     q: 'border vs outline?',
@@ -269,6 +275,20 @@ input, a { display: block; margin-bottom: 6px; }`,
 #title { color: blue; }   /* id:    1-0-0  → wins */`,
   },
   {
+    q: 'Specificity puzzle: which color wins?',
+    level: 'Intermediate',
+    a: "I count each selector as three columns: ids, then classes, attributes and pseudo-classes, then elements, and compare them from the left. One id beats any number of classes, so 0-3-0 loses to 1-0-1. :is() takes the specificity of its strongest argument, while :where() always counts as zero, which is why I use :where() for base styles that should be easy to override. Here the :is() rule wins with 1-1-0.",
+    html: `<div id="app" class="page">
+  <p id="first" class="text intro">Which color am I?</p>
+</div>`,
+    css: `#app p                 { color: red; }      /* 1-0-1 */
+.page .text.intro      { color: green; }    /* 0-3-0: three classes lose to one id */
+:is(#app, .page) .text { color: #6366f1; }  /* 1-1-0: wins */
+:where(#app) p.text    { color: orange; }   /* 0-1-1: :where counts as 0 */
+
+p { font-size: 18px; font-weight: bold; }`,
+  },
+  {
     q: 'Which properties are inherited?',
     level: 'Basics',
     a: "Text-related properties like color, font-family and line-height are inherited by child elements. Box properties like margin, padding, border and background are not. If I want a child to take a non-inherited value from its parent, I use the inherit keyword.",
@@ -279,6 +299,22 @@ input, a { display: block; margin-bottom: 6px; }`,
 </div>`,
     css: `.parent { color: #6366f1; border: 2px solid #6366f1; padding: 8px; }
 .force  { border: inherit; }`,
+  },
+  {
+    q: 'What do inherit, initial, unset and revert do?',
+    level: 'Intermediate',
+    a: "inherit takes the parent's value, and initial resets to the default from the CSS spec, so color: initial is black and display: initial is inline, even on a div. unset acts like inherit for inherited properties and like initial for the rest, and revert goes back to the browser's own default style. I use all: unset to strip a button's styles completely, and revert when I want an element back to its normal browser look.",
+    html: `<div class="parent">
+  <h4>normal rule: red</h4>
+  <h4 class="inherit">inherit: parent's indigo</h4>
+  <h4 class="initial">initial: black</h4>
+  <h4 class="revert">revert: browser bold is back</h4>
+</div>`,
+    css: `.parent { color: #6366f1; }
+h4 { color: #ef4444; font-weight: 400; margin: 2px 0; }
+.inherit { color: inherit; }
+.initial { color: initial; }
+.revert  { color: inherit; font-weight: revert; }`,
   },
   {
     q: 'Pseudo-class vs pseudo-element?',
@@ -292,6 +328,27 @@ input, a { display: block; margin-bottom: 6px; }`,
   content: "★ ";
   color: orange;
 }`,
+  },
+  {
+    q: 'What can you do with ::before and ::after?',
+    level: 'Basics',
+    a: "::before and ::after add a generated box as the first or last child of an element, and they only show up when I set the content property, even if it's just an empty string. I use them for decoration like quote marks, required-field stars, badges and icons, so the HTML stays clean. Screen readers may not read generated content reliably, so I never put important information there.",
+    html: `<p class="quote">CSS is fun</p>
+<label class="required">Email</label>`,
+    css: `.quote::before { content: "“"; color: #6366f1; }
+.quote::after  { content: "”"; color: #6366f1; }
+.required::after { content: " *"; color: #ef4444; }`,
+  },
+  {
+    q: 'How do you style ::selection, ::placeholder and ::marker?',
+    level: 'Basics',
+    a: "::selection styles the text the user highlights with the mouse, but only a few properties work there, like color and background-color. ::placeholder styles the hint text in an input, and I keep its contrast readable because people with low vision still need to see it. ::marker styles the bullet or number of a list item, so I can change its color without using a background image.",
+    html: `<p>Select this text to see the custom highlight.</p>
+<input placeholder="Search..." />
+<ul><li>Colored bullet</li></ul>`,
+    css: `::selection { background: #f59e0b; color: white; }
+input::placeholder { color: #7c3aed; }
+li::marker { color: #6366f1; font-size: 20px; }`,
   },
   {
     q: 'What are :hover, :active, :focus and :focus-visible?',
@@ -328,18 +385,11 @@ button:focus-visible { outline: 3px solid #6366f1; }`,
   parent (relative)
   <div class="child">absolute</div>
 </div>`,
-    css: `.parent {
-  position: relative;
-  height: 100px;
-  background: #e0e7ff;
-}
+    css: `.parent { position: relative; height: 100px; background: #e0e7ff; }
 .child {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: #6366f1;
-  color: white;
-  padding: 4px 8px;
+  bottom: 10px; right: 10px;
+  background: #6366f1; color: white;
 }`,
   },
   {
@@ -355,24 +405,35 @@ button:focus-visible { outline: 3px solid #6366f1; }`,
   align-items: center;     /* vertical */
   height: 120px;
   background: #e0e7ff;
-}
-.child { background: #6366f1; color: white; padding: 10px; }`,
+}`,
+  },
+  {
+    q: 'What are place-items and place-content?',
+    level: 'Intermediate',
+    a: "place-items is shorthand for align-items and justify-items, so in grid, place-items: center centers every item inside its own cell. place-content is shorthand for align-content and justify-content, and it moves the whole group of tracks inside the container when there's extra space. I remember it as: items moves things inside their cells, content moves the whole grid.",
+    html: `<div class="grid items"><b>1</b><b>2</b><b>3</b><b>4</b></div>
+<div class="grid content"><b>1</b><b>2</b><b>3</b><b>4</b></div>`,
+    css: `.grid { display: inline-grid; vertical-align: top; width: 120px; height: 120px; background: #e0e7ff; }
+b { background: #6366f1; color: white; padding: 2px 8px; }
+/* each item centered inside its own cell */
+.items { grid-template-columns: 1fr 1fr; place-items: center; }
+/* the whole group of tracks centered in the box */
+.content { grid-template-columns: 30px 30px; place-content: center; }`,
   },
   {
     q: 'justify-content vs align-items in flexbox?',
     level: 'Intermediate',
     a: "In flexbox, justify-content aligns items along the main axis, which is horizontal for a row. align-items aligns them on the cross axis, which is vertical for a row. If I change flex-direction to column, the two axes swap.",
     html: `<div class="row">
-  <div>1</div><div>2</div><div>3</div>
+  <b>1</b><b>2</b><b>3</b>
 </div>`,
     css: `.row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  height: 100px;
-  background: #e0e7ff;
+  justify-content: space-between; /* main axis */
+  align-items: flex-end;          /* cross axis */
+  height: 100px; background: #e0e7ff;
 }
-.row div { background: #6366f1; color: white; padding: 10px 16px; }`,
+b { background: #6366f1; color: white; padding: 8px; }`,
   },
   {
     q: 'What is CSS Grid? How is it different from Flexbox?',
@@ -413,7 +474,7 @@ li:nth-child(even) { background: #fef3c7; }`,
     q: 'What are CSS variables?',
     level: 'Intermediate',
     a: "CSS variables, also called custom properties, let me store a value once and reuse it. I declare them with two dashes, usually in :root so they're global, and use them with var(). They're very useful for themes like dark mode, because I can change one value and everything updates.",
-    html: '<button>Primary</button>',
+    html: `<button>Primary</button>`,
     css: `:root {
   --primary: #6366f1;
   --radius: 8px;
@@ -422,8 +483,21 @@ button {
   background: var(--primary);
   border-radius: var(--radius);
   color: white;
-  border: none;
-  padding: 8px 16px;
+}`,
+  },
+  {
+    q: ':root vs html selector?',
+    level: 'Intermediate',
+    a: ":root and html select the same element in an HTML page, but :root is a pseudo-class, so its specificity is 0-1-0, which beats html at 0-0-1. :root also works in other documents, like SVG. By convention I put global CSS variables on :root, so here its value wins even though the html rule comes later.",
+    html: `<div class="box">My color comes from --brand</div>`,
+    css: `:root { --brand: #6366f1; }   /* 0-1-0: wins */
+html  { --brand: #ef4444; }   /* 0-0-1: loses, even though it's later */
+
+.box {
+  padding: 16px;
+  background: var(--brand);
+  color: white;
+  border-radius: 8px;
 }`,
   },
   {
@@ -479,6 +553,36 @@ button {
 }`,
   },
   {
+    q: 'What are scroll-behavior and scroll-snap?',
+    level: 'Intermediate',
+    a: "scroll-behavior: smooth makes anchor links and scrollIntoView scroll smoothly instead of jumping. scroll-snap makes a scroll container stop at clean positions: I set scroll-snap-type on the container, like x mandatory, and scroll-snap-align on the children. That gives me a swipeable carousel with no JavaScript, and in real projects I only turn on smooth scrolling when the user hasn't asked for reduced motion.",
+    html: `<div class="carousel">
+  <div>Slide 1</div><div>Slide 2</div><div>Slide 3</div>
+</div>`,
+    css: `html { scroll-behavior: smooth; }  /* smooth anchor jumps */
+.carousel {
+  display: flex; gap: 8px; width: 240px; overflow-x: auto;
+  scroll-snap-type: x mandatory;     /* always stop on a slide */
+}
+.carousel div {
+  flex: 0 0 80%; height: 90px; background: #6366f1; color: white;
+  scroll-snap-align: center;         /* snap each slide to the center */
+}`,
+  },
+  {
+    q: 'What does overscroll-behavior do?',
+    level: 'Advanced',
+    a: "When I scroll to the end of an inner scrolling box, the browser normally passes the scroll on to the page behind it, which is called scroll chaining. overscroll-behavior: contain stops that, so scrolling a modal, chat window or sidebar doesn't move the page underneath. overscroll-behavior-y: none on the body also turns off pull-to-refresh and the bounce effect on mobile.",
+    html: `<div class="box">Scroll me to the end: the page behind stays still.<br />1<br />2<br />3<br />4<br />5</div>
+<p style="height: 400px">Tall page</p>`,
+    css: `.box {
+  height: 100px;
+  overflow-y: auto;
+  border: 2px solid #6366f1;
+  overscroll-behavior: contain;   /* no scroll chaining */
+}`,
+  },
+  {
     q: 'What is margin collapsing?',
     level: 'Intermediate',
     a: "When two vertical margins touch, for example the bottom margin of one block and the top margin of the next, they collapse into one margin equal to the larger value, not the sum. It only happens with vertical margins on block elements, not inside flex or grid containers.",
@@ -494,18 +598,30 @@ button {
     a: "Sticky is like a mix of relative and fixed. The element scrolls normally until it reaches the offset I set, like top: 0, and then it sticks there while its parent is still on screen. I use it for table headers and section headers. It needs a top value to work.",
     html: `<div class="list">
   <div class="header">Sticky header</div>
-  <p>Item 1</p><p>Item 2</p><p>Item 3</p><p>Item 4</p>
-  <p>Item 5</p><p>Item 6</p><p>Item 7</p><p>Item 8</p>
+  <p>1</p><p>2</p><p>3</p><p>4</p><p>5</p><p>6</p>
 </div>`,
-    css: `.list { height: 130px; overflow: auto; border: 1px solid #c7d2fe; }
+    css: `.list { height: 130px; overflow: auto; }
 .header {
   position: sticky;
   top: 0;
-  background: #6366f1;
-  color: white;
-  padding: 6px;
-}
-p { margin: 0; padding: 6px; }`,
+  background: #6366f1; color: white;
+}`,
+  },
+  {
+    q: "How do you build a fixed header that doesn't cover the content?",
+    level: 'Intermediate',
+    a: "I give the header position: fixed with top: 0, left: 0 and right: 0, plus a z-index so it stays above the page. Because fixed takes it out of the normal flow, the content slides underneath it, so I add padding-top to the body equal to the header height, and scroll-padding-top on html so anchor links don't land under it. Often position: sticky is simpler, because the header keeps its space in the flow.",
+    html: `<header>Fixed header</header>
+<p>Scroll: the header stays on top.</p>
+<p>2</p><p>3</p><p>4</p><p>5</p><p>6</p>`,
+    css: `body { padding-top: 40px; }   /* make room for the header */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  background: #6366f1; color: white;
+  z-index: 10;
+}`,
   },
   {
     q: 'What does flex-wrap do?',
@@ -539,25 +655,64 @@ p { margin: 0; padding: 6px; }`,
     level: 'Intermediate',
     a: "grid-template-areas lets me name parts of the grid and draw the layout as text, like a map. Then I place each item with grid-area. It makes page layouts very readable, and for mobile I can just redefine the areas in a media query.",
     html: `<div class="page">
-  <header>Header</header>
-  <aside>Sidebar</aside>
-  <main>Main</main>
-  <footer>Footer</footer>
+  <header>Header</header><aside>Side</aside><main>Main</main>
 </div>`,
     css: `.page {
-  display: grid;
-  grid-template-columns: 80px 1fr;
+  display: grid; grid-template-columns: 80px 1fr;
   grid-template-areas:
     "header header"
-    "sidebar main"
-    "footer footer";
+    "side   main";
+}
+header { grid-area: header; background: #c7d2fe; }
+aside  { grid-area: side; }
+main   { grid-area: main; background: #e0e7ff; }`,
+  },
+  {
+    q: 'How do you build the holy grail layout with grid?',
+    level: 'Intermediate',
+    a: "The holy grail layout is a header, a footer, and three columns in between: a left nav, the main content and a right sidebar, with the footer at the bottom. With grid I set grid-template-columns: 1fr for main with fixed side columns, rows of auto 1fr auto, and name the areas so the layout is readable. On small screens a media query can change the areas to a single column, without touching the HTML.",
+    html: `<div class="page">
+  <header>Header</header><nav>Nav</nav><main>Main</main>
+  <aside>Side</aside><footer>Footer</footer></div>`,
+    css: `.page {
+  display: grid; height: 160px; gap: 4px;
+  grid-template-columns: 60px 1fr 60px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: "header header header" "nav main aside" "footer footer footer";
+}
+header { grid-area: header; } nav { grid-area: nav; } main { grid-area: main; }
+aside { grid-area: aside; } footer { grid-area: footer; }
+.page > * { background: #c7d2fe; }`,
+  },
+  {
+    q: 'How do you build a sticky footer layout?',
+    level: 'Intermediate',
+    a: "A sticky footer sits at the bottom of the screen when the content is short, but gets pushed down normally when the content is long. I give the page wrapper min-height: 100dvh with display: grid and grid-template-rows: auto 1fr auto, so the main area takes all the spare space. The flexbox version is a column with flex: 1 on main. It's different from position: fixed, which would cover the content.",
+    html: `<div class="page">
+  <header>Header</header>
+  <main>Short content</main>
+  <footer>Footer stays at the bottom</footer>
+</div>`,
+    css: `.page {
+  min-height: 160px;   /* 100dvh on a real page */
+  display: grid;
+  grid-template-rows: auto 1fr auto;   /* main takes the spare space */
+}
+header, footer { background: #6366f1; color: white; }`,
+  },
+  {
+    q: 'How do you make equal-height columns?',
+    level: 'Intermediate',
+    a: "With flexbox it's automatic: align-items defaults to stretch, so every item in a row grows to match the tallest one, and grid does the same for items in a row. So mostly I just make sure I don't set align-items: center or a fixed height, which would break the stretch. To line up buttons at the bottom of each card, I make the card a flex column and give the button margin-top: auto.",
+    html: `<div class="row">
+  <p>Short</p>
+  <p>A much longer text that wraps onto several lines</p>
+</div>`,
+    css: `.row {
+  display: flex;   /* align-items: stretch by default */
   gap: 6px;
 }
-header { grid-area: header; }
-aside  { grid-area: sidebar; }
-main   { grid-area: main; }
-footer { grid-area: footer; }
-.page > * { background: #c7d2fe; padding: 8px; }`,
+p { flex: 1; margin: 0; background: #e0e7ff; }`,
   },
   {
     q: 'How do you show "..." when text is too long?',
@@ -583,12 +738,9 @@ footer { grid-area: footer; }
     css: `.parent { position: relative; height: 120px; background: #e0e7ff; }
 .child {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  background: #6366f1;
-  color: white;
-  padding: 8px;
+  background: #6366f1; color: white;
 }`,
   },
   {
@@ -625,6 +777,27 @@ button { border: none; padding: 6px 12px; border-radius: 6px; }`,
 }`,
   },
   {
+    q: 'How do you write responsive, fluid typography?',
+    level: 'Intermediate',
+    a: "I set sizes in rem so they respect the user's browser font setting, and use clamp() with a rem plus vw mix for headings, like clamp(1.25rem, 1rem + 2vw, 2rem), so the text grows smoothly between a sensible minimum and maximum. For components I can use container query units like cqi, so the text scales with the card instead of the screen. I avoid pure vw font sizes, because they don't change when the user zooms, which is an accessibility problem.",
+    html: `<h3>Fluid heading</h3>
+<p>Resize the window: the heading grows and shrinks.</p>`,
+    css: `h3 {
+  /* never below 1.25rem, never above 2rem */
+  font-size: clamp(1.25rem, 1rem + 2vw, 2rem);
+}`,
+  },
+  {
+    q: 'What do text-wrap: balance and text-wrap: pretty do?',
+    level: 'Intermediate',
+    a: "text-wrap: balance spreads the words evenly across the lines, so a heading doesn't end with one lonely word on the last line. It's meant for short text like headings, because browsers only balance a few lines for performance. For paragraphs I use text-wrap: pretty, which avoids a single orphan word at the end without balancing every line.",
+    html: `<h3>Learn modern CSS layout techniques today</h3>
+<h3 class="balance">Learn modern CSS layout techniques today</h3>`,
+    css: `h3 { width: 220px; border: 1px dashed #94a3b8; }
+.balance { text-wrap: balance; color: #4338ca; } /* even lines */
+p { text-wrap: pretty; }          /* for body text */`,
+  },
+  {
     q: 'What is aspect-ratio?',
     level: 'Intermediate',
     a: "aspect-ratio keeps an element at a fixed width-to-height ratio. If I set the width and aspect-ratio: 16 / 9, the browser calculates the height for me. I use it for video embeds, thumbnails and cards.",
@@ -655,18 +828,13 @@ button { border: none; padding: 6px 12px; border-radius: 6px; }`,
     q: 'What is calc()?',
     level: 'Intermediate',
     a: "calc() lets me do math with mixed units, like calc(100% - 100px). It's useful when part of the layout has a fixed size and the rest should fill the remaining space. I have to put spaces around plus and minus, otherwise it doesn't work.",
-    html: `<div class="wrap">
-  <div class="sidebar">100px</div>
-  <div class="main">calc(100% - 100px)</div>
-</div>`,
-    css: `.wrap { display: flex; }
-.sidebar { width: 100px; background: #c7d2fe; padding: 8px; box-sizing: border-box; }
+    html: `<div class="sidebar">100px</div><div class="main">calc(100% - 100px)</div>`,
+    css: `div { display: inline-block; box-sizing: border-box; }
+.sidebar { width: 100px; background: #c7d2fe; }
 .main {
   width: calc(100% - 100px);
   background: #6366f1;
   color: white;
-  padding: 8px;
-  box-sizing: border-box;
 }`,
   },
   {
@@ -675,12 +843,7 @@ button { border: none; padding: 6px 12px; border-radius: 6px; }`,
     a: ":has() is often called the parent selector. It selects an element based on what it contains, for example a card that contains a checked checkbox. Before :has(), I needed JavaScript to style a parent based on its children.",
     html: `<label class="card"><input type="checkbox" checked /> Checked card</label>
 <label class="card"><input type="checkbox" /> Click to check me</label>`,
-    css: `.card {
-  display: block;
-  padding: 8px;
-  margin-bottom: 6px;
-  border: 2px solid #ddd;
-}
+    css: `.card { display: block; padding: 8px; border: 2px solid #ddd; }
 .card:has(input:checked) {   /* parent styled by its child */
   border-color: #6366f1;
   background: #e0e7ff;
@@ -707,21 +870,10 @@ button { border: none; padding: 6px 12px; border-radius: 6px; }`,
 <div class="dark">
   <div class="card">Dark theme</div>
 </div>`,
-    css: `:root { --bg: #ffffff; --text: #111827; }
+    css: `:root { --bg: white; --text: #111827; }
 .dark { --bg: #1f2937; --text: #f9fafb; }
-
-/* Or follow the system setting:
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #1f2937; --text: #f9fafb; }
-} */
-
-.card {
-  background: var(--bg);
-  color: var(--text);
-  padding: 10px;
-  border: 1px solid #ccc;
-  margin-bottom: 6px;
-}`,
+/* or follow the system: @media (prefers-color-scheme: dark) { :root { ... } } */
+.card { background: var(--bg); color: var(--text); padding: 10px; }`,
   },
   {
     q: 'What is mobile-first design?',
@@ -732,8 +884,7 @@ button { border: none; padding: 6px 12px; border-radius: 6px; }`,
 </div>`,
     css: `/* Base: mobile, 1 column */
 .grid { display: grid; gap: 6px; grid-template-columns: 1fr; }
-.grid div { background: #6366f1; color: white; padding: 10px; text-align: center; }
-
+.grid div { background: #6366f1; color: white; padding: 10px; }
 /* Bigger screens: 3 columns */
 @media (min-width: 400px) {
   .grid { grid-template-columns: repeat(3, 1fr); }
@@ -748,16 +899,23 @@ button { border: none; padding: 6px 12px; border-radius: 6px; }`,
   <span class="sr-only">Close menu</span>
 </button>`,
     css: `.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; border: 0;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
 }`,
+  },
+  {
+    q: 'How do you check color contrast and keep styles accessible?',
+    level: 'Intermediate',
+    a: "WCAG AA needs a contrast ratio of at least 4.5:1 for normal text and 3:1 for large text, and I check it with the contrast picker in Chrome DevTools or Lighthouse. I also never use color alone to show meaning, so errors get an icon or text too, and I keep a visible focus ring with :focus-visible. Light gray placeholder-style text is the most common failure I see in reviews.",
+    html: `<p class="bad">Light gray: fails</p>
+<p class="good">Dark slate: passes</p>
+<p class="error">✕ Email is required</p>
+<button>Tab to me</button>`,
+    css: `.bad   { color: #b0b0b0; }  /* about 2:1 */
+.good  { color: #334155; }  /* over 10:1 */
+.error { color: #b91c1c; }  /* icon + text, not color alone */
+button:focus-visible { outline: 3px solid #6366f1; }`,
   },
   {
     q: 'What does pointer-events: none do?',
@@ -790,7 +948,6 @@ button:hover { background: #c7d2fe; }
     css: `.card {
   padding: 10px;
   border: 1px solid #6366f1;
-
   & h4 { margin: 0; color: #6366f1; }
   & p { margin: 4px 0 0; }
   &:hover { background: #e0e7ff; }
@@ -814,13 +971,7 @@ button:hover { background: #c7d2fe; }
     html: `<div class="box cover">cover</div>
 <div class="box contain">contain</div>`,
     css: `.box {
-  display: inline-block;
-  width: 120px;
-  height: 100px;
-  margin-right: 8px;
-  border: 2px solid #6366f1;
-  color: white;
-  text-shadow: 0 1px 2px black;
+  display: inline-block; width: 120px; height: 100px; border: 2px solid #6366f1;
   /* a 2:1 image: blue rectangle with a yellow circle */
   background: #fef3c7 no-repeat center url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 1'><rect width='2' height='1' fill='%236366f1'/><circle cx='1' cy='.5' r='.4' fill='%23fbbf24'/></svg>");
 }
@@ -834,23 +985,11 @@ button:hover { background: #c7d2fe; }
     html: `<div class="box linear">linear</div>
 <div class="box radial">radial</div>
 <div class="box multi">multiple</div>`,
-    css: `.box {
-  display: inline-block;
-  width: 90px;
-  height: 90px;
-  margin-right: 6px;
-  color: white;
-  padding: 6px;
-}
+    css: `.box { display: inline-block; width: 90px; height: 90px; color: white; }
 .linear { background: linear-gradient(135deg, #6366f1, #ec4899); }
 .radial { background: radial-gradient(circle, #fbbf24, #ea580c); }
-
-/* first layer (stripes) is drawn on top of the second */
-.multi {
-  background:
-    repeating-linear-gradient(45deg, rgba(255,255,255,0.3) 0 6px, transparent 6px 12px),
-    linear-gradient(#10b981, #0e7490);
-}`,
+/* two layers: the first one (white dot) is drawn on top */
+.multi { background: radial-gradient(circle, white 20%, transparent 21%), linear-gradient(#10b981, #0e7490); }`,
   },
   {
     q: 'box-shadow vs text-shadow vs filter: drop-shadow()?',
@@ -858,20 +997,15 @@ button:hover { background: #c7d2fe; }
     a: "box-shadow draws a shadow around the element's rectangular box, and text-shadow draws it behind the letters only. filter: drop-shadow() follows the actual visible shape, including transparent parts, so it works for icons, PNGs and CSS triangles. On the triangle below, box-shadow still shows a rectangle, but drop-shadow follows the triangle.",
     html: `<div class="card">box-shadow</div>
 <p class="text">text-shadow</p>
-<div class="tri box"></div>
-<div class="tri drop"></div>`,
-    css: `.card { padding: 10px; width: 120px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
-.text { font-size: 20px; font-weight: bold; color: #6366f1; text-shadow: 2px 2px 0 #fbbf24; }
-
+<div class="tri box"></div><div class="tri drop"></div>`,
+    css: `.card { width: 120px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
+.text { font-size: 20px; text-shadow: 2px 2px 0 #fbbf24; }
 .tri {
-  display: inline-block;
-  margin-right: 40px;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-  border-bottom: 40px solid #6366f1;
+  display: inline-block; margin-right: 40px;
+  border: 30px solid transparent; border-top: 0; border-bottom: 40px solid #6366f1;
 }
-.box  { box-shadow: 6px 6px 0 #f87171; }                  /* rectangle */
-.drop { filter: drop-shadow(6px 6px 0 #f87171); }         /* follows shape */`,
+.box  { box-shadow: 6px 6px 0 #f87171; }         /* rectangle */
+.drop { filter: drop-shadow(6px 6px 0 #f87171); } /* follows the shape */`,
   },
   {
     q: 'How do you make a circle with CSS?',
@@ -880,38 +1014,23 @@ button:hover { background: #c7d2fe; }
     html: `<div class="circle"></div>
 <div class="oval"></div>
 <button class="pill">Pill button</button>`,
-    css: `.circle, .oval { display: inline-block; background: #6366f1; margin-right: 10px; }
-.circle { width: 70px; height: 70px; border-radius: 50%; }   /* equal sides */
-.oval   { width: 110px; height: 70px; border-radius: 50%; }  /* unequal sides */
-
-.pill {
-  display: block;
-  margin-top: 10px;
-  padding: 6px 16px;
-  border: none;
-  border-radius: 999px;  /* always fully round ends */
-  background: #fbbf24;
-}`,
+    css: `div { display: inline-block; width: 70px; height: 70px; background: #6366f1; }
+.circle { border-radius: 50%; }               /* equal sides */
+.oval   { width: 110px; border-radius: 50%; } /* unequal sides */
+.pill   { display: block; margin-top: 10px; border-radius: 999px; }`,
   },
   {
     q: 'What do the order and align-self properties do in flexbox?',
     level: 'Intermediate',
     a: "order changes the visual position of a flex item without changing the HTML, and items with lower values come first, the default being 0. align-self overrides the container's align-items for just one item. I'm careful with order because screen readers and the Tab key still follow the HTML order.",
     html: `<div class="row">
-  <div>1</div>
-  <div>2</div>
-  <div class="first">3 (order: -1)</div>
-  <div class="bottom">4 (align-self)</div>
+  <b>1</b><b>2</b>
+  <b class="first">3 (order: -1)</b>
+  <b class="bottom">4 (align-self)</b>
 </div>`,
-    css: `.row {
-  display: flex;
-  align-items: flex-start;  /* all items at the top */
-  gap: 6px;
-  height: 110px;
-  background: #e0e7ff;
-}
-.row div { background: #6366f1; color: white; padding: 8px; }
-.first  { order: -1; }           /* moves to the front */
+    css: `.row { display: flex; align-items: flex-start; gap: 6px; height: 110px; }
+b { background: #6366f1; color: white; padding: 8px; }
+.first  { order: -1; }            /* moves to the front */
 .bottom { align-self: flex-end; } /* only this one at the bottom */`,
   },
   {
@@ -919,22 +1038,11 @@ button:hover { background: #c7d2fe; }
     level: 'Intermediate',
     a: "flex-basis is the starting size of a flex item before free space is shared out, a bit like width in a row. flex-shrink controls how much an item shrinks when there isn't enough room, and the default is 1. I set flex-shrink: 0 on things like avatars or icons so they never get squashed.",
     html: `<div class="row">
-  <div class="item">shrinks</div>
-  <div class="item">shrinks</div>
-  <div class="item keep">shrink: 0</div>
+  <b>shrinks</b><b>shrinks</b><b class="keep">shrink: 0</b>
 </div>`,
-    css: `.row {
-  display: flex;
-  width: 300px;          /* 3 x 150px won't fit */
-  gap: 4px;
-  border: 2px dashed #6366f1;
-}
-.item {
-  flex-basis: 150px;     /* starting size */
-  background: #c7d2fe;
-  padding: 8px 4px;
-}
-.keep { flex-shrink: 0; background: #6366f1; color: white; } /* stays 150px */`,
+    css: `.row { display: flex; width: 300px; border: 2px dashed #6366f1; } /* 3 x 150px won't fit */
+b { flex-basis: 150px; background: #c7d2fe; border: 1px solid white; } /* starting size */
+.keep { flex-shrink: 0; background: #fbbf24; } /* stays 150px */`,
   },
   {
     q: 'auto-fit vs auto-fill in CSS Grid?',
@@ -956,21 +1064,14 @@ p { margin: 4px 0; font-size: 12px; }`,
     level: 'Intermediate',
     a: "I use grid-column: span 2 to make an item take two columns, and grid-row: span 2 for two rows. I can also give exact lines, like grid-column: 1 / -1 to stretch across the full width. This is how I build featured cards or dashboard tiles of different sizes.",
     html: `<div class="grid">
-  <div class="wide">span 2 columns</div>
-  <div class="tall">span 2 rows</div>
-  <div>3</div>
-  <div>4</div>
-  <div class="full">1 / -1 (full width)</div>
+  <b class="wide">span 2 columns</b><b class="tall">span 2 rows</b>
+  <b>3</b><b>4</b><b class="full">1 / -1 (full width)</b>
 </div>`,
-    css: `.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.grid div { background: #c7d2fe; padding: 8px; }
-.wide { grid-column: span 2; background: #6366f1 !important; color: white; }
-.tall { grid-row: span 2; background: #f59e0b !important; }
-.full { grid-column: 1 / -1; background: #10b981 !important; color: white; }`,
+    css: `.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+b { background: #c7d2fe; padding: 8px; }
+.wide { grid-column: span 2; }
+.tall { grid-row: span 2; background: #fbbf24; }
+.full { grid-column: 1 / -1; }`,
   },
   {
     q: 'What is a stacking context? How does isolation: isolate help?',
@@ -981,13 +1082,11 @@ p { margin: 4px 0; font-size: 12px; }`,
   <div class="child">child z-index: 999</div>
 </div>
 <div class="other">other z-index: 2</div>`,
-    css: `div { position: absolute; padding: 6px; }
-.parent { z-index: 1; top: 10px; left: 10px; width: 180px; height: 90px; background: #c7d2fe; }
-
+    css: `div { position: absolute; padding: 6px; color: white; }
+.parent { z-index: 1; width: 180px; height: 90px; background: #94a3b8; }
 /* 999 only counts inside the parent's stacking context */
-.child { z-index: 999; top: 40px; left: 60px; width: 150px; background: #ef4444; color: white; }
-
-.other { z-index: 2; top: 60px; left: 150px; width: 120px; height: 70px; background: #6366f1; color: white; }`,
+.child { z-index: 999; top: 40px; left: 60px; background: #ef4444; }
+.other { z-index: 2; top: 60px; left: 150px; height: 70px; background: #6366f1; }`,
   },
   {
     q: 'What does object-fit do?',
@@ -996,66 +1095,49 @@ p { margin: 4px 0; font-size: 12px; }`,
     html: `<img class="fill" alt="fill" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='0 0 2 1' preserveAspectRatio='none'><rect width='2' height='1' fill='%236366f1'/><circle cx='1' cy='.5' r='.4' fill='%23fbbf24'/></svg>" />
 <img class="cover" alt="cover" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='0 0 2 1' preserveAspectRatio='none'><rect width='2' height='1' fill='%236366f1'/><circle cx='1' cy='.5' r='.4' fill='%23fbbf24'/></svg>" />
 <img class="contain" alt="contain" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='0 0 2 1' preserveAspectRatio='none'><rect width='2' height='1' fill='%236366f1'/><circle cx='1' cy='.5' r='.4' fill='%23fbbf24'/></svg>" />`,
-    css: `/* the image is 2:1, the box is square */
-img {
-  width: 90px;
-  height: 90px;
-  margin-right: 6px;
-  border: 2px solid #94a3b8;
-  background: #fef3c7;
-}
+    css: `img { width: 90px; height: 90px; border: 2px solid #94a3b8; } /* 2:1 image, square box */
 .fill    { object-fit: fill; }    /* stretched: circle becomes oval */
 .cover   { object-fit: cover; }   /* fills the box, sides cropped */
 .contain { object-fit: contain; } /* whole image, empty space */`,
   },
   {
+    q: 'How do responsive images work with srcset, sizes and picture?',
+    level: 'Intermediate',
+    a: "srcset with width descriptors lists the same image at several sizes, and sizes tells the browser how wide the image will be shown, so it downloads the smallest file that still looks sharp on that screen. picture with source elements is for art direction or formats: the browser uses the first source whose media or type matches, like a tighter crop on mobile or AVIF with a JPEG fallback. CSS then controls the box with width: 100% and object-fit: cover, so the image is never stretched.",
+    html: `<!-- <img srcset="s.jpg 400w, l.jpg 800w" sizes="(min-width: 600px) 50vw, 100vw" alt="" /> -->
+<picture>
+  <source media="(min-width: 350px)" srcset="data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='120'><rect%20width='300'%20height='120'%20fill='%236366f1'/></svg>" />
+  <img alt="demo" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect width='120' height='120' fill='%23f59e0b'/></svg>" />
+</picture>
+<p>Wide preview: blue image. Narrow preview: orange image.</p>`,
+    css: `img { width: 100%; max-width: 300px; height: 110px; object-fit: cover; }`,
+  },
+  {
     q: 'What does the filter property do?',
     level: 'Intermediate',
     a: "filter applies visual effects like blur, grayscale, brightness, contrast and drop-shadow to an element and everything inside it. I use grayscale for disabled or inactive logos that turn colored on hover. If I want to blur only what's behind an element, like a frosted glass header, I use backdrop-filter instead.",
-    html: `<div class="box">normal</div>
-<div class="box blur">blur</div>
-<div class="box gray">grayscale</div>
-<div class="box bright">brightness</div>`,
+    html: `<div class="box">normal</div><div class="box blur">blur</div>
+<div class="box gray">grayscale</div><div class="box bright">brightness</div>`,
     css: `.box {
-  display: inline-block;
-  width: 70px;
-  height: 70px;
-  margin: 0 4px 4px 0;
-  padding: 4px;
-  color: white;
-  font-weight: bold;
+  display: inline-block; width: 70px; height: 70px; margin: 4px; color: white;
   background: linear-gradient(135deg, #f43f5e, #6366f1);
 }
 .blur   { filter: blur(2px); }
 .gray   { filter: grayscale(1); }
-.bright { filter: brightness(1.5); }
-.gray:hover { filter: none; }  /* color comes back on hover */`,
+.bright { filter: brightness(1.5); }`,
   },
   {
     q: 'What are the transform functions and transform-origin?',
     level: 'Intermediate',
     a: "transform lets me rotate, scale, skew and translate an element without affecting the layout around it, so neighbours don't move. transform-origin sets the point it transforms around, which is the center by default. Transforms are also cheap to animate, because the browser can do them on the GPU, so I prefer them over animating top or left.",
-    html: `<div class="box rotate">rotate</div>
-<div class="box scale">scale</div>
-<div class="box skew">skew</div>
-<div class="box move">translate</div>
-<div class="box corner">origin</div>`,
-    css: `.box {
-  display: inline-block;
-  width: 60px;
-  height: 40px;
-  margin: 20px 10px;
-  background: #6366f1;
-  color: white;
-  font-size: 11px;
-}
+    html: `<div class="rotate">rotate</div><div class="scale">scale</div><div class="skew">skew</div>
+<div class="move">translate</div><div class="corner">origin</div>`,
+    css: `div { display: inline-block; width: 60px; height: 40px; margin: 20px 10px; background: #6366f1; color: white; }
 .rotate { transform: rotate(20deg); }
 .scale  { transform: scale(1.3); }
 .skew   { transform: skewX(-20deg); }
 .move   { transform: translate(10px, 15px); }
-
-/* rotate around the top-left corner instead of the center */
-.corner { transform-origin: top left; transform: rotate(20deg); background: #f59e0b; }`,
+.corner { transform: rotate(20deg); transform-origin: top left; background: #f59e0b; }`,
   },
   {
     q: 'Explain animation-iteration-count, direction and fill-mode. What is prefers-reduced-motion?',
@@ -1063,29 +1145,10 @@ img {
     a: "iteration-count sets how many times the animation runs, or infinite. direction: alternate plays it forwards and then backwards, and fill-mode: forwards keeps the final keyframe styles after it ends instead of jumping back. For accessibility I always add a prefers-reduced-motion media query, because some users get dizzy from motion and turn it off in their system settings.",
     html: `<div class="ball loop">alternate, infinite</div>
 <div class="ball once">once, forwards</div>`,
-    css: `.ball {
-  width: 130px;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 999px;
-  background: #6366f1;
-  color: white;
-  font-size: 12px;
-  animation-name: slide;
-  animation-duration: 1.5s;
-}
-.loop {
-  animation-iteration-count: infinite;
-  animation-direction: alternate;     /* forwards, then backwards */
-}
-.once {
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;      /* stays at the end */
-  background: #f59e0b;
-}
+    css: `.ball { width: 130px; margin-bottom: 10px; background: #6366f1; color: white; animation: slide 1.5s; }
+.loop { animation-iteration-count: infinite; animation-direction: alternate; }
+.once { animation-fill-mode: forwards; background: #f59e0b; }  /* stays at the end */
 @keyframes slide { to { transform: translateX(120px); } }
-
-/* respect the user's system setting */
 @media (prefers-reduced-motion: reduce) {
   .ball { animation: none; }
 }`,
@@ -1094,19 +1157,27 @@ img {
     q: 'What are container queries?',
     level: 'Advanced',
     a: "Media queries look at the size of the whole viewport, but container queries look at the size of the parent container. I mark a parent with container-type: inline-size, then use @container to change the child's layout. This makes components truly reusable, because the same card can be stacked in a narrow sidebar and side by side in a wide main area.",
-    html: `<div class="wrap wide"><div class="card"><b>Img</b><span>Wide container: row</span></div></div>
+    html: `<div class="wrap wide"><div class="card"><b>Img</b><span>Wide: row</span></div></div>
 <div class="wrap narrow"><div class="card"><b>Img</b><span>Narrow: column</span></div></div>`,
     css: `.wrap { container-type: inline-size; margin-bottom: 8px; }
-.wide   { width: 280px; }
+.wide { width: 280px; }
 .narrow { width: 150px; }
-
-.card { display: flex; flex-direction: column; gap: 6px; padding: 6px; background: #e0e7ff; }
+.card { display: flex; flex-direction: column; background: #e0e7ff; }
 .card b { background: #6366f1; color: white; padding: 6px; }
-
-/* based on the container's width, not the screen */
-@container (min-width: 200px) {
-  .card { flex-direction: row; align-items: center; }
+@container (min-width: 200px) {   /* the container's width, not the screen */
+  .card { flex-direction: row; }
 }`,
+  },
+  {
+    q: 'What does display: contents do?',
+    level: 'Advanced',
+    a: "display: contents makes the element's own box disappear, so its children behave as if they were direct children of its parent. That's useful when a wrapper div, for example one a component forces on me, breaks a flex or grid layout. Here the wrapper's children become grid items and fill the row. I'm careful using it on buttons, lists or headings, because some browsers used to drop their meaning for screen readers.",
+    html: `<div class="grid"><div class="wrap"><b>A</b><b>B</b></div><b>C</b></div>
+<div class="grid"><div class="wrap contents"><b>A</b><b>B</b></div><b>C</b></div>`,
+    css: `.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 12px; }
+b { background: #c7d2fe; padding: 8px; }
+.wrap { border: 2px dashed #ef4444; }
+.contents { display: contents; }  /* box disappears: A and B become grid items */`,
   },
   {
     q: 'What are logical properties like margin-inline and padding-block?',
@@ -1145,66 +1216,102 @@ p:first-of-type { color: #6366f1; font-weight: bold; } /* first p */`,
 <label for="more">Show details</label>
 <div class="panel">Hidden content, toggled with CSS only.</div>`,
     css: `#more { position: absolute; opacity: 0; }  /* hidden but focusable */
-
-label {
-  cursor: pointer;
-  padding: 6px 12px;
-  background: #6366f1;
-  color: white;
-  border-radius: 6px;
-}
-.panel { display: none; margin-top: 12px; padding: 8px; background: #e0e7ff; }
-
-/* when checked, show the panel that comes after */
-#more:checked ~ .panel { display: block; }
-#more:checked + label  { background: #10b981; }
-#more:focus-visible + label { outline: 3px solid #f59e0b; }`,
+label { padding: 6px 12px; background: #6366f1; color: white; cursor: pointer; }
+.panel { display: none; margin-top: 12px; background: #e0e7ff; }
+#more:checked ~ .panel { display: block; }  /* when checked, show the panel */`,
   },
   {
     q: 'What are CSS counters?',
     level: 'Advanced',
     a: "CSS counters let me number elements automatically without writing the numbers in the HTML. I start one with counter-reset on the parent, increase it with counter-increment, and show it with counter() inside the content of a ::before. I use them for numbered steps or headings in documentation.",
     html: `<div class="steps">
-  <div>Install the package</div>
-  <div>Import the component</div>
-  <div>Run the app</div>
+  <div>Install</div>
+  <div>Import</div>
+  <div>Run</div>
 </div>`,
-    css: `.steps { counter-reset: step; }       /* start at 0 */
-
-.steps div {
-  counter-increment: step;              /* +1 for each div */
-  padding: 6px;
-  margin-bottom: 4px;
-  background: #f1f5f9;
-}
-.steps div::before {
-  content: "Step " counter(step) ": ";  /* show the number */
-  font-weight: bold;
-  color: #6366f1;
-}`,
+    css: `.steps { counter-reset: step; }          /* start at 0 */
+.steps div { counter-increment: step; }  /* +1 for each div */
+.steps div::before { content: "Step " counter(step) ": "; }  /* show it */`,
   },
   {
     q: 'What is BEM naming?',
     level: 'Advanced',
     a: "BEM stands for Block, Element, Modifier. The block is the component, like .card, an element is a part of it, written .card__title, and a modifier is a variation, written .card--featured. I like it because every class has a single, low specificity and the names tell me where the styles belong, so nothing clashes in a big project.",
     html: `<div class="card">
-  <h4 class="card__title">Normal card</h4>
-  <button class="card__btn">Buy</button>
+  <h4 class="card__title">Normal</h4>
 </div>
 <div class="card card--featured">
-  <h4 class="card__title">Featured card</h4>
-  <button class="card__btn">Buy</button>
+  <h4 class="card__title">Featured</h4>
 </div>`,
-    css: `/* Block */
-.card { display: inline-block; padding: 10px; margin-right: 6px; border: 1px solid #cbd5e1; }
-
-/* Elements */
-.card__title { margin: 0 0 6px; }
-.card__btn   { border: none; padding: 4px 10px; background: #e0e7ff; }
-
-/* Modifier */
-.card--featured { border-color: #6366f1; background: #eef2ff; }
-.card--featured .card__btn { background: #6366f1; color: white; }`,
+    css: `.card { padding: 10px; border: 1px solid #cbd5e1; }              /* block */
+.card__title { margin: 0; }                                        /* element */
+.card--featured { border-color: #6366f1; background: #eef2ff; }  /* modifier */`,
+  },
+  {
+    q: 'How do you write print styles?',
+    level: 'Advanced',
+    a: "I add an @media print block to hide things that are useless on paper, like navigation, buttons and ads, switch to black text on white to save ink, and show link URLs with attr(href) in an ::after. I also use break-inside: avoid so cards and tables don't split across two pages. In Chrome DevTools I test it with Rendering, Emulate CSS media type: print. Here I copied the same rules outside the media query so you can see the result.",
+    html: `<nav>Home | Blog</nav>
+<p>Read the <a href="https://example.com">docs</a>.</p>
+<button>Share</button>`,
+    css: `@media print {
+  nav, button { display: none; }
+  a::after { content: " (" attr(href) ")"; }
+  .card { break-inside: avoid; }
+}
+/* the same rules outside @media, to preview the printed page */
+nav, button { display: none; }
+a::after { content: " (" attr(href) ")"; }`,
+  },
+  {
+    q: '@import vs link, and what is critical CSS?',
+    level: 'Advanced',
+    a: "With link tags in the HTML, the browser finds every stylesheet straight away and downloads them in parallel. An @import inside a CSS file is only discovered after that file has downloaded, so it creates a chain of requests that delays rendering; imports that a bundler merges at build time are fine. Critical CSS means inlining the few styles needed for the top of the page in a style tag in the head, and loading the rest without blocking, so the first paint happens sooner.",
+    html: `<p>link tags: both files download in parallel</p>
+<div class="bar">main.css</div><div class="bar">theme.css</div>
+<p>@import in main.css: theme.css starts only after main.css</p>
+<div class="bar">main.css</div><div class="bar late">theme.css</div>`,
+    css: `p { margin: 6px 0 2px; }
+.bar { width: 45%; margin-bottom: 2px; background: #6366f1; color: white; }
+.late { margin-left: 45%; background: #ef4444; }`,
+  },
+  {
+    q: 'CSS-in-JS vs CSS Modules?',
+    level: 'Advanced',
+    a: "CSS Modules are normal .css files where the build tool renames every class to a unique hashed name, like Button_primary__x7f2a, so styles are scoped to one component with no runtime cost. CSS-in-JS libraries like styled-components let me write styles in JavaScript, which makes styles based on props easy, but the runtime ones add JavaScript and slow rendering, and they don't fit well with React Server Components. For new projects I'd pick CSS Modules, Tailwind, or a zero-runtime CSS-in-JS tool.",
+    html: `<!-- Button.module.css and Card.module.css both have .primary,
+     the build renames them so they never clash: -->
+<button class="Button_primary__x7f2a">Button.primary</button>
+<button class="Card_primary__k21b9">Card.primary</button>`,
+    css: `/* compiled output */
+.Button_primary__x7f2a { background: #6366f1; color: white; }
+.Card_primary__k21b9 { background: white; color: #b45309; }`,
+  },
+  {
+    q: 'What does will-change do, and why are transform and opacity fast to animate?',
+    level: 'Advanced',
+    a: "The browser renders in three steps: layout, paint and composite. Animating left, width or top forces layout and paint on every frame, but transform and opacity can be done by the compositor on the GPU, so they stay smooth even when the main thread is busy. will-change: transform tells the browser to put the element on its own layer ahead of time; I only add it to elements that will really animate, because every layer uses memory.",
+    html: `<div class="slow">left</div>
+<div class="fast">transform</div>`,
+    css: `div { position: relative; width: 90px; margin-bottom: 8px; color: white; }
+/* layout + paint on every frame */
+.slow { background: #ef4444; animation: slide-left 1.5s infinite alternate; }
+/* compositor only, on its own layer */
+.fast { background: #10b981; will-change: transform; animation: slide-x 1.5s infinite alternate; }
+@keyframes slide-left { to { left: 150px; } }
+@keyframes slide-x { to { transform: translateX(150px); } }`,
+  },
+  {
+    q: 'Reflow vs repaint: what is layout thrashing?',
+    level: 'Advanced',
+    a: "A reflow, or layout, is when the browser recalculates the size and position of elements, for example after changing width or font size or adding elements, and it can spread to the whole page. A repaint only redraws pixels, like after a color or background change, so it's cheaper, and transform or opacity changes skip both. Layout thrashing is when JavaScript writes a style and then reads a value like offsetHeight in a loop, forcing a reflow every time; I fix it by doing all the reads first, then all the writes, or by using requestAnimationFrame.",
+    html: `<div class="layout">Layout: width (hover)</div>
+<div class="paint">Paint: background (hover)</div>
+<div class="composite">Composite: transform (hover)</div>`,
+    css: `div { width: 220px; margin-bottom: 8px; background: #e0e7ff; transition: all 0.3s; }
+.layout:hover    { width: 260px; }                /* reflow + repaint */
+.paint:hover     { background: #f59e0b; }         /* repaint only */
+.composite:hover { transform: translateX(20px); } /* no layout, no paint */`,
   },
 ]
 
@@ -1235,14 +1342,10 @@ function CssCard({ item, number }) {
         <p className="mt-1 text-sm leading-relaxed text-slate-700">{item.a}</p>
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">HTML</p>
-        <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
-          {item.html}
-        </pre>
+        <CodeBlock code={item.html} language="html" className="mt-1" />
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">CSS</p>
-        <pre className="mt-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800">
-          {item.css}
-        </pre>
+        <CodeBlock code={item.css} language="css" className="mt-1" />
       </div>
 
       <div className="flex min-w-0 flex-col">
@@ -1269,6 +1372,7 @@ function CssQuestions() {
 
       <LevelSections
         questions={questions}
+        topics={topics}
         renderItem={(item, number) => <CssCard key={item.q} item={item} number={number} />}
       />
     </div>

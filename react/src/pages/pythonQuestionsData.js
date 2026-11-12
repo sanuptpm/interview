@@ -1,5 +1,5 @@
 // Python interview questions, basics to advanced.
-// Each item: { q, a, code, output }. Every output is the real stdout
+// Each item: { q, level, a, code, output }. Every output is the real stdout
 // from running the code with python3.
 
 export const questions = [
@@ -44,12 +44,11 @@ bytes -> b'ab'`,
     level: 'Basics',
     a: "A mutable object can be changed in place after I create it, like a list, dict or set. An immutable object cannot be changed; any 'change' creates a new object, like int, str and tuple. This matters because only immutable (hashable) objects can be dict keys or set items.",
     code: `nums = [1, 2, 3]
-nums.append(4)          # list changed in place
+nums.append(4)            # list changed in place
 print(nums)
 
 name = "sam"
-upper = name.upper()    # new string, original untouched
-print(name, upper)
+print(name.upper(), name) # new string, original untouched
 
 point = (1, 2)
 try:
@@ -57,7 +56,7 @@ try:
 except TypeError as e:
     print("Error:", e)`,
     output: `[1, 2, 3, 4]
-sam SAM
+SAM sam
 Error: 'tuple' object does not support item assignment`,
   },
   {
@@ -85,59 +84,38 @@ True`,
     level: 'Basics',
     a: "A list is mutable, so I can change it in place. To add, I use append for one item at the end, insert to put an item at a position, and extend to add many items. To update, I assign by index, like nums[0] = 10. To remove, I use remove to delete by value, pop to delete by index and get the item back, del for an index or a slice, and clear to empty it.",
     code: `nums = [10, 20, 30]
-
-# Add
-nums.append(40)          # at the end
-nums.insert(1, 15)       # at index 1
-nums.extend([50, 60])    # many items
-print("after add:   ", nums)
-
-# Update
-nums[0] = 5              # change by index
-nums[-1] = 99            # change the last item
-nums[1:3] = [1, 2]       # replace a slice
-print("after update:", nums)
-
-# Remove
-nums.remove(30)          # by value (first match)
-last = nums.pop()        # removes and returns the last item
-first = nums.pop(0)      # removes and returns index 0
-del nums[0]              # by index
-print("popped:", last, first)
-print("after remove:", nums)
-
-nums.clear()
-print("after clear: ", nums)`,
-    output: `after add:    [10, 15, 20, 30, 40, 50, 60]
-after update: [5, 1, 2, 30, 40, 50, 99]
-popped: 99 5
-after remove: [2, 40, 50]
-after clear:  []`,
+nums.append(40)          # add at the end
+nums.insert(0, 5)        # add at index 0
+nums.extend([50, 60])    # add many
+nums[1] = 15             # update by index
+print(nums)
+nums.remove(30)          # remove by value
+print(nums.pop())        # remove the last item and return it
+del nums[0]              # remove by index
+print(nums)
+nums.clear()             # empty the list
+print(nums)`,
+    output: `[5, 15, 20, 30, 40, 50, 60]
+60
+[15, 20, 40, 50]
+[]`,
   },
   {
     q: "What other list methods do you use often?",
     level: 'Basics',
     a: "Besides adding and removing, I often use sort to sort in place, reverse to flip the order, index to find a position, and count to count a value. sort and reverse change the original list and return None, so if I want a new list I use sorted() or reversed() instead. len() gives the size, and the in keyword checks membership.",
     code: `nums = [3, 1, 4, 1, 5]
+print(len(nums), 4 in nums)
+print(nums.index(4), nums.count(1))
 
-print(len(nums))
-print(4 in nums)
-print(nums.index(4))     # position of the first 4
-print(nums.count(1))     # how many 1s
-
-new_list = sorted(nums)  # new list, original unchanged
-print(new_list, nums)
-
-result = nums.sort()     # sorts in place
-print(result)            # None!
+print(sorted(nums), nums)   # new list, original unchanged
+print(nums.sort())          # sorts in place, returns None
 print(nums)
 
 nums.reverse()
 print(nums)`,
-    output: `5
-True
-2
-2
+    output: `5 True
+2 2
 [1, 1, 3, 4, 5] [3, 1, 4, 1, 5]
 None
 [1, 1, 3, 4, 5]
@@ -148,143 +126,95 @@ None
     level: 'Basics',
     a: "I can't add, update or remove items in a tuple; trying to assign throws a TypeError. If I really need a changed version, I convert it to a list, change the list, and convert it back, or I build a new tuple with concatenation. Tuples still support reading, slicing, count, index and unpacking.",
     code: `point = (10, 20, 30)
+print(point[0], point[1:], point.count(20))
 
-# Reading works like a list
-print(point[0], point[-1], point[0:2])
-print(point.count(20), point.index(30))
-
-# Unpacking
-x, y, z = point
-print(x, y, z)
-
-# Change it: convert to a list and back
-temp = list(point)
+temp = list(point)        # convert to a list
 temp[0] = 99
-temp.append(40)
-point = tuple(temp)
+point = tuple(temp)       # and back to a tuple
 print(point)
 
-# Or build a new tuple
-point = point + (50,)    # note the comma for a 1-item tuple
+point = point + (40,)     # or build a new tuple
 print(point)`,
-    output: `10 30 (10, 20)
-1 2
-10 20 30
-(99, 20, 30, 40)
-(99, 20, 30, 40, 50)`,
+    output: `10 (20, 30) 1
+(99, 20, 30)
+(99, 20, 30, 40)`,
   },
   {
     q: "How do you add and remove items in a set, and what are set operations?",
     level: 'Basics',
     a: "A set is mutable and keeps only unique values. I use add for one item and update for many. To remove, remove raises an error if the item is missing, while discard doesn't, so I usually prefer discard. Sets also support math-style operations: union with |, intersection with &, difference with -, and symmetric difference with ^.",
     code: `s = {1, 2, 3}
-
-s.add(4)                 # one item
 s.add(2)                 # duplicate: ignored
-s.update([5, 6])         # many items
-print(sorted(s))
-
-s.remove(6)              # error if missing
+s.update([4, 5])         # many items
 s.discard(100)           # no error if missing
-print(sorted(s))
+s.remove(5)              # KeyError if missing
+print(s)
 
-a = {1, 2, 3, 4}
-b = {3, 4, 5}
-print("union:       ", sorted(a | b))
-print("intersection:", sorted(a & b))
-print("difference:  ", sorted(a - b))
-print("symmetric:   ", sorted(a ^ b))`,
-    output: `[1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5]
-union:        [1, 2, 3, 4, 5]
-intersection: [3, 4]
-difference:   [1, 2]
-symmetric:    [1, 2, 5]`,
+a, b = {1, 2, 3}, {3, 4}
+print(a | b, a & b)      # union, intersection
+print(a - b, a ^ b)      # difference, symmetric difference`,
+    output: `{1, 2, 3, 4}
+{1, 2, 3, 4} {3}
+{1, 2} {1, 2, 4}`,
   },
   {
     q: "How do you add, update and remove items in a dictionary?",
     level: 'Basics',
     a: "I add or update a key with dict[key] = value; if the key exists it's updated, otherwise it's added. update() merges in several keys at once. To remove, I use pop to delete a key and get its value, del for a key, and popitem to remove the last inserted pair. For safe reading I use get with a default, because dict[key] raises a KeyError if the key is missing.",
     code: `user = {"name": "Anu", "age": 22}
-
-# Add and update
-user["city"] = "Kochi"           # new key: added
-user["age"] = 23                 # existing key: updated
-user.update({"age": 24, "role": "dev"})
+user["city"] = "Kochi"         # new key: added
+user["age"] = 23               # existing key: updated
+user.update({"role": "dev"})   # many keys at once
 print(user)
 
-# Safe reading
-print(user.get("email"))               # None, no error
-print(user.get("email", "not set"))    # default value
-
-# Remove
-age = user.pop("age")            # removes and returns the value
+print(user.get("email", "not set"))   # safe read
+print(user.pop("age"))         # remove and return the value
 del user["role"]
-print("popped age:", age)
-print(user)
-
-last = user.popitem()            # removes the last added pair
-print(last, user)`,
-    output: `{'name': 'Anu', 'age': 24, 'city': 'Kochi', 'role': 'dev'}
-None
+print(user.popitem())          # remove the last added pair
+print(user)`,
+    output: `{'name': 'Anu', 'age': 23, 'city': 'Kochi', 'role': 'dev'}
 not set
-popped age: 24
-{'name': 'Anu', 'city': 'Kochi'}
-('city', 'Kochi') {'name': 'Anu'}`,
+23
+('city', 'Kochi')
+{'name': 'Anu'}`,
   },
   {
     q: "How do you loop over a dictionary?",
     level: 'Basics',
     a: "Looping over a dict directly gives me the keys. I use .values() for just the values and .items() to get key and value together, which is the one I use most. Since Python 3.7, dicts keep insertion order, so the loop order is predictable.",
-    code: `prices = {"apple": 50, "banana": 20, "mango": 80}
+    code: `prices = {"apple": 50, "banana": 20}
 
 for key in prices:
-    print("key:", key)
+    print(key)
 
 for value in prices.values():
-    print("value:", value)
+    print(value)
 
 for fruit, price in prices.items():
-    print(fruit, "costs", price)
-
-# Build a new dict while looping
-discounted = {k: v * 0.9 for k, v in prices.items()}
-print(discounted)`,
-    output: `key: apple
-key: banana
-key: mango
-value: 50
-value: 20
-value: 80
+    print(fruit, "costs", price)`,
+    output: `apple
+banana
+50
+20
 apple costs 50
-banana costs 20
-mango costs 80
-{'apple': 45.0, 'banana': 18.0, 'mango': 72.0}`,
+banana costs 20`,
   },
   {
     q: "Strings are immutable, so how do you change one?",
     level: 'Basics',
     a: "Every string method returns a new string; the original never changes. So to 'change' a string, I create a new one with replace, slicing, or concatenation and assign it back to the variable. If I'm building a big string in a loop, I collect the parts in a list and use join at the end, because that's faster than adding strings with + each time.",
     code: `name = "python"
-
-try:
-    name[0] = "P"
-except TypeError as e:
-    print("Error:", e)
-
-name = "P" + name[1:]            # new string
+name = "P" + name[1:]     # name[0] = "P" would raise TypeError
 print(name)
 
-text = "I like Java"
-text = text.replace("Java", "Python")
+text = "I like Java".replace("Java", "Python")
 print(text)
 
 parts = []
 for i in range(3):
     parts.append("item" + str(i))
-print(", ".join(parts))`,
-    output: `Error: 'str' object does not support item assignment
-Python
+print(", ".join(parts))   # faster than + in a loop`,
+    output: `Python
 I like Python
 item0, item1, item2`,
   },
@@ -358,24 +288,14 @@ elif marks >= 70:
 else:
     print("C")
 
-for n in [1, 2, 3, 4, 5]:
+for n in range(1, 5):
     if n == 2:
-        continue
-    if n == 5:
-        break
-    print("for:", n)
-
-count = 3
-while count > 0:
-    print("while:", count)
-    count -= 1`,
+        continue          # skip 2
+    print(n)`,
     output: `B
-for: 1
-for: 3
-for: 4
-while: 3
-while: 2
-while: 1`,
+1
+3
+4`,
   },
   {
     q: "How does range() work?",
@@ -404,10 +324,9 @@ print(greet("Ravi"))
 print(greet("Ravi", "Hi"))
 print(greet(greeting="Welcome", name="Meera"))
 
-def no_return():
+def nothing():
     pass
-
-print(no_return())`,
+print(nothing())`,
     output: `Hello, Ravi!
 Hi, Ravi!
 Welcome, Meera!
@@ -454,19 +373,15 @@ True`,
     q: "What is None in Python?",
     level: 'Basics',
     a: "None is a special constant that means 'no value' and it is the only object of type NoneType. Functions return None by default when they have no return statement. I check for it with 'is None' rather than '==', and I often use it as a safe default argument.",
-    code: `result = None
-print(result)
-print(type(result).__name__)
-
-def find_user(user_id):
+    code: `def find_user(user_id):
     users = {1: "Anu"}
     return users.get(user_id)   # None if missing
 
 user = find_user(5)
+print(user, type(user).__name__)
 if user is None:
     print("User not found")`,
-    output: `None
-NoneType
+    output: `None NoneType
 User not found`,
   },
   {
@@ -535,29 +450,23 @@ no newline | next
     q: "Which string methods do you use to check and clean text?",
     level: 'Basics',
     a: "For validation I use the is-methods like isdigit, isalpha, isalnum and isspace, which return True or False for the whole string. For cleaning I use strip, lstrip and rstrip, plus title, capitalize, and split with a maxsplit when I only want the first piece. A practical tip: isdigit returns False for '-5' or '3.5', so for numbers I usually just try int() or float() inside a try block.",
-    code: `print("12345".isdigit(), "12a".isdigit(), "-5".isdigit())
-print("hello".isalpha(), "hello1".isalnum(), "   ".isspace())
+    code: `print("12345".isdigit(), "-5".isdigit())
+print("hello".isalpha(), "hello1".isalnum(), "  ".isspace())
 
-raw = "  ***Python Rocks***  "
+raw = "  ***Python***  "
 print(raw.strip())
 print(raw.strip().strip("*"))
 print("xxhixx".lstrip("x"), "xxhixx".rstrip("x"))
 
-print("hello world".title(), "|", "hello WORLD".capitalize())
-print("a,b,c,d".split(",", 1))
-print("report.pdf".endswith((".pdf", ".doc")))
-print("banana".count("a"), "42".zfill(5))
-print("data".center(10, "-"))`,
-    output: `True False False
+print("hello world".title(), "hello WORLD".capitalize())
+print("a,b,c".split(",", 1))`,
+    output: `True False
 True True True
-***Python Rocks***
-Python Rocks
+***Python***
+Python
 hixx xxhi
-Hello World | Hello world
-['a', 'b,c,d']
-True
-3 00042
----data---`,
+Hello World Hello world
+['a', 'b,c']`,
   },
   {
     q: "How does list slicing with a step work, and how do you reverse a list?",
@@ -565,24 +474,21 @@ True
     a: "A slice is list[start:stop:step], and the step lets me skip items, like [::2] for every second item. A negative step walks backwards, so [::-1] gives a reversed copy. I use reversed() when I just want to loop backwards without making a copy, and list.reverse() when I want to change the list in place.",
     code: `nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 print(nums[::2])        # every 2nd item
-print(nums[1::2])       # odd positions
 print(nums[::-1])       # reversed copy
 print(nums[7:2:-2])     # backwards with a step
-print(nums[-3:])        # last three
 
-for n in reversed([1, 2, 3]):
-    print(n, end=" ")
-print()
+for n in reversed([1, 2, 3]):   # loop backwards, no copy
+    print(n)
 
 letters = ["a", "b", "c"]
 letters.reverse()       # in place
 print(letters)`,
     output: `[0, 2, 4, 6, 8]
-[1, 3, 5, 7, 9]
 [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
 [7, 5, 3]
-[7, 8, 9]
-3 2 1 
+3
+2
+1
 ['c', 'b', 'a']`,
   },
   {
@@ -599,18 +505,11 @@ print(grid)                  # only the first row
 
 matrix = [[1, 2, 3], [4, 5, 6]]
 print(matrix[1][2])
-for row in matrix:
-    print(" ".join(str(x) for x in row))
-
-print([x * 10 for row in matrix for x in row])
-print(sum(sum(row) for row in matrix))`,
+print([x for row in matrix for x in row])`,
     output: `[[1, 0, 0], [1, 0, 0], [1, 0, 0]]
 [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
 6
-1 2 3
-4 5 6
-[10, 20, 30, 40, 50, 60]
-21`,
+[1, 2, 3, 4, 5, 6]`,
   },
   {
     q: "How do you swap variables and unpack tuples?",
@@ -624,20 +523,9 @@ def min_max(nums):
     return min(nums), max(nums)    # returns a tuple
 
 low, high = min_max([4, 9, 1, 7])
-print(low, high)
-
-for name, (x, y) in [("A", (1, 2)), ("B", (3, 4))]:
-    print(name, x + y)
-
-try:
-    p, q = (1, 2, 3)
-except ValueError as e:
-    print("Error:", e)`,
+print(low, high)`,
     output: `2 1
-1 9
-A 3
-B 7
-Error: too many values to unpack (expected 2, got 3)`,
+1 9`,
   },
   {
     q: "How do //, %, ** and round() work?",
@@ -666,24 +554,17 @@ False
     level: 'Basics',
     a: "A loop's else block runs only if the loop finished normally without hitting break. That makes it perfect for search loops: break when I find the item, and put the 'not found' code in else. Many people think else runs when the loop is empty or fails, so I mention it is really a 'no break' clause.",
     code: `def find(items, target):
-    for i, item in enumerate(items):
+    for item in items:
         if item == target:
-            print(f"found {target} at {i}")
+            print("found", target)
             break
     else:
-        print(f"{target} not found")
+        print(target, "not found")   # runs only if there was no break
 
 find([3, 8, 5], 8)
-find([3, 8, 5], 9)
-
-n = 0
-while n < 3:
-    n += 1
-else:
-    print("while finished, n =", n)`,
-    output: `found 8 at 1
-9 not found
-while finished, n = 3`,
+find([3, 8, 5], 9)`,
+    output: `found 8
+9 not found`,
   },
   {
     q: "Which built-in functions do you use most often?",
@@ -691,78 +572,163 @@ while finished, n = 3`,
     a: "I use any() and all() to check conditions over a collection, sum(), min() and max() for quick stats, and abs() for distances. min and max accept a key function, so I can find the longest word or the cheapest product in one line. isinstance() is my preferred type check because it also accepts subclasses, unlike comparing type() directly.",
     code: `nums = [4, -9, 2, 7]
 print(any(n < 0 for n in nums), all(n > 0 for n in nums))
-print(sum(nums), min(nums), max(nums))
-print(max(nums, key=abs), abs(-9))
+print(sum(nums), min(nums), max(nums), abs(-9))
 
 words = ["kiwi", "banana", "fig"]
-print(max(words, key=len), min(words, key=len))
+print(max(words, key=len))
 
-products = {"pen": 10, "book": 250, "bag": 900}
-print(min(products, key=products.get))
-
-print(isinstance(True, int), type(True) == int)
-print(isinstance(3.5, (int, float)))`,
+print(isinstance(True, int), type(True) == int)`,
     output: `True False
-4 -9 7
--9 9
-banana fig
-pen
-True False
-True`,
+4 -9 7 9
+banana
+True False`,
   },
   {
     q: "How do you merge dictionaries, and when do you use get, setdefault or defaultdict?",
     level: 'Basics',
     a: "Since Python 3.9 I merge dicts with the | operator, and |= updates in place; before that I used {**a, **b}. In every case the right-hand dict wins on duplicate keys. For missing keys, get returns a default without changing the dict, setdefault inserts the default and returns it, and defaultdict creates the default automatically, which is the cleanest choice for grouping.",
     code: `from collections import defaultdict
+a, b = {"x": 1, "y": 2}, {"y": 9}
+print(a | b)                  # right side wins
 
-defaults = {"theme": "light", "lang": "en"}
-user = {"theme": "dark"}
-print(defaults | user)
-print({**defaults, **user})
-
-counts = {}
-print(counts.get("x", 0), counts)       # dict unchanged
-counts.setdefault("x", []).append(1)
-print(counts)                           # key was added
+d = {}
+print(d.get("k", 0), d)       # default, dict unchanged
+d.setdefault("k", []).append(1)
+print(d)                      # key was inserted
 
 groups = defaultdict(list)
-for word in ["apple", "avocado", "banana"]:
-    groups[word[0]].append(word)
+groups["k"].append(1)         # default created automatically
 print(dict(groups))`,
-    output: `{'theme': 'dark', 'lang': 'en'}
-{'theme': 'dark', 'lang': 'en'}
+    output: `{'x': 1, 'y': 9}
 0 {}
-{'x': [1]}
-{'a': ['apple', 'avocado'], 'b': ['banana']}`,
+{'k': [1]}
+{'k': [1]}`,
   },
   {
     q: "What is the difference between set and frozenset?",
     level: 'Basics',
     a: "A set is mutable, so I can add and remove items, but that also means it isn't hashable and can't be a dict key or live inside another set. A frozenset is the immutable version: same operations like union and intersection, but no add or remove. I use frozenset when I need a set of sets or a set as a dictionary key.",
     code: `s = {1, 2}
-s.add(3)
-print(sorted(s))
+s.add(3)                        # a set can change
+print(s)
 
 fs = frozenset([1, 2, 3])
-print(sorted(fs | {4}), 2 in fs)
-try:
-    fs.add(4)
-except AttributeError as e:
-    print("Error:", e)
+print(fs | {4}, 2 in fs)        # same operations, but no add()
 
-pair_costs = {frozenset({"A", "B"}): 5}
-print(pair_costs[frozenset({"B", "A"})])
+costs = {frozenset({"A", "B"}): 5}   # hashable, so it can be a key
+print(costs[frozenset({"B", "A"})])`,
+    output: `{1, 2, 3}
+frozenset({1, 2, 3, 4}) True
+5`,
+  },
+  {
+    q: "What are the rules for naming variables in Python?",
+    level: 'Basics',
+    a: "A name can contain letters, digits and underscores, but it cannot start with a digit and cannot be a keyword like class or for. Names are case-sensitive, so total and Total are different variables. I follow PEP 8: snake_case for variables and functions, PascalCase for classes and UPPER_CASE for constants, and I never shadow built-ins like list or str.",
+    code: `import keyword
 
-try:
-    nested = {{1, 2}}
-except TypeError as e:
-    print("Error:", e)`,
-    output: `[1, 2, 3]
-[1, 2, 3, 4] True
-Error: 'frozenset' object has no attribute 'add'
+for name in ["user_name", "_temp", "2nd_place", "class", "my-var"]:
+    ok = name.isidentifier() and not keyword.iskeyword(name)
+    print(name, ok)
+
+total, Total = 1, 2          # case-sensitive: two names
+print(total, Total)`,
+    output: `user_name True
+_temp True
+2nd_place False
+class False
+my-var False
+1 2`,
+  },
+  {
+    q: "What is the difference between comments and docstrings?",
+    level: 'Basics',
+    a: "A comment starts with # and is ignored by Python, so I use it to explain why a tricky line exists. A docstring is a string literal right after a def, class or module line, and Python keeps it in __doc__, so help() and IDEs can show it. I write docstrings for every public function: one summary line, then the arguments and return value.",
+    code: `def area(width, height):
+    """Return the area of a rectangle."""
+    # a comment: ignored by Python
+    return width * height
+
+print(area(3, 4))
+print(area.__doc__)`,
+    output: `12
+Return the area of a rectangle.`,
+  },
+  {
+    q: "What is operator precedence in Python?",
+    level: 'Basics',
+    a: "Precedence decides which operator runs first: ** binds tightest, then unary minus, then * / // %, then + -, then comparisons, then not, and, or. ** is also right-associative, so 2 ** 3 ** 2 is 2 ** 9. Comparisons can be chained like 1 < x < 10. When an expression is not obvious, I add parentheses so the next reader doesn't have to remember the table.",
+    code: `print(2 + 3 * 4)          # * before +
+print((2 + 3) * 4)
+print(2 ** 3 ** 2)        # right to left: 2 ** 9
+print(-2 ** 2)            # ** before unary minus
+print(10 - 4 - 3)         # left to right
+x = 5
+print(1 < x < 10)         # chained comparison
+print(not True or True)   # (not True) or True
+print(True or False and False)  # and before or`,
+    output: `14
+20
+512
+-4
+3
+True
+True
+True`,
+  },
+  {
+    q: "How does the 'in' operator work for different types?",
+    level: 'Basics',
+    a: "The in and not in operators test membership. For lists and tuples Python scans item by item, which is O(n), but for sets and dicts it uses hashing, so it's O(1) on average. On a string, in checks for a substring, and on a dict it checks keys, not values. If I check membership many times, I turn the list into a set first.",
+    code: `nums = [3, 7, 9]
+print(7 in nums, 4 not in nums)
+print("py" in "python")        # substring check
+
+ages = {"anu": 30}
+print("anu" in ages)           # checks keys
+print(30 in ages)              # not values
+print(30 in ages.values())`,
+    output: `True True
+True
+True
+False
+True`,
+  },
+  {
+    q: "How do and, or and not work, and what is short-circuiting?",
+    level: 'Basics',
+    a: "and returns the first falsy value or the last value, and or returns the first truthy value or the last value, so they don't always return True or False. They short-circuit: Python stops as soon as the answer is known, so the right side may never run. I use this for safe checks like `user and user.is_admin` and defaults like `name or 'Guest'`.",
+    code: `print(0 and 5)          # first falsy value
+print(3 and 5)          # last value
+print("" or "Guest")    # first truthy value
+print(not [])           # empty list is falsy
+
+user = None
+print(user and user.name)   # stops early: no AttributeError`,
+    output: `0
 5
-Error: cannot use 'set' as a set element (unhashable type: 'set')`,
+Guest
+True
+None`,
+  },
+  {
+    q: "How do you work with file paths using pathlib?",
+    level: 'Basics',
+    a: "pathlib gives me Path objects, so I join paths with the / operator instead of string concatenation, and it works on every OS. A Path knows its name, suffix, stem and parent, and has handy methods like exists(), mkdir(), write_text(), read_text() and glob(). I prefer it over os.path in new code because it reads more clearly.",
+    code: `import tempfile
+from pathlib import Path
+
+base = Path(tempfile.mkdtemp())
+f = base / "data" / "jan.csv"        # join with /
+f.parent.mkdir()
+f.write_text("a,b\\n1,2\\n")
+
+print(f.name, f.stem, f.suffix, f.parent.name)
+print(f.read_text().splitlines())
+print([p.name for p in f.parent.glob("*.csv")], f.exists())`,
+    output: `jan.csv jan .csv data
+['a,b', '1,2']
+['jan.csv'] True`,
   },
   {
     q: "What are list, dict and set comprehensions?",
@@ -880,59 +846,36 @@ deep:     [[1, 2], [3, 4]]`,
     code: `def add_bad(item, items=[]):
     items.append(item)
     return items
-
 print(add_bad(1))
-print(add_bad(2))   # surprise: keeps old value
+print(add_bad(2))       # [1, 2]: the same list is reused
 
 def add_good(item, items=None):
     if items is None:
-        items = []
+        items = []      # a new list on every call
     items.append(item)
     return items
-
-print(add_good(1))
-print(add_good(2))`,
+print(add_good(1), add_good(2))`,
     output: `[1]
 [1, 2]
-[1]
-[2]`,
+[1] [2]`,
   },
   {
     q: "What is scope in Python, the LEGB rule, and global/nonlocal?",
     level: 'Intermediate',
     a: "Python looks up a name in this order: Local, Enclosing function, Global, then Built-in, which is the LEGB rule. If I want to assign to a module-level variable inside a function I use global, and to assign to a variable of an outer function I use nonlocal. I try to avoid global in real code because it makes things harder to follow.",
-    code: `x = "global"
-
+    code: `count = 0
 def outer():
-    x = "enclosing"
-    def inner():
-        print("inner sees:", x)
-    inner()
-
-outer()
-
-count = 0
-def increment():
-    global count
-    count += 1
-
-increment()
-print("count:", count)
-
-def counter():
     total = 0
-    def add():
-        nonlocal total
+    def inner():
+        nonlocal total      # the enclosing function's variable
+        global count        # the module-level variable
         total += 1
-        return total
-    return add
+        count += 1
+    inner()
+    return total
 
-c = counter()
-c()
-print("nonlocal total:", c())`,
-    output: `inner sees: enclosing
-count: 1
-nonlocal total: 2`,
+print(outer(), count)`,
+    output: `1 1`,
   },
   {
     q: "How does exception handling work (try/except/else/finally) and how do you create a custom exception?",
@@ -941,79 +884,50 @@ nonlocal total: 2`,
     code: `class InsufficientFunds(Exception):
     pass
 
-def withdraw(balance, amount):
-    if amount > balance:
-        raise InsufficientFunds(f"Need {amount - balance} more")
-    return balance - amount
-
-for amount in [30, 200]:
-    try:
-        left = withdraw(100, amount)
-    except InsufficientFunds as e:
-        print("Error:", e)
-    else:
-        print("Success, left:", left)
-    finally:
-        print("Done with", amount)`,
-    output: `Success, left: 70
-Done with 30
-Error: Need 100 more
-Done with 200`,
+try:
+    raise InsufficientFunds("balance too low")
+except InsufficientFunds as e:
+    print("Error:", e)
+else:
+    print("runs only if there was no error")
+finally:
+    print("always runs")`,
+    output: `Error: balance too low
+always runs`,
   },
   {
     q: "What is the with statement and a context manager?",
     level: 'Intermediate',
     a: "The with statement makes sure setup and cleanup happen automatically, like closing a file even if an error occurs. Any object with __enter__ and __exit__ methods is a context manager. I can also write one easily with the @contextmanager decorator from contextlib.",
-    code: `from contextlib import contextmanager
-
-class Timer:
+    code: `class Timer:
     def __enter__(self):
         print("enter")
-        return self
-    def __exit__(self, exc_type, exc, tb):
-        print("exit")
+    def __exit__(self, *args):
+        print("exit")            # runs even if the block fails
 
 with Timer():
-    print("inside block")
-
-@contextmanager
-def tag(name):
-    print(f"<{name}>")
-    yield
-    print(f"</{name}>")
-
-with tag("p"):
-    print("hello")`,
+    print("inside block")`,
     output: `enter
 inside block
-exit
-<p>
-hello
-</p>`,
+exit`,
   },
   {
     q: "How do you read and write files in Python?",
     level: 'Intermediate',
     a: "I use open() with a mode like 'r' to read, 'w' to write and 'a' to append, always inside a with block so the file closes automatically. I can read the whole file with read() or loop over it line by line, which is memory-friendly for big files. Here I use a temporary file so the example runs anywhere.",
-    code: `import os
-import tempfile
+    code: `import os, tempfile
 
 path = os.path.join(tempfile.mkdtemp(), "notes.txt")
-
 with open(path, "w") as f:
-    f.write("line one\\nline two\\n")
-
+    f.write("line one\\n")
 with open(path, "a") as f:
-    f.write("line three\\n")
+    f.write("line two\\n")
 
 with open(path) as f:
     for line in f:
-        print(line.strip())
-
-os.remove(path)`,
+        print(line.strip())`,
     output: `line one
-line two
-line three`,
+line two`,
   },
   {
     q: "What are modules and what does if __name__ == \"__main__\" mean?",
@@ -1022,18 +936,15 @@ line three`,
     code: `import math
 from math import sqrt
 
-print(math.pi)
-print(sqrt(16))
-print(math.__name__)
-
-def main():
-    print("Running as a script")
+print(math.pi, sqrt(16))
+print(math.__name__)     # imported: the module name
+print(__name__)          # run directly: "__main__"
 
 if __name__ == "__main__":
-    main()`,
-    output: `3.141592653589793
-4.0
+    print("Running as a script")`,
+    output: `3.141592653589793 4.0
 math
+__main__
 Running as a script`,
   },
   {
@@ -1043,24 +954,18 @@ Running as a script`,
     code: `from collections import Counter, defaultdict, namedtuple, deque
 
 print(Counter("banana").most_common(2))
-
 groups = defaultdict(list)
-for word in ["apple", "avocado", "banana"]:
-    groups[word[0]].append(word)
+groups["a"].append("apple")       # no KeyError
 print(dict(groups))
-
 Point = namedtuple("Point", ["x", "y"])
-p = Point(3, 4)
-print(p, p.x)
-
+print(Point(3, 4).x)
 q = deque([1, 2, 3])
-q.appendleft(0)
-q.pop()
+q.appendleft(0)                   # fast at both ends
 print(q)`,
     output: `[('a', 3), ('n', 2)]
-{'a': ['apple', 'avocado'], 'b': ['banana']}
-Point(x=3, y=4) 3
-deque([0, 1, 2])`,
+{'a': ['apple']}
+3
+deque([0, 1, 2, 3])`,
   },
   {
     q: "What are the most useful functions in itertools?",
@@ -1068,22 +973,20 @@ deque([0, 1, 2])`,
     a: "itertools gives me fast, lazy building blocks for loops. I use chain to join iterables, combinations and permutations for problems like 'all pairs', and islice to take the first n items from any iterator. groupby groups consecutive items with the same key, so I always sort by that key first, otherwise the same key can appear in several groups.",
     code: `from itertools import chain, combinations, permutations, groupby, islice, count
 
-print(list(chain([1, 2], (3, 4), "ab")))
+print(list(chain([1, 2], [3, 4])))
 print(list(combinations("ABC", 2)))
 print(len(list(permutations("ABC"))))
-print(list(islice(count(10, 5), 4)))
+print(list(islice(count(10), 3)))
 
-words = ["apple", "bat", "avocado", "ball", "cat"]
-words.sort(key=lambda w: w[0])
+words = sorted(["apple", "bat", "avocado", "ball"])   # sort first!
 for letter, group in groupby(words, key=lambda w: w[0]):
     print(letter, list(group))`,
-    output: `[1, 2, 3, 4, 'a', 'b']
+    output: `[1, 2, 3, 4]
 [('A', 'B'), ('A', 'C'), ('B', 'C')]
 6
-[10, 15, 20, 25]
+[10, 11, 12]
 a ['apple', 'avocado']
-b ['bat', 'ball']
-c ['cat']`,
+b ['ball', 'bat']`,
   },
   {
     q: "What do functools.lru_cache and partial do?",
@@ -1091,25 +994,20 @@ c ['cat']`,
     a: "lru_cache memoizes a function, so repeated calls with the same arguments return the cached result instead of recomputing; it's a one-line speedup for recursive or expensive pure functions. The arguments must be hashable, so lists won't work. partial creates a new function with some arguments already filled in, which is handy for callbacks or for making a specialised version of a general function.",
     code: `from functools import lru_cache, partial
 
-@lru_cache(maxsize=128)
+@lru_cache
 def square(n):
     print("computing", n)
     return n * n
 
 print(square(4))
-print(square(4))          # served from cache
-print(square.cache_info())
+print(square(4))          # from the cache: no "computing"
 
-def power(base, exp):
-    return base ** exp
-
-cube = partial(power, exp=3)
-print(cube(2), cube(5))`,
+cube = partial(pow, exp=3)
+print(cube(2))`,
     output: `computing 4
 16
 16
-CacheInfo(hits=1, misses=1, maxsize=128, currsize=1)
-8 125`,
+8`,
   },
   {
     q: "How do you work with JSON in Python?",
@@ -1117,27 +1015,21 @@ CacheInfo(hits=1, misses=1, maxsize=128, currsize=1)
     a: "I use the json module: dumps turns Python objects into a JSON string and loads parses a JSON string back into Python objects, while dump and load do the same with files. Dicts become objects, lists become arrays, and None becomes null. For readable output I pass indent and sort_keys, and note that tuples come back as lists and dict keys always become strings.",
     code: `import json
 
-data = {"name": "Anu", "skills": ["python", "sql"], "active": True, "boss": None}
-text = json.dumps(data)
-print(text)
+data = {"name": "Anu", "skills": ["python"], "boss": None}
+print(json.dumps(data))                  # None -> null
+
+parsed = json.loads('{"id": 7, "ok": false}')
+print(parsed)
+
 print(json.dumps({"b": 1, "a": 2}, indent=2, sort_keys=True))
-
-parsed = json.loads('{"id": 7, "tags": ["x", "y"], "ok": false}')
-print(parsed["id"], parsed["tags"], parsed["ok"])
-
-print(json.loads(json.dumps({1: (1, 2)})))
-try:
-    json.loads("{bad json}")
-except json.JSONDecodeError as e:
-    print("Error:", e.msg)`,
-    output: `{"name": "Anu", "skills": ["python", "sql"], "active": true, "boss": null}
+print(json.loads(json.dumps({1: (1, 2)})))   # key -> str, tuple -> list`,
+    output: `{"name": "Anu", "skills": ["python"], "boss": null}
+{'id': 7, 'ok': False}
 {
   "a": 2,
   "b": 1
 }
-7 ['x', 'y'] False
-{'1': [1, 2]}
-Error: Expecting property name enclosed in double quotes`,
+{'1': [1, 2]}`,
   },
   {
     q: "How do you work with dates and times using datetime?",
@@ -1147,21 +1039,17 @@ Error: Expecting property name enclosed in double quotes`,
 
 d = date(2024, 2, 28)
 print(d + timedelta(days=1))          # leap year
-print(d.strftime("%d/%m/%Y"), d.strftime("%A"))
+print(d.strftime("%d/%m/%Y"))
 
-start = datetime(2024, 1, 1, 9, 30)
-end = datetime(2024, 1, 3, 18, 0)
-diff = end - start
-print(diff, diff.days, diff.total_seconds() / 3600)
+diff = datetime(2024, 1, 3, 18) - datetime(2024, 1, 1, 9)
+print(diff, diff.days)
 
 parsed = datetime.strptime("2024-12-25 08:15", "%Y-%m-%d %H:%M")
-print(parsed.year, parsed.month, parsed.hour)
-print(date(2024, 5, 1) < date(2024, 6, 1))`,
+print(parsed.year, parsed.hour)`,
     output: `2024-02-29
-28/02/2024 Wednesday
-2 days, 8:30:00 2 56.5
-2024 12 8
-True`,
+28/02/2024
+2 days, 9:00:00 2
+2024 8`,
   },
   {
     q: "How do you use regular expressions with the re module?",
@@ -1169,23 +1057,15 @@ True`,
     a: "I use re.search to find the first match anywhere, re.match to match only at the start, re.findall to get all matches as a list, and re.sub to replace. I always write patterns as raw strings like r'\\d+' so backslashes aren't treated as escapes. Groups with parentheses let me pull out parts of a match, and for simple fixed text I just use string methods instead.",
     code: `import re
 
-text = "Order 66 shipped on 2024-03-15, order 7 pending"
+text = "Order 66 shipped on 2024-03-15"
 print(re.findall(r"\\d+", text))
 print(re.search(r"order (\\d+)", text, re.IGNORECASE).group(1))
-print(re.match(r"\\d+", text))          # not at the start
-
-m = re.search(r"(\\d{4})-(\\d{2})-(\\d{2})", text)
-print(m.group(0), m.groups())
-
-print(re.sub(r"\\s+", " ", "too    many   spaces"))
-email = re.compile(r"^[\\w.]+@[\\w]+\\.[a-z]{2,}$")
-print(bool(email.match("anu@mail.com")), bool(email.match("bad@")))`,
-    output: `['66', '2024', '03', '15', '7']
+print(re.match(r"\\d+", text))          # None: not at the start
+print(re.sub(r"\\s+", " ", "too    many   spaces"))`,
+    output: `['66', '2024', '03', '15']
 66
 None
-2024-03-15 ('2024', '03', '15')
-too many spaces
-True False`,
+too many spaces`,
   },
   {
     q: "Why is a generator expression more memory-efficient than a list comprehension?",
@@ -1195,50 +1075,36 @@ True False`,
 
 squares_list = [n * n for n in range(1_000_000)]
 squares_gen = (n * n for n in range(1_000_000))
-
-print(sum(squares_list) == sum(squares_gen))
-print(sys.getsizeof(squares_list) > 1_000_000)
-print(sys.getsizeof(squares_gen) < 1_000)
+print(sys.getsizeof(squares_list) > 1_000_000)   # megabytes
+print(sys.getsizeof(squares_gen) < 1_000)        # tiny
+print(sum(squares_gen) == sum(squares_list))
 
 gen = (n * 2 for n in range(3))
 print(list(gen))
-print(list(gen))      # already used up!
-print(sum(x * x for x in range(10)))`,
+print(list(gen))      # already used up!`,
     output: `True
 True
 True
 [0, 2, 4]
-[]
-285`,
+[]`,
   },
   {
     q: "How do you raise exceptions, and what does 'raise from' do?",
     level: 'Intermediate',
     a: "I raise exceptions with raise and a specific type like ValueError, and inside an except block a bare raise re-raises the same error. raise NewError(...) from e chains the original exception, so the traceback shows the real cause, which helps a lot with debugging. All normal exceptions inherit from Exception, so catching a parent class like LookupError also catches KeyError and IndexError.",
-    code: `class ConfigError(Exception):
-    pass
-
-def load_port(config):
+    code: `def load_port(config):
     try:
         return int(config["port"])
-    except (KeyError, ValueError) as e:
-        raise ConfigError("invalid port setting") from e
+    except ValueError as e:
+        raise RuntimeError("invalid port setting") from e
 
 try:
     load_port({"port": "abc"})
-except ConfigError as e:
+except RuntimeError as e:
     print("Error:", e)
-    print("Cause:", repr(e.__cause__))
-
-print(issubclass(KeyError, LookupError), issubclass(IndexError, LookupError))
-try:
-    [1, 2][5]
-except LookupError as e:
-    print("caught:", type(e).__name__)`,
+    print("Cause:", repr(e.__cause__))`,
     output: `Error: invalid port setting
-Cause: ValueError("invalid literal for int() with base 10: 'abc'")
-True True
-caught: IndexError`,
+Cause: ValueError("invalid literal for int() with base 10: 'abc'")`,
   },
   {
     q: "Why use the logging module instead of print?",
@@ -1250,67 +1116,177 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                     format="%(levelname)s:%(name)s:%(message)s")
 log = logging.getLogger("payments")
 
-log.debug("hidden: below INFO level")
+log.debug("hidden: below INFO")
 log.info("payment started")
 log.warning("retrying, attempt %d", 2)
-try:
-    1 / 0
-except ZeroDivisionError:
-    log.error("payment failed")
-
-log.setLevel(logging.ERROR)
-log.info("now hidden too")
-log.critical("system down")`,
+log.error("payment failed")`,
     output: `INFO:payments:payment started
 WARNING:payments:retrying, attempt 2
-ERROR:payments:payment failed
-CRITICAL:payments:system down`,
+ERROR:payments:payment failed`,
   },
   {
     q: "What is recursion, and what is the recursion limit?",
     level: 'Intermediate',
     a: "Recursion is when a function calls itself, and every recursive function needs a base case that stops it, or it keeps going forever. Python limits recursion depth, by default around 1000 calls, and raises RecursionError beyond that because it has no tail-call optimization. For deep problems I convert the recursion to a loop or use an explicit stack rather than raising the limit.",
-    code: `import sys
-
-def countdown(n):
+    code: `def countdown(n):
     if n == 0:              # base case
         return ["go"]
     return [n] + countdown(n - 1)
 
 print(countdown(3))
-print(sys.getrecursionlimit())
-
-def no_base(n):
-    return no_base(n + 1)
-
 try:
-    no_base(0)
+    countdown(-1)           # never reaches the base case
 except RecursionError as e:
     print("Error:", e)`,
     output: `[3, 2, 1, 'go']
-1000
 Error: maximum recursion depth exceeded`,
+  },
+  {
+    q: "What are keyword-only and positional-only parameters?",
+    level: 'Intermediate',
+    a: "Parameters after a bare * must be passed by keyword, which I use for flags so calls like connect(host, timeout=5) stay readable. Parameters before a / must be passed by position, so I can rename them later without breaking callers. Many built-ins use this, like len(obj, /).",
+    code: `def connect(host, /, port=80, *, timeout=10):
+    return f"{host}:{port} timeout={timeout}"
+
+print(connect("db", 5432, timeout=3))
+print(connect("db", port=8080))
+
+try:
+    connect("db", 80, 5)          # timeout must be a keyword
+except TypeError as e:
+    print("TypeError:", e)`,
+    output: `db:5432 timeout=3
+db:8080 timeout=10
+TypeError: connect() takes from 1 to 2 positional arguments but 3 were given`,
+  },
+  {
+    q: "How do you use heapq for a priority queue?",
+    level: 'Intermediate',
+    a: "heapq turns a plain list into a min-heap, so heappush and heappop are O(log n) and the smallest item is always at index 0. For a priority queue I push (priority, item) tuples, and for a max-heap I push negative priorities. For top-k problems, nlargest and nsmallest are simpler and faster than sorting everything.",
+    code: `import heapq
+
+tasks = []
+heapq.heappush(tasks, (3, "write docs"))
+heapq.heappush(tasks, (1, "fix bug"))
+heapq.heappush(tasks, (2, "review"))
+print(heapq.heappop(tasks))       # smallest priority first
+
+scores = [40, 95, 12, 77, 88]
+print(heapq.nlargest(2, scores))`,
+    output: `(1, 'fix bug')
+[95, 88]`,
+  },
+  {
+    q: "What are OrderedDict and ChainMap from collections?",
+    level: 'Intermediate',
+    a: "Normal dicts keep insertion order since Python 3.7, so I use OrderedDict mainly for move_to_end() and popitem(last=False), which are perfect for an LRU cache. ChainMap groups several dicts into one view and looks keys up in order, which is great for layered settings like command-line over environment over defaults. Writes go to the first dict only.",
+    code: `from collections import OrderedDict, ChainMap
+
+od = OrderedDict(a=1, b=2, c=3)
+od.move_to_end("a")              # a becomes the newest
+print(od.popitem(last=False))    # remove the oldest: b
+
+defaults = {"theme": "light", "lang": "en"}
+cli = {"lang": "ml"}
+config = ChainMap(cli, defaults)   # looks in cli first
+print(config["theme"], config["lang"])`,
+    output: `('b', 2)
+light ml`,
+  },
+  {
+    q: "How does the format specification mini-language work?",
+    level: 'Intermediate',
+    a: "After the colon in an f-string or format() I can control width, alignment, padding, sign, thousands separator, precision and type. I use it all the time for reports: :,.2f for money, :.1% for percentages, :>8 for aligned columns and :08b for binary. It's the same syntax in f-strings and str.format, so I only learn it once.",
+    code: `price = 1234567.891
+print(f"{price:,.2f}")        # thousands separator, 2 decimals
+print(f"{0.256:.1%}")         # percentage
+print(f"[{'left':<8}]")
+print(f"[{'right':>8}]")
+print(f"[{'mid':*^9}]")       # fill char + center
+print(f"{42:05d} {42:+d}")    # zero padding, sign
+print(f"{10:b} {10:08b} {255:x} {255:#X}")
+print(f"{1234.5:e}")`,
+    output: `1,234,567.89
+25.6%
+[left    ]
+[   right]
+[***mid***]
+00042 +42
+1010 00001010 ff 0XFF
+1.234500e+03`,
+  },
+  {
+    q: "How do you build a data pipeline with generators?",
+    level: 'Intermediate',
+    a: "I chain small generator functions, where each one takes an iterable and yields transformed items. Because everything is lazy, only one item flows through the pipeline at a time, so it works on huge files with little memory. Each stage is easy to test on its own, which keeps the code clean.",
+    code: `lines = ["INFO start", "ERROR disk full", "ERROR timeout"]
+
+def parse(rows):                    # stage 1: split each line
+    for row in rows:
+        yield row.split(" ", 1)
+
+errors = (msg for level, msg in parse(lines) if level == "ERROR")  # stage 2
+for msg in errors:                  # lazy: one line at a time
+    print("alert:", msg)`,
+    output: `alert: disk full
+alert: timeout`,
+  },
+  {
+    q: "What is an Enum and when do you use it?",
+    level: 'Intermediate',
+    a: "An Enum gives names to a fixed set of related constants, like order statuses, so I avoid magic strings and typos. Each member has a name and a value, I can loop over all members, and comparisons are by identity. I use auto() when the values don't matter, and StrEnum or IntEnum when they must behave like strings or ints.",
+    code: `from enum import Enum, auto
+
+class Status(Enum):
+    PENDING = auto()
+    SHIPPED = auto()
+
+s = Status.SHIPPED
+print(s, s.name, s.value)
+print(Status["PENDING"], Status(2))
+print([m.name for m in Status])
+print(s is Status.SHIPPED)`,
+    output: `Status.SHIPPED SHIPPED 2
+Status.PENDING Status.SHIPPED
+['PENDING', 'SHIPPED']
+True`,
+  },
+  {
+    q: "How do you use Optional, Union, TypedDict and Protocol from typing?",
+    level: 'Intermediate',
+    a: "Optional[X] means X or None, and Union[A, B] means either type; in modern code I write X | None and A | B. TypedDict describes the keys and value types of a plain dict, which is great for JSON data. Protocol enables duck typing for type checkers: any class with the right methods matches, without inheriting from anything.",
+    code: `from typing import Optional, TypedDict, Protocol
+
+class User(TypedDict):          # a dict with known keys
+    name: str
+
+class Speaker(Protocol):        # anything with speak() matches
+    def speak(self) -> str: ...
+
+class Dog:                      # no inheritance needed
+    def speak(self) -> str: return "Woof"
+
+pet: Speaker = Dog()
+owner: Optional[User] = None    # a User or None
+print(pet.speak(), owner)`,
+    output: `Woof None`,
   },
   {
     q: "How do classes and __init__ work, and what is self?",
     level: 'Advanced',
     a: "A class is a blueprint for creating objects, and __init__ is the method that runs when I create a new object, to set its starting attributes. self refers to the current object, so self.name stores the name on that specific instance. Python passes self automatically when I call a method on an object.",
     code: `class Dog:
-    species = "Canine"          # class attribute
+    species = "Canine"          # shared by all dogs
 
-    def __init__(self, name, age):
-        self.name = name        # instance attributes
-        self.age = age
+    def __init__(self, name):
+        self.name = name        # stored on this object
 
     def bark(self):
         return f"{self.name} says woof"
 
-d1 = Dog("Rex", 3)
-d2 = Dog("Bolt", 5)
-print(d1.bark())
-print(d2.name, d2.age, d2.species)`,
-    output: `Rex says woof
-Bolt 5 Canine`,
+d = Dog("Rex")
+print(d.bark(), d.species)`,
+    output: `Rex says woof Canine`,
   },
   {
     q: "How do inheritance and super() work?",
@@ -1319,22 +1295,16 @@ Bolt 5 Canine`,
     code: `class Animal:
     def __init__(self, name):
         self.name = name
-    def speak(self):
-        return "..."
 
 class Cat(Animal):
     def __init__(self, name, indoor):
-        super().__init__(name)
+        super().__init__(name)      # the parent sets self.name
         self.indoor = indoor
-    def speak(self):
-        return f"{self.name} says meow"
 
 c = Cat("Kitty", True)
-print(c.speak(), c.indoor)
-print(isinstance(c, Animal))
+print(c.name, c.indoor, isinstance(c, Animal))
 print([cls.__name__ for cls in Cat.__mro__])`,
-    output: `Kitty says meow True
-True
+    output: `Kitty True True
 ['Cat', 'Animal', 'object']`,
   },
   {
@@ -1342,29 +1312,18 @@ True
     level: 'Advanced',
     a: "An instance method takes self and works with one object's data. A class method takes cls and works with the class itself, and I often use it as an alternative constructor. A static method takes neither; it is just a helper function that logically belongs in the class.",
     code: `class Employee:
-    raise_pct = 10
-
-    def __init__(self, name, salary):
+    def __init__(self, name):       # instance method: gets self
         self.name = name
-        self.salary = salary
-
-    def info(self):
-        return f"{self.name}: {self.salary}"
-
     @classmethod
-    def from_string(cls, text):
-        name, salary = text.split("-")
-        return cls(name, int(salary))
-
+    def from_csv(cls, text):        # class method: gets cls
+        return cls(text.split(",")[0])
     @staticmethod
-    def is_workday(day):
+    def is_workday(day):            # static method: gets neither
         return day not in ("Sat", "Sun")
 
-e = Employee.from_string("Anu-5000")
-print(e.info())
-print(Employee.is_workday("Sun"))`,
-    output: `Anu: 5000
-False`,
+e = Employee.from_csv("Anu,5000")
+print(e.name, Employee.is_workday("Sun"))`,
+    output: `Anu False`,
   },
   {
     q: "What are dunder methods like __str__, __repr__, __len__ and __eq__?",
@@ -1379,88 +1338,47 @@ False`,
         return f"Cart({self.items!r})"
     def __len__(self):
         return len(self.items)
-    def __eq__(self, other):
-        return self.items == other.items
 
-a = Cart(["pen", "book"])
-b = Cart(["pen", "book"])
-print(a)
-print(repr(a))
-print(len(a))
-print(a == b)`,
-    output: `Cart with 2 items
-Cart(['pen', 'book'])
-2
-True`,
+cart = Cart(["pen", "book"])
+print(cart, repr(cart), len(cart))`,
+    output: `Cart with 2 items Cart(['pen', 'book']) 2`,
   },
   {
     q: "What does @property do?",
     level: 'Advanced',
     a: "@property lets me access a method like an attribute, so I can add validation or computed values without changing how callers use the class. I pair it with a .setter to control what values are allowed. It's the Pythonic way to do getters and setters.",
     code: `class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
     @property
-    def radius(self):
+    def radius(self):              # read like an attribute
         return self._radius
 
     @radius.setter
-    def radius(self, value):
-        if value < 0:
-            raise ValueError("Radius must be positive")
-        self._radius = value
+    def radius(self, value):       # runs on assignment
+        self._radius = max(value, 0)
 
-    @property
-    def area(self):
-        return round(3.14159 * self._radius ** 2, 2)
-
-c = Circle(2)
-print(c.radius, c.area)
-try:
-    c.radius = -1
-except ValueError as e:
-    print("Error:", e)`,
-    output: `2 12.57
-Error: Radius must be positive`,
+c = Circle()
+c.radius = -5
+print(c.radius)`,
+    output: `0`,
   },
   {
     q: "What is a decorator, and how do you write one with arguments?",
     level: 'Advanced',
-    a: "A decorator is a function that takes another function and returns a new function that adds behavior before or after it, like logging or timing. I apply it with the @ syntax. For a decorator with arguments I add one more outer function that takes the arguments, and I use functools.wraps to keep the original function's name.",
-    code: `from functools import wraps
-
-def log(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        print(f"Calling {func.__name__}{args}")
-        return func(*args, **kwargs)
-    return wrapper
-
-def repeat(times):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
+    a: "A decorator is a function that takes another function and returns a new function that adds behavior before or after it, like logging or timing. I apply it with the @ syntax. For a decorator with arguments I add one more outer function that takes the arguments. In real code I also put functools.wraps on the wrapper to keep the original function's name.",
+    code: `def repeat(times):                 # outer: takes the arguments
+    def decorator(func):           # middle: takes the function
+        def wrapper(*args):        # inner: runs instead of func
             for _ in range(times):
-                func(*args, **kwargs)
+                func(*args)
         return wrapper
     return decorator
 
-@log
-def add(a, b):
-    return a + b
-
-@repeat(3)
-def hello():
-    print("hello")
-
-print(add(2, 3))
-hello()`,
-    output: `Calling add(2, 3)
-5
-hello
-hello
-hello`,
+@repeat(2)
+def hello(name):
+    print("hello", name)
+hello("Anu")`,
+    output: `hello Anu
+hello Anu`,
   },
   {
     q: "What is a generator, and what is the difference between yield and return?",
@@ -1469,50 +1387,37 @@ hello`,
     code: `def count_up(n):
     i = 1
     while i <= n:
-        yield i
+        yield i            # pause here and hand out i
         i += 1
 
 gen = count_up(3)
 print(next(gen))
 print(next(gen))
-print(list(gen))   # remaining values
-
-squares = (x * x for x in range(5))   # generator expression
-print(sum(squares))`,
+print(list(gen))           # the remaining values`,
     output: `1
 2
-[3]
-30`,
+[3]`,
   },
   {
     q: "What is an iterator, and how is it different from an iterable?",
     level: 'Advanced',
     a: "An iterable is anything I can loop over, like a list, and it gives an iterator through iter(). An iterator is an object with __next__ that returns one item at a time and raises StopIteration when it's done. A for loop does this for me behind the scenes; I can also build my own iterator by defining __iter__ and __next__.",
-    code: `nums = [10, 20]
-it = iter(nums)
+    code: `nums = [10, 20]          # iterable
+it = iter(nums)          # iterator
 print(next(it))
 print(next(it))
 try:
     next(it)
 except StopIteration:
-    print("StopIteration")
+    print("StopIteration: no more items")
 
-class Countdown:
-    def __init__(self, start):
-        self.current = start
-    def __iter__(self):
-        return self
-    def __next__(self):
-        if self.current <= 0:
-            raise StopIteration
-        self.current -= 1
-        return self.current + 1
-
-print(list(Countdown(3)))`,
+for n in nums:           # for calls iter() and next() for me
+    print(n)`,
     output: `10
 20
-StopIteration
-[3, 2, 1]`,
+StopIteration: no more items
+10
+20`,
   },
   {
     q: "What is a closure?",
@@ -1541,19 +1446,13 @@ print(double.__closure__[0].cell_contents)`,
 def square(n):
     return n * n
 
-def main():
-    nums = [1, 2, 3, 4]
-    # I/O-bound work -> threads
-    with ThreadPoolExecutor(max_workers=2) as ex:
-        print("threads:", list(ex.map(square, nums)))
-    # CPU-bound work -> processes
-    with ProcessPoolExecutor(max_workers=2) as ex:
-        print("processes:", list(ex.map(square, nums)))
-
 if __name__ == "__main__":
-    main()`,
-    output: `threads: [1, 4, 9, 16]
-processes: [1, 4, 9, 16]`,
+    with ThreadPoolExecutor(2) as ex:      # I/O-bound work
+        print(list(ex.map(square, [1, 2, 3])))
+    with ProcessPoolExecutor(2) as ex:     # CPU-bound work
+        print(list(ex.map(square, [1, 2, 3])))`,
+    output: `[1, 4, 9]
+[1, 4, 9]`,
   },
   {
     q: "How do async and await work with asyncio?",
@@ -1562,15 +1461,11 @@ processes: [1, 4, 9, 16]`,
     code: `import asyncio
 
 async def fetch(name, delay):
-    await asyncio.sleep(delay)   # simulates I/O wait
-    return f"{name} done"
+    await asyncio.sleep(delay)      # pretend I/O wait
+    return name + " done"
 
 async def main():
-    results = await asyncio.gather(
-        fetch("users", 0.2),
-        fetch("orders", 0.1),
-    )
-    print(results)   # gather keeps input order
+    print(await asyncio.gather(fetch("users", 0.2), fetch("orders", 0.1)))
 
 asyncio.run(main())`,
     output: `['users done', 'orders done']`,
@@ -1604,17 +1499,13 @@ None
 class Product:
     name: str
     price: float
-    tags: list[str] = field(default_factory=list)
+    tags: list = field(default_factory=list)
 
-p1 = Product("Pen", 10.0)
-p2 = Product("Pen", 10.0)
-p1.tags.append("office")
-print(p1)
-print(p1 == Product("Pen", 10.0, ["office"]))
-print(p2.tags)`,
-    output: `Product(name='Pen', price=10.0, tags=['office'])
-True
-[]`,
+p = Product("Pen", 10.0)
+print(p)                               # auto __repr__
+print(p == Product("Pen", 10.0))       # auto __eq__`,
+    output: `Product(name='Pen', price=10.0, tags=[])
+True`,
   },
   {
     q: "How does * and ** unpacking work?",
@@ -1627,16 +1518,13 @@ nums = [1, 2, 3]
 print(add(*nums))
 print(add(**{"a": 1, "b": 2, "c": 3}))
 
-first, *middle, last = [10, 20, 30, 40]
-print(first, middle, last)
-
-print([*nums, 4, 5])
-print({**{"x": 1}, **{"y": 2}})`,
+first, *rest = [10, 20, 30, 40]
+print(first, rest)
+print([*nums, 4], {**{"x": 1}, "y": 2})`,
     output: `6
 6
-10 [20, 30] 40
-[1, 2, 3, 4, 5]
-{'x': 1, 'y': 2}`,
+10 [20, 30, 40]
+[1, 2, 3, 4] {'x': 1, 'y': 2}`,
   },
   {
     q: "What is the walrus operator (:=)?",
@@ -1657,49 +1545,36 @@ print(big)`,
     level: 'Advanced',
     a: "A class attribute is defined on the class and shared by all instances, while an instance attribute is set on self, usually in __init__, and belongs to one object. If I assign to the same name on an instance, it creates an instance attribute that hides the class one. The classic bug is a mutable class attribute like a list, which every instance ends up sharing, so I create lists in __init__.",
     code: `class Dog:
-    species = "canine"       # class attribute
-    tricks = []              # shared by ALL dogs (bug)
-
+    species = "canine"       # class attribute: shared
+    tricks = []              # shared list: a classic bug
     def __init__(self, name):
         self.name = name     # instance attribute
 
 a, b = Dog("Rex"), Dog("Max")
+a.species = "wolf"           # hides the class one, only on a
 print(a.species, b.species)
 
-a.species = "wolf"           # creates an instance attribute
-print(a.species, b.species, Dog.species)
-
 a.tricks.append("sit")
-print(b.tricks)              # Max learned it too!
-print(a.__dict__)`,
-    output: `canine canine
-wolf canine canine
-['sit']
-{'name': 'Rex', 'species': 'wolf'}`,
+print(b.tricks)              # Max learned it too!`,
+    output: `wolf canine
+['sit']`,
   },
   {
     q: "How does multiple inheritance work, and what is the MRO?",
     level: 'Advanced',
     a: "A class can inherit from several parents, and Python decides where to look up a method using the Method Resolution Order, which I can inspect with ClassName.__mro__ or mro(). It uses C3 linearization, so in a diamond shape each class appears only once and children come before their parents. super() follows the MRO, not just the direct parent, which is why cooperative classes should all call super().",
     code: `class A:
-    def hello(self):
-        return "A"
-
+    def hi(self): return "A"
 class B(A):
-    def hello(self):
-        return "B -> " + super().hello()
-
+    def hi(self): return "B -> " + super().hi()
 class C(A):
-    def hello(self):
-        return "C -> " + super().hello()
-
+    def hi(self): return "C -> " + super().hi()
 class D(B, C):
-    def hello(self):
-        return "D -> " + super().hello()
+    pass
 
-print(D().hello())
-print([cls.__name__ for cls in D.__mro__])`,
-    output: `D -> B -> C -> A
+print(D().hi())
+print([k.__name__ for k in D.__mro__])`,
+    output: `B -> C -> A
 ['D', 'B', 'C', 'A', 'object']`,
   },
   {
@@ -1710,24 +1585,17 @@ print([cls.__name__ for cls in D.__mro__])`,
 
 class Shape(ABC):
     @abstractmethod
-    def area(self):
-        ...
-
-    def describe(self):
-        return f"{type(self).__name__} with area {self.area()}"
+    def area(self): ...
 
 class Square(Shape):
-    def __init__(self, side):
-        self.side = side
-    def area(self):
-        return self.side ** 2
+    def area(self): return 9
 
-print(Square(3).describe())
+print(Square().area())
 try:
-    Shape()
+    Shape()                 # area() is abstract
 except TypeError as e:
     print("Error:", e)`,
-    output: `Square with area 9
+    output: `9
 Error: Can't instantiate abstract class Shape without an implementation for abstract method 'area'`,
   },
   {
@@ -1739,23 +1607,14 @@ Error: Can't instantiate abstract class Shape without an implementation for abst
         self.x, self.y = x, y
     def __add__(self, other):
         return Vector(self.x + other.x, self.y + other.y)
-    def __mul__(self, k):
-        if not isinstance(k, (int, float)):
-            return NotImplemented
-        return Vector(self.x * k, self.y * k)
     def __eq__(self, other):
         return (self.x, self.y) == (other.x, other.y)
     def __repr__(self):
         return f"Vector({self.x}, {self.y})"
 
 v = Vector(1, 2) + Vector(3, 4)
-print(v, v * 2, v == Vector(4, 6))
-try:
-    v * None
-except TypeError as e:
-    print("Error:", e)`,
-    output: `Vector(4, 6) Vector(8, 12) True
-Error: unsupported operand type(s) for *: 'Vector' and 'NoneType'`,
+print(v, v == Vector(4, 6))`,
+    output: `Vector(4, 6) True`,
   },
   {
     q: "What is __slots__ and when would you use it?",
@@ -1766,19 +1625,13 @@ Error: unsupported operand type(s) for *: 'Vector' and 'NoneType'`,
     def __init__(self, x, y):
         self.x, self.y = x, y
 
-class FlexPoint:
-    def __init__(self, x, y):
-        self.x, self.y = x, y
-
 p = Point(1, 2)
-print(p.x, p.y)
-print(hasattr(p, "__dict__"), hasattr(FlexPoint(1, 2), "__dict__"))
+print(p.x, hasattr(p, "__dict__"))
 try:
     p.z = 3
 except AttributeError as e:
     print("Error:", e)`,
-    output: `1 2
-False True
+    output: `1 False
 Error: 'Point' object has no attribute 'z' and no __dict__ for setting new attributes`,
   },
   {
@@ -1787,28 +1640,155 @@ Error: 'Point' object has no attribute 'z' and no __dict__ for setting new attri
     a: "PEP 8 is the official style guide: 4-space indentation, snake_case for functions and variables, CapWords for classes, and lines kept reasonably short. Pythonic code uses the language's idioms instead of patterns from other languages, like looping directly over items, using enumerate and zip, comprehensions, and with for resources. In practice I let tools like black or ruff format and lint the code so the team doesn't argue about style.",
     code: `names = ["anu", "ravi", "meera"]
 
-# Not Pythonic
-for i in range(len(names)):
+for i in range(len(names)):        # not Pythonic
     print(i, names[i])
 
-# Pythonic
-for i, name in enumerate(names):
+for i, name in enumerate(names):   # Pythonic
     print(i, name)
 
-if names:                      # instead of len(names) > 0
-    print("has names")
-
-total_chars = sum(len(n) for n in names)
-user_count = len(names)        # snake_case
-print(total_chars, user_count, "ravi" in names)`,
+if names:                          # instead of len(names) > 0
+    print(sum(len(n) for n in names))`,
     output: `0 anu
 1 ravi
 2 meera
 0 anu
 1 ravi
 2 meera
-has names
-12 3 True`,
+12`,
+  },
+  {
+    q: "What is a metaclass?",
+    level: 'Advanced',
+    a: "A metaclass is the class of a class: just as an object is created by its class, a class is created by its metaclass, which is type by default. By overriding __new__ or __init__ in a metaclass I can check or change every class when it is defined, for example to auto-register plugins. In practice I reach for __init_subclass__ or a decorator first, because metaclasses are harder to read.",
+    code: `class Meta(type):
+    def __new__(mcls, name, bases, ns):
+        print("creating class", name)    # runs when a class is defined
+        return super().__new__(mcls, name, bases, ns)
+
+class Plugin(metaclass=Meta):
+    pass
+
+print(type(42), type(int), type(Plugin))
+Point = type("Point", (), {"x": 1})      # type() creates classes too
+print(Point().x)`,
+    output: `creating class Plugin
+<class 'int'> <class 'type'> <class '__main__.Meta'>
+1`,
+  },
+  {
+    q: "What are descriptors in Python?",
+    level: 'Advanced',
+    a: "A descriptor is an object with __get__, __set__ or __delete__ that controls attribute access when it lives on a class. It is the machinery behind @property, methods, classmethod and staticmethod. I write one when I need the same check on many attributes, like 'never negative', using __set_name__ so it knows the attribute name.",
+    code: `class NonNegative:
+    def __set_name__(self, owner, name):
+        self.name = "_" + name
+    def __get__(self, obj, objtype=None):
+        return getattr(obj, self.name)
+    def __set__(self, obj, value):
+        setattr(obj, self.name, max(value, 0))   # never below 0
+
+class Product:
+    price = NonNegative()
+p = Product()
+p.price = -5                # goes through __set__
+print(p.price)`,
+    output: `0`,
+  },
+  {
+    q: "What is the difference between __getattr__ and __getattribute__?",
+    level: 'Advanced',
+    a: "__getattribute__ runs on every attribute access, so overriding it is powerful but easy to get wrong and slow. __getattr__ runs only when normal lookup fails, which makes it the safe choice for fallbacks, proxies and dynamic attributes. Inside __getattribute__ I must call super().__getattribute__ to avoid infinite recursion.",
+    code: `class Demo:
+    x = 1
+    def __getattribute__(self, name):     # runs on EVERY access
+        print("getattribute:", name)
+        return super().__getattribute__(name)
+    def __getattr__(self, name):          # runs only if lookup failed
+        return "default for " + name
+
+d = Demo()
+print(d.x)
+print(d.missing)`,
+    output: `getattribute: x
+1
+getattribute: missing
+default for missing`,
+  },
+  {
+    q: "What does __call__ do?",
+    level: 'Advanced',
+    a: "Defining __call__ makes instances callable like functions, so obj(args) runs obj.__call__(args). I use it when a function needs to remember state or configuration, like a counter, a rate limiter or a class-based decorator. callable() tells me whether something can be called.",
+    code: `class Multiplier:
+    def __init__(self, factor):
+        self.factor = factor
+        self.calls = 0
+    def __call__(self, x):
+        self.calls += 1
+        return x * self.factor
+
+double = Multiplier(2)
+print(double(5), double(21))
+print("calls:", double.calls)
+print(callable(double), callable(42))`,
+    output: `10 42
+calls: 2
+True False`,
+  },
+  {
+    q: "How do you limit concurrency and add timeouts in asyncio?",
+    level: 'Advanced',
+    a: "I use asyncio.Semaphore so only N coroutines run a section at once, which protects APIs from too many parallel calls. asyncio.wait_for (or asyncio.timeout in 3.11+) cancels a coroutine that takes too long and raises TimeoutError. With gather(return_exceptions=True), one failure doesn't cancel the whole batch, and results keep the input order.",
+    code: `import asyncio
+sem = asyncio.Semaphore(2)             # at most 2 jobs at once
+
+async def job(i):
+    async with sem:
+        await asyncio.sleep(0.01)
+        return i
+
+async def main():
+    slow = asyncio.wait_for(asyncio.sleep(1), timeout=0.05)
+    print(await asyncio.gather(job(1), job(2), job(3), slow, return_exceptions=True))
+
+asyncio.run(main())`,
+    output: `[1, 2, 3, TimeoutError()]`,
+  },
+  {
+    q: "How does Python manage memory: reference counting, garbage collection and weakref?",
+    level: 'Advanced',
+    a: "CPython frees most objects through reference counting: when nothing refers to an object any more, it is freed straight away. Reference cycles, like two objects pointing at each other, are cleaned up by the gc module's cycle collector. A weakref points to an object without keeping it alive, which I use for caches so they don't leak memory.",
+    code: `import gc, weakref
+
+class Node:
+    pass
+
+a, b = Node(), Node()
+a.other, b.other = b, a          # a reference cycle
+watch = weakref.ref(a)           # weak: doesn't keep a alive
+del a, b                         # refcounts never reach 0
+gc.collect()                     # the cycle collector frees them
+print("freed:", watch() is None)`,
+    output: `freed: True`,
+  },
+  {
+    q: "How do you write unit tests with unittest and mock dependencies?",
+    level: 'Advanced',
+    a: "I subclass unittest.TestCase and write test_ methods using assertions like assertEqual and assertRaises, and setUp prepares shared data. For things like APIs or databases I use unittest.mock: patch replaces the real call with a Mock, so tests are fast and deterministic, and I can assert how it was called. In real projects I run them with python -m unittest or pytest; here I run them from code.",
+    code: `from unittest import TestCase, mock
+
+def get_price(api, item):
+    return api.fetch(item)["price"] * 2
+
+class PriceTests(TestCase):
+    def test_price(self):
+        api = mock.Mock()
+        api.fetch.return_value = {"price": 50}     # fake API reply
+        self.assertEqual(get_price(api, "pen"), 100)
+        api.fetch.assert_called_once_with("pen")
+
+result = PriceTests("test_price").run()
+print("ran:", result.testsRun, "ok:", result.wasSuccessful())`,
+    output: `ran: 1 ok: True`,
   },
   {
     q: "Coding: Reverse a string",
@@ -1853,12 +1833,8 @@ def is_anagram(a, b):
     return Counter(a) == Counter(b)
 
 print(is_anagram("listen", "silent"))
-print(is_anagram("Dormitory", "dirty room"))
-print(is_anagram("hello", "world"))
-print(sorted("listen") == sorted("silent"))`,
+print(is_anagram("Dormitory", "dirty room"))`,
     output: `True
-True
-False
 True`,
   },
   {
@@ -1911,9 +1887,7 @@ FizzBuzz`,
     q: "Coding: Fibonacci series",
     level: 'Coding round',
     a: "Each Fibonacci number is the sum of the previous two. I prefer the iterative version with two variables because it is O(n) and uses constant memory. The plain recursive version is very slow, so if I use recursion I add caching with functools.lru_cache.",
-    code: `from functools import lru_cache
-
-def fib_list(n):
+    code: `def fib_list(n):
     a, b = 0, 1
     result = []
     for _ in range(n):
@@ -1921,14 +1895,8 @@ def fib_list(n):
         a, b = b, a + b
     return result
 
-@lru_cache(maxsize=None)
-def fib(n):
-    return n if n < 2 else fib(n - 1) + fib(n - 2)
-
-print(fib_list(10))
-print(fib(50))`,
-    output: `[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-12586269025`,
+print(fib_list(10))`,
+    output: `[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]`,
   },
   {
     q: "Coding: Find duplicates in a list",
@@ -1962,11 +1930,9 @@ print([n for n, c in Counter(nums).items() if c > 1])`,
     return []
 
 print(two_sum([2, 7, 11, 15], 9))
-print(two_sum([3, 2, 4], 6))
-print(two_sum([1, 2], 10))`,
+print(two_sum([3, 2, 4], 6))`,
     output: `[0, 1]
-[1, 2]
-[]`,
+[1, 2]`,
   },
   {
     q: "Coding: Flatten a nested list",
@@ -2019,13 +1985,9 @@ print(list(dict.fromkeys(items)))`,
     return second
 
 print(second_largest([10, 5, 20, 8]))
-print(second_largest([5, 5, 3]))
-print(second_largest([7]))
-print(sorted(set([10, 5, 20, 8]))[-2])`,
+print(second_largest([5, 5, 3]))`,
     output: `10
-3
-None
-10`,
+3`,
   },
   {
     q: "Coding: Word frequency in a sentence",
@@ -2058,14 +2020,10 @@ print(freq.most_common(2))`,
         else:
             result.append(b[j])
             j += 1
-    result.extend(a[i:])
-    result.extend(b[j:])
-    return result
+    return result + a[i:] + b[j:]     # add whatever is left
 
-print(merge_sorted([1, 4, 7], [2, 3, 8, 10]))
-print(merge_sorted([], [5, 6]))`,
-    output: `[1, 2, 3, 4, 7, 8, 10]
-[5, 6]`,
+print(merge_sorted([1, 4, 7], [2, 3, 8, 10]))`,
+    output: `[1, 2, 3, 4, 7, 8, 10]`,
   },
   {
     q: "Coding: Binary search",
@@ -2084,14 +2042,8 @@ print(merge_sorted([], [5, 6]))`,
     return -1
 
 nums = [2, 5, 8, 12, 16, 23, 38]
-print(binary_search(nums, 23))
-print(binary_search(nums, 7))
-
-import bisect
-print(bisect.bisect_left(nums, 23))`,
-    output: `5
--1
-5`,
+print(binary_search(nums, 23), binary_search(nums, 7))`,
+    output: `5 -1`,
   },
   {
     q: "Coding: Bubble sort",
@@ -2107,13 +2059,11 @@ print(bisect.bisect_left(nums, 23))`,
                 nums[j], nums[j + 1] = nums[j + 1], nums[j]
                 swapped = True
         if not swapped:
-            break
+            break                  # already sorted
     return nums
 
-print(bubble_sort([5, 1, 4, 2, 8]))
-print(bubble_sort([1, 2, 3]))`,
-    output: `[1, 2, 4, 5, 8]
-[1, 2, 3]`,
+print(bubble_sort([5, 1, 4, 2, 8]))`,
+    output: `[1, 2, 4, 5, 8]`,
   },
   {
     q: "Coding: Find the missing number from 1 to n",
@@ -2124,15 +2074,9 @@ print(bubble_sort([1, 2, 3]))`,
     return n * (n + 1) // 2 - sum(nums)
 
 print(missing_number([1, 2, 4, 5, 6]))
-print(missing_number([2, 3, 1, 5]))
-
-def all_missing(nums, n):
-    return sorted(set(range(1, n + 1)) - set(nums))
-
-print(all_missing([1, 3, 6], 7))`,
+print(missing_number([2, 3, 1, 5]))`,
     output: `3
-4
-[2, 4, 5, 7]`,
+4`,
   },
   {
     q: "Coding: Maximum subarray sum (Kadane's algorithm)",
@@ -2198,17 +2142,13 @@ True`,
   {
     q: "Coding: Check if a number is prime",
     level: 'Coding round',
-    a: "A prime is greater than 1 and divisible only by 1 and itself. I only need to test divisors up to the square root of n, because any larger factor pairs with a smaller one, which makes it O(sqrt n). I handle 2 separately and then check only odd numbers to halve the work.",
+    a: "A prime is greater than 1 and divisible only by 1 and itself. I only need to test divisors up to the square root of n, because any larger factor pairs with a smaller one, which makes it O(sqrt n). I can also skip even numbers after 2 to halve the work.",
     code: `def is_prime(n):
     if n < 2:
         return False
-    if n % 2 == 0:
-        return n == 2
-    i = 3
-    while i * i <= n:
+    for i in range(2, int(n ** 0.5) + 1):
         if n % i == 0:
             return False
-        i += 2
     return True
 
 print([n for n in range(30) if is_prime(n)])
@@ -2253,9 +2193,7 @@ print(sorted(per_vowel.items()))`,
     q: "Coding: Factorial (iterative and recursive)",
     level: 'Coding round',
     a: "Factorial of n is the product of all numbers from 1 to n, and 0! is 1. I prefer the iterative loop because it has no recursion depth limit, but I show the recursive one with a clear base case too. In real code math.factorial is the fastest and handles validation.",
-    code: `import math
-
-def factorial_iter(n):
+    code: `def factorial_iter(n):
     result = 1
     for i in range(2, n + 1):
         result *= i
@@ -2264,10 +2202,8 @@ def factorial_iter(n):
 def factorial_rec(n):
     return 1 if n <= 1 else n * factorial_rec(n - 1)
 
-print(factorial_iter(5), factorial_rec(5), factorial_iter(0))
-print(factorial_iter(20) == math.factorial(20))`,
-    output: `120 120 1
-True`,
+print(factorial_iter(5), factorial_rec(5), factorial_iter(0))`,
+    output: `120 120 1`,
   },
   {
     q: "Coding: Find the longest word in a sentence",
@@ -2287,5 +2223,131 @@ top = max(len(w) for w in words)
 print([w for w in words if len(w) == top])`,
     output: `problems
 ['house', 'mouse']`,
+  },
+  {
+    q: "Coding: Rotate a list by k positions",
+    level: 'Coding round',
+    a: "I first take k modulo the length so large k values and empty lists are handled. Then rotating right is just slicing: the last k items followed by the rest. If they ask for in place with O(1) extra space, I use the three-reversal trick, and collections.deque.rotate is the quick built-in option.",
+    code: `from collections import deque
+
+def rotate_right(nums, k):
+    if not nums:
+        return nums
+    k %= len(nums)
+    return nums[-k:] + nums[:-k]
+
+print(rotate_right([1, 2, 3, 4, 5], 2))
+print(rotate_right([1, 2, 3], 7))
+
+d = deque([1, 2, 3, 4, 5])
+d.rotate(2)
+print(list(d))`,
+    output: `[4, 5, 1, 2, 3]
+[3, 1, 2]
+[4, 5, 1, 2, 3]`,
+  },
+  {
+    q: "Coding: Print a matrix in spiral order",
+    level: 'Coding round',
+    a: "I keep four boundaries, top, bottom, left and right, and walk right, down, left and up, shrinking a boundary after each side. I check the boundaries again before the last two walks so single rows or columns aren't added twice. It visits every cell once, so it's O(rows * cols).",
+    code: `def spiral(m):
+    res = []
+    if not m:
+        return res
+    top, bottom, left, right = 0, len(m) - 1, 0, len(m[0]) - 1
+    while top <= bottom and left <= right:
+        res += [m[top][c] for c in range(left, right + 1)]; top += 1
+        res += [m[r][right] for r in range(top, bottom + 1)]; right -= 1
+        if top <= bottom:
+            res += [m[bottom][c] for c in range(right, left - 1, -1)]; bottom -= 1
+        if left <= right:
+            res += [m[r][left] for r in range(bottom, top - 1, -1)]; left += 1
+    return res
+
+print(spiral([[1, 2, 3], [4, 5, 6], [7, 8, 9]]))`,
+    output: `[1, 2, 3, 6, 9, 8, 7, 4, 5]`,
+  },
+  {
+    q: "Coding: Merge overlapping intervals",
+    level: 'Coding round',
+    a: "I sort the intervals by start, then walk through them: if the current interval starts before the last merged one ends, I extend that end; otherwise I start a new interval. Sorting makes it O(n log n). I always ask whether touching intervals like [1, 4] and [4, 5] count as overlapping.",
+    code: `def merge(intervals):
+    merged = []
+    for start, end in sorted(intervals):
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return merged
+
+print(merge([[1, 3], [2, 6], [8, 10], [15, 18]]))
+print(merge([[1, 4], [4, 5]]))`,
+    output: `[[1, 6], [8, 10], [15, 18]]
+[[1, 5]]`,
+  },
+  {
+    q: "Coding: Longest common prefix",
+    level: 'Coding round',
+    a: "I compare characters column by column across all words and stop at the first mismatch or the end of the shortest word. A neat trick is that only the min and max strings in sorted order matter, because they differ the most. zip(*words) also works well, since it stops at the shortest word.",
+    code: `def lcp(words):
+    if not words:
+        return ""
+    lo, hi = min(words), max(words)
+    i = 0
+    while i < len(lo) and lo[i] == hi[i]:
+        i += 1
+    return lo[:i]
+
+print(lcp(["flower", "flow", "flight"]))
+print(repr(lcp(["dog", "racecar", "car"])))`,
+    output: `fl
+''`,
+  },
+  {
+    q: "Coding: Group anagrams",
+    level: 'Coding round',
+    a: "Anagrams have the same letters, so the sorted word works as a key in a defaultdict(list). Each word goes into the bucket for its key, which is O(n * k log k) for n words of length k. For long words I can use a 26-letter count tuple as the key instead of sorting.",
+    code: `from collections import defaultdict
+
+def group_anagrams(words):
+    groups = defaultdict(list)
+    for w in words:
+        groups["".join(sorted(w))].append(w)
+    return list(groups.values())
+
+words = ["eat", "tea", "tan", "ate", "nat", "bat"]
+for group in group_anagrams(words):
+    print(group)`,
+    output: `['eat', 'tea', 'ate']
+['tan', 'nat']
+['bat']`,
+  },
+  {
+    q: "Coding: Implement an LRU cache",
+    level: 'Coding round',
+    a: "An LRU cache evicts the least recently used item when it is full. I use an OrderedDict: on get I move the key to the end, on put I insert or update it and move it to the end, and if size passes capacity I popitem(last=False) to drop the oldest. Both operations are O(1). In everyday code, functools.lru_cache does this for function results.",
+    code: `from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.data = OrderedDict()
+    def get(self, key):
+        if key in self.data:
+            self.data.move_to_end(key)    # now the most recent
+        return self.data.get(key, -1)
+    def put(self, key, value):
+        self.data[key] = value
+        self.data.move_to_end(key)
+        if len(self.data) > self.capacity:
+            self.data.popitem(last=False)   # drop the oldest
+
+cache = LRUCache(2)
+cache.put("a", 1)
+cache.put("b", 2)
+cache.get("a")
+cache.put("c", 3)             # evicts b
+print(list(cache.data))`,
+    output: `['a', 'c']`,
   },
 ]

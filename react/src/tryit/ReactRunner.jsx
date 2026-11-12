@@ -38,9 +38,14 @@ function Toolbar() {
   )
 }
 
+// Tailwind's browser build, loaded inside the preview when a program uses Tailwind classes.
+const TAILWIND_CDN = 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3/dist/index.global.js'
+
 // Edit a React snippet and see it render live (Sandpack, React 19).
 // The snippet is turned into a runnable /App.js by snippetToApp.
-function ReactRunner({ code }) {
+// tailwind: load Tailwind in the preview (for the coding programs, which use Tailwind classes).
+// height: editor/preview height in px.
+function ReactRunner({ code, tailwind = false, height = HEIGHT }) {
   const files = useMemo(
     () => ({
       '/App.js': snippetToApp(code),
@@ -58,12 +63,20 @@ function ReactRunner({ code }) {
         template="react"
         theme="light"
         files={files}
-        customSetup={{ dependencies: { react: '^19.0.0', 'react-dom': '^19.0.0' } }}
+        customSetup={{
+          dependencies: {
+            react: '^19.0.0',
+            'react-dom': '^19.0.0',
+            // Extra libraries, only when the example imports them
+            ...(code.includes('react-hook-form') && { 'react-hook-form': '7.91.0' }),
+          },
+        }}
         options={{
           activeFile: '/App.js',
           visibleFiles: ['/App.js'],
           recompileMode: 'delayed',
           recompileDelay: 500,
+          externalResources: tailwind ? [TAILWIND_CDN] : [],
         }}
       >
         <Toolbar />
@@ -71,10 +84,10 @@ function ReactRunner({ code }) {
           <SandpackCodeEditor
             showLineNumbers
             showTabs={false}
-            style={{ height: HEIGHT }}
+            style={{ height }}
           />
           {/* Preview on top, console.log output underneath. */}
-          <SandpackStack style={{ height: HEIGHT }}>
+          <SandpackStack style={{ height }}>
             <SandpackPreview showOpenInCodeSandbox={false} showRefreshButton style={{ flex: 1 }} />
             <SandpackConsole
               showHeader={false}
