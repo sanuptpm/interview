@@ -1,0 +1,80 @@
+body {
+  margin: 0;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+a {
+  color: #5c6ac4;
+}
+
+/* Program page: code on the left, output on the right */
+.program-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.program-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.pane {
+  overflow: auto;
+  min-width: 0;
+}
+
+.pane-label {
+  position: sticky;
+  top: 0;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: inherit;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+  z-index: 1;
+}
+
+.code-pane {
+  background: #1e1e2e;
+  color: #e4e4ef;
+}
+
+.code-pane pre {
+  margin: 0;
+  padding: 16px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.output-pane {
+  background: #fff;
+}
+
+/* Stack the panes on narrow screens */
+@media (max-width: 800px) {
+  .program-page {
+    height: auto;
+  }
+
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .pane {
+    max-height: 70vh;
+  }
+}
