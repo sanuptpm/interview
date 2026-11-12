@@ -18,18 +18,12 @@ function PostSearch() {
     },
   }
 
-  const loadPosts = async () => {
-    try {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts')
-      const data = await res.json()
-      setPosts(data)
-    } catch (error) {
-      console.error('Failed to load posts:', error)
-    }
-  }
-
+  // Load posts once when the page opens
   useEffect(() => {
-    loadPosts()
+    fetch('https://jsonplaceholder.typicode.com/posts')
+      .then((res) => res.json())
+      .then((data) => setPosts(data))
+      .catch((error) => console.error('Failed to load posts:', error))
   }, [])
 
   // Debounce search input: waits 300ms after user stops typing
