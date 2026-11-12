@@ -3,6 +3,10 @@ import PostSearch from './pages/PostSearch.jsx'
 import postSearchSource from './pages/PostSearch.jsx?raw'
 import BubbleSort from './pages/BubbleSort.jsx'
 import bubbleSortSource from './pages/BubbleSort.jsx?raw'
+import StringReverse from './pages/StringReverse.jsx'
+import stringReverseSource from './pages/StringReverse.jsx?raw'
+import Palindrome from './pages/Palindrome.jsx'
+import palindromeSource from './pages/Palindrome.jsx?raw'
 
 // Add each new program here: it shows up in the list and gets its own page.
 // Import the file a second time with `?raw` to show its code beside the output.
@@ -20,6 +24,20 @@ const programs = [
     description: 'Sort an array of numbers with bubble sort.',
     component: BubbleSort,
     source: bubbleSortSource,
+  },
+  {
+    path: '/string-reverse',
+    title: 'String Reverse',
+    description: 'Reverse a string with a loop.',
+    component: StringReverse,
+    source: stringReverseSource,
+  },
+  {
+    path: '/palindrome',
+    title: 'Palindrome',
+    description: 'Check whether words read the same forwards and backwards.',
+    component: Palindrome,
+    source: palindromeSource,
   },
 ]
 
