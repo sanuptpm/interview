@@ -1,18 +1,36 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
-import PostSearch from './pages/PostSearch.jsx'
 import postSearchSource from './pages/PostSearch.jsx?raw'
-import BubbleSort from './pages/BubbleSort.jsx'
 import bubbleSortSource from './pages/BubbleSort.jsx?raw'
-import StringReverse from './pages/StringReverse.jsx'
 import stringReverseSource from './pages/StringReverse.jsx?raw'
-import Palindrome from './pages/Palindrome.jsx'
 import palindromeSource from './pages/Palindrome.jsx?raw'
 
-// Add each new program here: it shows up in the list and gets its own page.
+// Each page is loaded only when it is opened, to keep the first load small.
+const PostSearch = lazy(() => import('./pages/PostSearch.jsx'))
+const BubbleSort = lazy(() => import('./pages/BubbleSort.jsx'))
+const StringReverse = lazy(() => import('./pages/StringReverse.jsx'))
+const Palindrome = lazy(() => import('./pages/Palindrome.jsx'))
+const CssQuestions = lazy(() => import('./pages/CssQuestions.jsx'))
+const JavaScript = lazy(() => import('./pages/JavaScript.jsx'))
+const ReactQuestions = lazy(() => import('./pages/ReactQuestions.jsx'))
+const PythonQuestions = lazy(() => import('./pages/PythonQuestions.jsx'))
+const FastApiQuestions = lazy(() => import('./pages/FastApiQuestions.jsx'))
+const DatabaseQuestions = lazy(() => import('./pages/DatabaseQuestions.jsx'))
+const GitQuestions = lazy(() => import('./pages/GitQuestions.jsx'))
+const DockerQuestions = lazy(() => import('./pages/DockerQuestions.jsx'))
+const AwsQuestions = lazy(() => import('./pages/AwsQuestions.jsx'))
+const AiMlQuestions = lazy(() => import('./pages/AiMlQuestions.jsx'))
+
+// Add each new page here: it shows up on the home page and gets its own route.
+// group: 'questions' (interview Q&A) or 'program' (coding program with its code shown).
 // Import the file a second time with `?raw` to show its code beside the output.
+// Leave out `source` for question-and-answer pages: they show full width with no code pane.
 const programs = [
   {
     path: '/post-search',
+    group: 'program',
+    badge: 'React',
+    badgeColor: 'bg-sky-50 text-sky-700',
     title: 'Post Search',
     description: 'Fetch posts from an API and filter them with a debounced search.',
     component: PostSearch,
@@ -20,6 +38,9 @@ const programs = [
   },
   {
     path: '/bubble-sort',
+    group: 'program',
+    badge: 'Algorithm',
+    badgeColor: 'bg-amber-50 text-amber-700',
     title: 'Bubble Sort',
     description: 'Sort an array of numbers with bubble sort.',
     component: BubbleSort,
@@ -27,6 +48,9 @@ const programs = [
   },
   {
     path: '/string-reverse',
+    group: 'program',
+    badge: 'String',
+    badgeColor: 'bg-amber-50 text-amber-700',
     title: 'String Reverse',
     description: 'Reverse a string with a loop.',
     component: StringReverse,
@@ -34,43 +58,181 @@ const programs = [
   },
   {
     path: '/palindrome',
+    group: 'program',
+    badge: 'String',
+    badgeColor: 'bg-amber-50 text-amber-700',
     title: 'Palindrome',
     description: 'Check whether words read the same forwards and backwards.',
     component: Palindrome,
     source: palindromeSource,
   },
+  {
+    path: '/css-questions',
+    group: 'questions',
+    badge: 'CSS',
+    badgeColor: 'bg-pink-50 text-pink-700',
+    title: 'CSS Interview Questions',
+    description: 'Box model, flexbox, grid, position, specificity and more, with live examples.',
+    component: CssQuestions,
+  },
+  {
+    path: '/javascript',
+    group: 'questions',
+    badge: 'JS',
+    badgeColor: 'bg-yellow-50 text-yellow-700',
+    title: 'JavaScript Interview Questions',
+    description: 'Basics (let/const, arrow functions, spread, map, filter...) and interview questions with live output.',
+    component: JavaScript,
+  },
+  {
+    path: '/react-questions',
+    group: 'questions',
+    badge: 'React',
+    badgeColor: 'bg-sky-50 text-sky-700',
+    title: 'React Interview Questions',
+    description: 'From JSX and props to hooks, performance and patterns, with live demos.',
+    component: ReactQuestions,
+  },
+  {
+    path: '/python-questions',
+    group: 'questions',
+    badge: 'Python',
+    badgeColor: 'bg-blue-50 text-blue-700',
+    title: 'Python Interview Questions',
+    description: 'From basics to decorators, generators, OOP and coding problems.',
+    component: PythonQuestions,
+  },
+  {
+    path: '/fastapi-questions',
+    group: 'questions',
+    badge: 'FastAPI',
+    badgeColor: 'bg-emerald-50 text-emerald-700',
+    title: 'FastAPI Interview Questions',
+    description: 'Routes, Pydantic models, validation, dependencies, auth, async and testing.',
+    component: FastApiQuestions,
+  },
+  {
+    path: '/database-questions',
+    group: 'questions',
+    badge: 'Database',
+    badgeColor: 'bg-orange-50 text-orange-700',
+    title: 'Database Interview Questions',
+    description: 'SQL queries, joins, indexes, normalization, transactions and NoSQL.',
+    component: DatabaseQuestions,
+  },
+  {
+    path: '/git-questions',
+    group: 'questions',
+    badge: 'Git',
+    badgeColor: 'bg-red-50 text-red-700',
+    title: 'Git Interview Questions',
+    description: 'Commits, branches, merge vs rebase, resolving conflicts and undoing changes.',
+    component: GitQuestions,
+  },
+  {
+    path: '/docker-questions',
+    group: 'questions',
+    badge: 'Docker',
+    badgeColor: 'bg-cyan-50 text-cyan-700',
+    title: 'Docker Interview Questions',
+    description: 'Images, containers, Dockerfile, volumes, networks and Docker Compose.',
+    component: DockerQuestions,
+  },
+  {
+    path: '/aws-questions',
+    group: 'questions',
+    badge: 'AWS',
+    badgeColor: 'bg-amber-50 text-amber-700',
+    title: 'AWS Interview Questions',
+    description: 'EC2, S3, IAM, VPC, Lambda, RDS and deploying applications.',
+    component: AwsQuestions,
+  },
+  {
+    path: '/ai-ml-questions',
+    group: 'questions',
+    badge: 'AI/ML',
+    badgeColor: 'bg-violet-50 text-violet-700',
+    title: 'AI/ML Interview Questions',
+    description: 'ML basics, model evaluation, common algorithms, deep learning and LLMs.',
+    component: AiMlQuestions,
+  },
 ]
 
-function Home() {
+function PageCard({ page, number }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <p className="text-sm font-medium tracking-wide text-indigo-400 uppercase">Interview prep</p>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">Programs</h1>
-        <p className="mt-4 max-w-2xl text-slate-400">
-          Small JavaScript and React programs. Open one to see its code beside the live output.
-        </p>
+    <Link
+      to={page.path}
+      className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
+    >
+      <div className="flex items-center justify-between">
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${page.badgeColor}`}>
+          {page.badge}
+        </span>
+        <span className="font-mono text-xs text-slate-400">{String(number).padStart(2, '0')}</span>
+      </div>
+      <h3 className="mt-4 flex items-center justify-between text-lg font-semibold">
+        {page.title}
+        <span className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-indigo-600">
+          →
+        </span>
+      </h3>
+      <p className="mt-1 text-sm text-slate-500">{page.description}</p>
+    </Link>
+  )
+}
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2">
-          {programs.map((program, index) => (
+function Section({ title, subtitle, pages }) {
+  return (
+    <section className="mt-14">
+      <h2 className="text-xl font-bold">{title}</h2>
+      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {pages.map((page, index) => (
+          <PageCard key={page.path} page={page} number={index + 1} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Home() {
+  const questionPages = programs.filter((p) => p.group === 'questions')
+  const programPages = programs.filter((p) => p.group === 'program')
+
+  return (
+    <div className="min-h-screen bg-white text-slate-900">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <p className="text-sm font-medium tracking-wide text-indigo-600 uppercase">Interview prep</p>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+          Crack your frontend &amp; backend interview
+        </h1>
+        <p className="mt-4 max-w-2xl text-slate-500">
+          Interview questions with answers you can say out loud, plus working examples and their
+          output. From the basics to advanced topics.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          {questionPages.map((page) => (
             <Link
-              key={program.path}
-              to={program.path}
-              className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition hover:-translate-y-0.5 hover:border-indigo-500/60 hover:bg-slate-900"
+              key={page.path}
+              to={page.path}
+              className={`rounded-full px-3 py-1 text-sm font-medium transition hover:opacity-80 ${page.badgeColor}`}
             >
-              <span className="font-mono text-xs text-slate-500">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <h2 className="mt-2 flex items-center justify-between text-lg font-semibold">
-                {program.title}
-                <span className="text-slate-600 transition group-hover:translate-x-1 group-hover:text-indigo-400">
-                  →
-                </span>
-              </h2>
-              <p className="mt-1 text-sm text-slate-400">{program.description}</p>
+              {page.badge}
             </Link>
           ))}
         </div>
+
+        <Section
+          title="Interview Questions"
+          subtitle="Question, interview-style answer, example and output for each topic."
+          pages={questionPages}
+        />
+
+        <Section
+          title="Coding Programs"
+          subtitle="Small programs with the code on the left and the live output on the right."
+          pages={programPages}
+        />
       </div>
     </div>
   )
@@ -83,23 +245,17 @@ function CodeView({ source }) {
     <pre className="p-4 font-mono text-[13px] leading-6">
       {lines.map((line, i) => (
         <div key={i} className="flex">
-          <span className="w-10 shrink-0 pr-4 text-right text-slate-600 select-none">{i + 1}</span>
-          <code className="whitespace-pre text-slate-200">{line}</code>
+          <span className="w-10 shrink-0 pr-4 text-right text-slate-400 select-none">{i + 1}</span>
+          <code className="whitespace-pre text-slate-800">{line}</code>
         </div>
       ))}
     </pre>
   )
 }
 
-function PaneLabel({ children, dark }) {
+function PaneLabel({ children }) {
   return (
-    <div
-      className={`sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-2 text-xs font-semibold tracking-wider uppercase backdrop-blur ${
-        dark
-          ? 'border-slate-800 bg-slate-950/90 text-slate-400'
-          : 'border-slate-200 bg-white/90 text-slate-500'
-      }`}
-    >
+    <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold tracking-wider text-slate-500 uppercase backdrop-blur">
       {children}
     </div>
   )
@@ -107,37 +263,43 @@ function PaneLabel({ children, dark }) {
 
 function ProgramPage({ title, source, Page }) {
   return (
-    <div className="flex h-screen flex-col bg-slate-950 max-md:h-auto">
-      <header className="flex items-center gap-4 border-b border-slate-800 px-4 py-3 text-slate-100 sm:px-6">
+    <div className="flex h-screen flex-col bg-white max-md:h-auto">
+      <header className="flex items-center gap-4 border-b border-slate-200 px-4 py-3 text-slate-900 sm:px-6">
         <Link
           to="/"
-          className="rounded-lg px-2 py-1 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          className="rounded-lg px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
         >
-          ← Programs
+          ← Home
         </Link>
-        <span className="text-slate-700">/</span>
+        <span className="text-slate-300">/</span>
         <h1 className="font-semibold">{title}</h1>
       </header>
 
-      <div className="grid min-h-0 flex-1 md:grid-cols-2">
-        <section className="min-w-0 overflow-auto bg-slate-950 max-md:max-h-[70vh]">
-          <PaneLabel dark>
-            <span className="flex gap-1.5">
-              <span className="size-2.5 rounded-full bg-red-400/80" />
-              <span className="size-2.5 rounded-full bg-amber-400/80" />
-              <span className="size-2.5 rounded-full bg-emerald-400/80" />
-            </span>
-            Program
-          </PaneLabel>
-          <CodeView source={source} />
-        </section>
+      <div className={`grid min-h-0 flex-1 ${source ? 'md:grid-cols-2' : ''}`}>
+        {source && (
+          <section className="min-w-0 overflow-auto border-r border-slate-200 bg-white max-md:max-h-[70vh] max-md:border-r-0 max-md:border-b">
+            <PaneLabel>
+              <span className="flex gap-1.5">
+                <span className="size-2.5 rounded-full bg-red-400/80" />
+                <span className="size-2.5 rounded-full bg-amber-400/80" />
+                <span className="size-2.5 rounded-full bg-emerald-400/80" />
+              </span>
+              Program
+            </PaneLabel>
+            <CodeView source={source} />
+          </section>
+        )}
 
-        <section className="min-w-0 overflow-auto bg-slate-50 max-md:min-h-[50vh]">
-          <PaneLabel>
-            <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
-            Output
-          </PaneLabel>
-          <Page />
+        <section className="min-w-0 overflow-auto bg-white max-md:min-h-[50vh]">
+          {source && (
+            <PaneLabel>
+              <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
+              Output
+            </PaneLabel>
+          )}
+          <Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading...</p>}>
+            <Page />
+          </Suspense>
         </section>
       </div>
     </div>
