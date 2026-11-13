@@ -10,7 +10,11 @@ function ReactQuestions() {
       questions={questions}
       topics={topics}
       language={'javascript'}
-      tryKind={(item) => (typeof item.output === 'string' ? null : 'react')}
+      tryKind={(item) =>
+        // Live demos get an editor; router examples too (they can't run as a live demo
+        // inside this site's own router, but they run fine in the editor's sandbox)
+        typeof item.output !== 'string' || item.code.includes('MemoryRouter') ? 'react' : null
+      }
     />
   )
 }

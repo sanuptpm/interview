@@ -2453,6 +2453,36 @@ Growing app -> group by feature (auth, cart, profile)
 Rule of thumb: files that change together live together.`,
   },
   {
+    q: "How would you structure a large React application?",
+    level: 'Advanced',
+    a: "I organise by feature, not by file type. Each module, like auth, employees or payroll, owns its pages, components, RTK Query endpoints, a small UI slice, types and schemas, and exposes a public API through an index.ts so other modules don't import its internals. The app/ folder holds the providers, store, router and layouts, shared/ holds reusable UI, hooks and utils, and services/api has one RTK Query baseApi that every module extends with injectEndpoints. I also lazy-load each module's routes, keep server data in RTK Query instead of slices, add a <Can> component for permission checks, and keep tests next to the code they test.",
+    code: `employee-management/src/
+├── app/
+│   ├── providers/   (Store, Theme)
+│   ├── router/      (AppRouter, ProtectedRoute, PermissionRoute, lazy routes)
+│   ├── store/       (store.ts, typed hooks.ts)
+│   └── layouts/     (MainLayout with <Outlet />, Header, Sidebar)
+├── modules/
+│   ├── auth/  dashboard/  attendance/  payroll/  reports/
+│   └── employees/
+│       ├── components/ pages/ routes/
+│       ├── services/employeeApi.ts   (baseApi.injectEndpoints)
+│       ├── store/employeeSlice.ts    (UI state only: filters, selection)
+│       ├── schemas/ types/
+│       └── index.ts                  (public API of the module)
+├── shared/      (components, hooks, utils, constants, <Can>)
+├── services/api/ (baseApi.ts, baseQueryWithReauth.ts)
+├── config/env.ts (validated env variables)
+└── test/        (setupTests, renderWithProviders, MSW mocks)`,
+    output: `Feature-based modules   -> each feature is self-contained, easy to find/delete
+index.ts per module     -> clear boundaries, no deep imports
+One RTK Query baseApi   -> one cache, shared tags, auth/refresh in one place
+Slices = UI state only  -> server data lives in RTK Query's cache
+Lazy-loaded routes      -> login page doesn't download payroll code
+<Can> + PermissionRoute -> page-level and button-level permissions
+Tests next to the code  -> plus MSW mocks and Playwright e2e tests`,
+  },
+  {
     q: 'What are hooks in React, and what types of hooks are there?',
     level: 'Basics',
     a: "Hooks are special functions whose names start with \"use\" that let function components use React features like state, side effects, context and refs, without writing a class. There are two types: built-in hooks that React gives us, like useState and useEffect, and custom hooks that I write myself by combining built-in hooks so I can reuse logic. I follow the rules of hooks: call them only at the top level of a component or custom hook, never inside loops or conditions.",
@@ -3394,6 +3424,39 @@ const { count, onAdd } = useCounter()
 URL /users/5   -> "User id: 5"
 
 Clicking a Link changes the URL without a full page reload.`,
+  },
+  {
+    q: "What is <Outlet> in React Router and how do nested routes work?",
+    level: 'Intermediate',
+    a: "Outlet is a placeholder inside a parent route's element where the matching child route renders. I use it for layouts: the parent route renders the header, sidebar or nav once, and only the Outlet area changes as the URL changes between child routes. Child routes are written inside the parent <Route>, an index route is the default child, and I can pass data down with <Outlet context={...} /> and read it with useOutletContext(). In a real app I use BrowserRouter; MemoryRouter here just lets the example run in the editor.",
+    code: `import { MemoryRouter, Routes, Route, Link, Outlet } from 'react-router-dom'
+
+function Layout() {
+  return (
+    <div>
+      <nav><Link to="/">Home</Link> | <Link to="/employees">Employees</Link></nav>
+      <Outlet />
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <MemoryRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<h2>Home</h2>} />
+          <Route path="employees" element={<h2>Employees</h2>} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  )
+}`,
+    output: `URL /           -> <Layout> nav + <h2>Home</h2>        (index route)
+URL /employees  -> <Layout> nav + <h2>Employees</h2>
+
+The nav in <Layout> renders once and stays;
+only the <Outlet /> part changes with the URL.`,
   },
   {
     q: 'How do you fetch data in useEffect with loading and error states?',

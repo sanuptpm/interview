@@ -8,6 +8,7 @@ export default [
       "What is the Virtual DOM?",
       "What is a component tree, and what does one-way data flow mean?",
       "How do you organise the folder structure of a React project?",
+      "How would you structure a large React application?",
     ],
   },
   {
@@ -224,6 +225,7 @@ export default [
     topic: 'Routing, testing & tooling',
     questions: [
       "React Router basics",
+      "What is <Outlet> in React Router and how do nested routes work?",
       "How do you test React components with React Testing Library?",
       "How do environment variables work in Vite?",
     ],

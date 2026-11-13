@@ -132,6 +132,10 @@
   "level": "Basics"
  },
  {
+  "title": "How would you structure a large React application?",
+  "level": "Advanced"
+ },
+ {
   "title": "What are hooks in React, and what types of hooks are there?",
   "level": "Basics"
  },
@@ -322,6 +326,10 @@
  {
   "title": "React Router basics",
   "level": "Advanced"
+ },
+ {
+  "title": "What is <Outlet> in React Router and how do nested routes work?",
+  "level": "Intermediate"
  },
  {
   "title": "How do you fetch data in useEffect with loading and error states?",
