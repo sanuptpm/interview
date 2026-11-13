@@ -1,0 +1,250 @@
+[
+ {
+  "title": "What is Git and what is version control?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between Git and GitHub?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a Git repository?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between git init and git clone?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the three areas in Git (working directory, staging area, repository)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do git add, git commit and git status do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you view history with git log?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between git diff and git diff --staged?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is .gitignore and how does it work?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create, switch, list and delete branches?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between git checkout, git switch and git restore?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a remote in Git?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do git push, git pull and git fetch do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between git fetch and git pull?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are origin and upstream?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is HEAD in Git?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you configure Git with git config (global vs local)?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create Git aliases?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you rename, move or delete files with git mv and git rm?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you stop tracking a file that is already committed?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you compare two branches?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you list, rename and remove remotes, and check tracking branches?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between a fast-forward merge and a three-way merge?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a merge conflict and how do you resolve it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is git rebase?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Merge vs rebase: which one do you use and when?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is interactive rebase and how do you squash commits with it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How else can you squash several commits into one?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you use git stash?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Explain git reset --soft, --mixed and --hard.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between git revert and git reset?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you undo the last commit?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you amend the last commit?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is git cherry-pick?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are tags and what is the difference between lightweight and annotated tags?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does git blame do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you search the commit history?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does git show do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you stash untracked files and use named stashes?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you restore a file from an older commit or another branch?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you see a file's history across renames (git log --follow)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you cherry-pick a range of commits?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you revert a merge commit?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does a release workflow with tags look like?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is git reflog and how do you recover a deleted branch or commit?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a detached HEAD?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does git bisect help find a bug?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What branching strategies do you know (Git Flow, GitHub Flow, trunk-based)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is your pull request and code review workflow?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are good commit message conventions (Conventional Commits)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Git hooks? Give a pre-commit example.",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Git submodules?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does git clean do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you rewrite history safely (force push with --force-with-lease)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you handle large files in Git (Git LFS)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is .gitattributes used for?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you fix 'Your branch and origin/main have diverged'?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What do you do if you accidentally committed a secret (API key, password)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does Git store data internally (blobs, trees, commits)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are packfiles and what does git gc do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is git rerere?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is git worktree and when do you use it?",
+  "level": "Advanced"
+ }
+]

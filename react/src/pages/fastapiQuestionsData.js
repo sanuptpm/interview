@@ -102,7 +102,6 @@ tests/      pytest + TestClient, mirrors the routers`,
     level: 'Basics',
     a: "The request first passes through the middleware, then FastAPI matches the route, runs the dependencies and validates the path, query and body against my type hints. If validation fails it returns 422 without calling my function at all, as the second request shows. Otherwise my function runs, its return value is filtered by the response_model and turned into JSON, and the response goes back out through the middleware. Knowing this order helps me decide where code belongs: cross-cutting things in middleware, per-route checks in dependencies.",
     code: `from fastapi import FastAPI, Request
-
 app = FastAPI()
 
 @app.middleware("http")
@@ -656,7 +655,6 @@ PUT /settings/theme?value=light
     level: 'Basics',
     a: "I map each action to an HTTP method: GET to read, POST to create, PUT to update, and DELETE to remove. Here I show GET and POST with an in-memory dict just to show the idea; PUT and DELETE follow the same pattern, and in a real app this would be a database. In a real app I'd also return 404 when an item doesn't exist (see the HTTPException question). This keeps the API predictable and RESTful.",
     code: `from fastapi import FastAPI
-
 app = FastAPI()
 todos = {}  # in-memory "database"
 
@@ -869,7 +867,6 @@ GET /products?sort=color
     a: "For emails I use EmailStr from Pydantic, which needs the email-validator package (pip install \"pydantic[email]\"). For my own rules I write a function with @field_validator, raise ValueError if the value is bad, and return the value if it's good. FastAPI turns that ValueError into a normal 422 error. Here my validator only allows company emails.",
     code: `from fastapi import FastAPI
 from pydantic import BaseModel, EmailStr, field_validator
-
 class SignUp(BaseModel):
     email: EmailStr
     @field_validator("email")
@@ -915,10 +912,8 @@ POST /signup
     code: `from fastapi import FastAPI
 from pydantic import BaseModel, computed_field, model_validator
 
-app = FastAPI()
-
 class Stay(BaseModel):
-    check_in: int   # day numbers keep the example short
+    check_in: int
     check_out: int
 
     @model_validator(mode="after")
@@ -931,6 +926,7 @@ class Stay(BaseModel):
     def nights(self) -> int:
         return self.check_out - self.check_in
 
+app = FastAPI()
 @app.post("/stays")
 def create_stay(stay: Stay):
     return stay`,
@@ -1006,7 +1002,6 @@ POST /signup
     code: `from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
 app = FastAPI()
 
 @app.exception_handler(RequestValidationError)
@@ -1071,7 +1066,6 @@ def buy(product: str):
     a: "By default the docs only show the success response and the 422 validation error, even if my route can raise a 404. I add responses={404: {\"model\": ErrorMessage, \"description\": ...}} to the decorator, and Swagger UI then shows the 404 and its JSON shape too. It doesn't change what the route returns; it's documentation for frontend teams and generated clients, so I keep the model matching what HTTPException really sends, which is {\"detail\": ...}.",
     code: `from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
 app = FastAPI()
 
 class ErrorMessage(BaseModel):
@@ -1162,9 +1156,8 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-Path("static").mkdir()  # demo: a folder with one file
-Path("static/hello.txt").write_text("Hello from a static file")
-
+Path("static").mkdir(exist_ok=True)
+Path("static/hello.txt").write_text("Hello from a static file")  # demo file
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -1228,7 +1221,6 @@ X-API-Key: secret-key
     level: 'Intermediate',
     a: "A dependency with yield runs the code before yield when the request starts, gives the value to the route, and runs the code after yield when the request is done. That's perfect for a database session because I can open it, hand it to the route, and always close it in a finally block, even if there's an error. In a real app the yielded value would be SQLAlchemy's SessionLocal().",
     code: `from fastapi import Depends, FastAPI
-
 app = FastAPI()
 
 def get_db():
@@ -1276,7 +1268,6 @@ GET /products?q=pen&sort=price
     level: 'Intermediate',
     a: "A dependency can itself depend on other dependencies, so I build a chain like get_token, then get_user, then the route. FastAPI resolves the whole tree for me. If the same dependency appears more than once in one request, FastAPI calls it only once and reuses the result, which you can see in the console here. If I really need a fresh call each time, I use Depends(func, use_cache=False).",
     code: `from fastapi import Depends, FastAPI
-
 app = FastAPI()
 
 def get_token():
@@ -1452,7 +1443,6 @@ welcome email sent to anu@example.com`,
     level: 'Intermediate',
     a: "Middleware is code that runs for every request before it reaches the route and for every response before it goes back. I use it for things like logging, timing, adding headers, or request IDs. I write it with @app.middleware(\"http\") and call call_next(request) to continue. A common example is adding an X-Process-Time header; here I add a fixed header so the output stays the same every run.",
     code: `from fastapi import FastAPI
-
 app = FastAPI()
 
 @app.middleware("http")
@@ -1474,12 +1464,11 @@ x-app-version: 1.0
     level: 'Intermediate',
     a: "I write a middleware that takes the X-Request-ID header if the caller (like a load balancer) sent one, or makes a new ID with uuid4, and adds it to the response headers. I put it in every log line, so when a user reports an error I can find all the logs for that one request across services. I can also store it on request.state so route code can read it.",
     code: `import uuid
-from fastapi import FastAPI, Request
-
+from fastapi import FastAPI
 app = FastAPI()
 
 @app.middleware("http")
-async def add_request_id(request: Request, call_next):
+async def add_request_id(request, call_next):
     rid = request.headers.get("X-Request-ID") or uuid.uuid4().hex
     response = await call_next(request)
     response.headers["X-Request-ID"] = rid
@@ -1654,7 +1643,6 @@ async def test_price():
     code: `import jwt
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-
 app = FastAPI()
 oauth2 = OAuth2PasswordBearer(tokenUrl="token")  # reads the Bearer header
 
@@ -1681,7 +1669,6 @@ Authorization: Bearer bad.token.here
     a: "At login I return a short-lived access token, around 15 minutes, and a long-lived refresh token, days or weeks. The client sends the access token on every request, and when it expires it calls /refresh with the refresh token to get a new access token without asking for the password again. I put a type claim in each token so a stolen access token can't be used as a refresh token, and in a real app I store refresh tokens server-side so I can revoke them and rotate them on every use. Expiry is left out here only to keep the tokens in the output stable.",
     code: `import jwt
 from fastapi import Body, FastAPI, HTTPException
-
 SECRET = "change-me"
 app = FastAPI()
 
@@ -1707,16 +1694,14 @@ POST /refresh
   {
     q: "How do OAuth2 scopes work in FastAPI?",
     level: 'Advanced',
-    a: "Scopes are named permissions inside the token, like items:read or items:write. I declare them on OAuth2PasswordBearer, ask for them per route with Security(dependency, scopes=[...]), and the dependency gets a SecurityScopes object listing what this route needs. If the token lacks a scope I return 403, not 401, because the user is known but not allowed. In a real app the scopes come from the JWT's scope claim; here a small dict stands in for decoding.",
-    code: `from typing import Annotated
-from fastapi import FastAPI, HTTPException, Security
+    a: "Scopes are named permissions inside the token, like items:read or items:write. I ask for them per route with Security(dependency, scopes=[...]), and the dependency gets a SecurityScopes object listing what this route needs. If the token lacks a scope I return 403, not 401, because the user is known but not allowed. In a real app the scopes come from the JWT's scope claim; here a small dict stands in for decoding.",
+    code: `from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
-
 app = FastAPI()
-oauth2 = OAuth2PasswordBearer(tokenUrl="token", scopes={"items:write": "Create items"})
+oauth2 = OAuth2PasswordBearer(tokenUrl="token")
 TOKENS = {"reader-token": ["items:read"], "admin-token": ["items:read", "items:write"]}
 
-def check_scopes(needed: SecurityScopes, token: Annotated[str, Security(oauth2)]):
+def check_scopes(needed: SecurityScopes, token: str = Security(oauth2)):
     for scope in needed.scopes:
         if scope not in TOKENS.get(token, []):
             raise HTTPException(403, f"Missing scope: {scope}")
@@ -1805,8 +1790,7 @@ POST /heroes?name=Iron Man
     level: 'Advanced',
     a: "I create an engine with create_async_engine and an async driver, like asyncpg for PostgreSQL, and an async_sessionmaker. A yield dependency gives each request its own AsyncSession, and in async def routes I await session.execute or session.get and session.commit. Two gotchas: lazy-loading a relationship after the query raises an error in async mode, so I load relationships eagerly with selectinload, and I set expire_on_commit=False so objects are still usable after commit.",
     code: `from fastapi import Depends, FastAPI
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 engine = create_async_engine("postgresql+asyncpg://app:secret@db/shop")
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 app = FastAPI()
@@ -1816,7 +1800,7 @@ async def get_session():
         yield session
 
 @app.get("/users/{user_id}")
-async def get_user(user_id: int, session: AsyncSession = Depends(get_session)):
+async def get_user(user_id: int, session=Depends(get_session)):
     return await session.get(User, user_id)  # User = your ORM model`,
     output: `Not run here (needs PostgreSQL). What it does:
 - one async engine + connection pool for the whole app
@@ -1860,7 +1844,6 @@ async def lifespan(app: FastAPI):
     print("shutdown: close connections")
 
 app = FastAPI(lifespan=lifespan)
-
 @app.get("/")
 def home():
     return {"status": "ready"}`,
@@ -1955,25 +1938,22 @@ location: /page`,
   {
     q: "How do you stream a large CSV export?",
     level: 'Advanced',
-    a: "Instead of building the whole file in memory, I return a StreamingResponse with a generator that yields a few rows at a time, so memory stays flat even for millions of rows and the download starts immediately. I set media_type to text/csv, plus a Content-Disposition header so the browser saves it as a file. With a database I iterate a server-side cursor in batches; for very slow exports I'd generate the file in a background job and send a download link instead.",
+    a: "Instead of building the whole file in memory, I return a StreamingResponse with a generator that yields a few rows at a time, so memory stays flat even for millions of rows and the download starts immediately. I set media_type to text/csv, and in a real app I add a Content-Disposition header so the browser saves it as a file. With a database I iterate a server-side cursor in batches; for very slow exports I'd generate the file in a background job and send a download link instead.",
     code: `from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-
 app = FastAPI()
 
-def csv_rows():  # real app: read from a DB cursor in batches
+def csv_rows():  # real app: read rows from the DB in batches
     yield "id,product\\n"
     for i in range(1, 4):
         yield f"{i},item-{i}\\n"
 
 @app.get("/export.csv")
 def export():
-    disposition = {"Content-Disposition": "attachment; filename=orders.csv"}
-    return StreamingResponse(csv_rows(), media_type="text/csv", headers=disposition)`,
+    return StreamingResponse(csv_rows(), media_type="text/csv")`,
     output: `GET /export.csv
 → 200 OK
 content-type: text/csv; charset=utf-8
-content-disposition: attachment; filename=orders.csv
 id,product
 1,item-1
 2,item-2
@@ -2075,26 +2055,21 @@ GET /v2/users/1
   {
     q: "How would you structure a large FastAPI app with routers, services and repositories?",
     level: 'Advanced',
-    a: "I split it into layers: routers handle only HTTP (parsing input, status codes), services hold the business rules, and repositories are the only code that talks to the database. Dependencies wire them together, so in tests I can override the service or the repository with a fake. Here it's one file to keep it runnable, but in a real project each class lives in its own module inside a feature package like app/users/.",
-    code: `from fastapi import APIRouter, Depends, FastAPI
+    a: "I split it into layers: routers handle only HTTP (parsing input, status codes), services hold the business rules, and repositories are the only code that talks to the database. Here they are plain functions in one file to keep it short, but in a real project each layer lives in its own module inside a feature package like app/users/, and I wire them with Depends so in tests I can override the service or the repository with a fake.",
+    code: `from fastapi import APIRouter, FastAPI
 
-class UserRepo:  # repository: the only code that talks to the DB
-    def get(self, user_id: int):
-        return {"id": user_id, "email": "ANU@X.COM"}
+def find_user(user_id):  # repository: the only code that talks to the DB
+    return {"id": user_id, "email": "ANU@X.COM"}
 
-class UserService:  # service: business rules
-    def __init__(self, repo: UserRepo = Depends()):
-        self.repo = repo
-
-    def get_user(self, user_id: int):
-        user = self.repo.get(user_id)
-        return user | {"email": user["email"].lower()}
+def get_user(user_id):  # service: business rules
+    user = find_user(user_id)
+    return user | {"email": user["email"].lower()}
 
 router = APIRouter(prefix="/users")  # router: HTTP only
 
 @router.get("/{user_id}")
-def get_user(user_id: int, service: UserService = Depends()):
-    return service.get_user(user_id)
+def read_user(user_id: int):
+    return get_user(user_id)
 
 app = FastAPI()
 app.include_router(router)`,
@@ -2135,7 +2110,6 @@ GET /search?q=c
     level: 'Advanced',
     a: "I usually add two: a liveness check that only says the process is running, and a readiness check that also verifies dependencies like the database or Redis. Kubernetes or a load balancer calls them, restarting the pod if liveness fails and stopping traffic if readiness fails. Readiness returns 503 when something is down, so tools can react to the status code without parsing the body. I keep them fast and hide them from the public docs.",
     code: `from fastapi import FastAPI, Response
-
 app = FastAPI()
 DB_UP = False  # real app: run "SELECT 1"
 
@@ -2160,12 +2134,11 @@ GET /health/ready
     level: 'Advanced',
     a: "Logs tell me what happened, metrics tell me how much and how fast, and traces show one request's path across services. I log in JSON with a request ID (here a middleware writes one JSON line per request), expose a /metrics endpoint that Prometheus scrapes (usually via prometheus-fastapi-instrumentator), and add OpenTelemetry to trace calls to the database and other APIs. One tip: label logs and metrics with the route template like /items/{item_id}, not the real URL, otherwise every ID creates a new time series.",
     code: `import json
-from fastapi import FastAPI, Request
-
+from fastapi import FastAPI
 app = FastAPI()
 
 @app.middleware("http")
-async def log_json(request: Request, call_next):
+async def log_json(request, call_next):
     response = await call_next(request)
     route = request.scope["route"].path  # template, not the real URL
     print(json.dumps({"route": route, "status": response.status_code}))

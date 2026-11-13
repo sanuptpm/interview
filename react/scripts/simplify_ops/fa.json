@@ -1,0 +1,604 @@
+[
+ {
+  "q": "What is FastAPI and why would you use it over Flask or Django?",
+  "level": "Basics",
+  "a": "FastAPI is a modern Python web framework for building APIs, built on Starlette and Pydantic. I like it because it uses normal Python type hints to validate requests, convert data, and generate API docs automatically, so I write less code and get fewer bugs. Compared to Flask it has built-in validation and async support, and compared to Django it is lighter and focused only on APIs. For a full website with admin and templates I might still pick Django, but for a JSON API I pick FastAPI.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/square/{n}\")\ndef square(n: int):  # type hint = validation + conversion\n    return {\"n\": n, \"square\": n * n}",
+  "output": "GET /square/7\n→ 200 OK\n{\"n\": 7, \"square\": 49}\n\nGET /square/seven\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"int_parsing\",\n      \"loc\": [\n        \"path\",\n        \"n\"\n      ],\n      \"msg\": \"Input should be a valid integer, unable to parse string as an integer\",\n      \"input\": \"seven\"\n    }\n  ]\n}"
+ },
+ {
+  "q": "What is ASGI vs WSGI, and what is Uvicorn?",
+  "level": "Basics",
+  "a": "WSGI is the older Python server standard used by Flask and classic Django, and it handles one request per worker at a time in a blocking way. ASGI is the async version, so one worker can handle many requests while others are waiting on I/O, and it also supports WebSockets. FastAPI is an ASGI app, and Uvicorn is the ASGI server that actually runs it. In this example the route awaits without blocking the event loop, so the same worker can serve other requests meanwhile.",
+  "code": "import asyncio\nfrom fastapi import FastAPI\n\napp = FastAPI()  # run it with the ASGI server: uvicorn main:app\n\n@app.get(\"/slow\")\nasync def slow():\n    await asyncio.sleep(0.1)  # other requests run while this waits\n    return {\"done\": True}",
+  "output": "GET /slow\n→ 200 OK\n{\"done\": true}"
+ },
+ {
+  "q": "How do you create a minimal FastAPI app and run it?",
+  "level": "Basics",
+  "a": "I create a FastAPI() instance, add a route with a decorator like @app.get, and return a dict, which FastAPI turns into JSON. Then I run it with Uvicorn using uvicorn main:app --reload, where main is the file name and app is the variable. In newer versions I can also use fastapi dev main.py during development. I only use --reload in development, never in production.",
+  "code": "# main.py\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/\")\ndef read_root():\n    return {\"Hello\": \"World\"}\n\n# Run it:  uvicorn main:app --reload",
+  "output": "$ uvicorn main:app --reload\nINFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)\nINFO:     Started reloader process [80750] using StatReload\nINFO:     Started server process [80752]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     127.0.0.1:59088 - \"GET / HTTP/1.1\" 200 OK\n\n$ curl http://127.0.0.1:8000/\n{\"Hello\":\"World\"}"
+ },
+ {
+  "q": "How would you structure a small FastAPI project?",
+  "level": "Basics",
+  "a": "I keep main.py tiny: it only creates the app and includes the routers. Each feature gets its own router file, the Pydantic schemas live in schemas.py, database code in db.py, and settings in config.py, with tests in a separate tests folder. That way a new teammate can find things quickly, and when the project grows I can split each feature into its own package without rewriting everything.",
+  "code": "shop-api/\n├── app/\n│   ├── main.py        # creates the app, includes the routers\n│   ├── config.py      # settings\n│   ├── db.py          # database session\n│   ├── schemas.py     # Pydantic models\n│   └── routers/\n│       └── users.py   # the /users routes (an APIRouter)\n├── tests/\n└── .env               # secrets, never committed",
+  "output": "What goes where (a layout, not a program run):\nmain.py     wiring only: create app, include routers\nrouters/    one file per feature, only HTTP concerns\nschemas.py  what the API accepts and returns\nconfig.py   settings read from env vars / .env\ntests/      pytest + TestClient, mirrors the routers"
+ },
+ {
+  "q": "What happens to a request inside FastAPI, from arrival to response?",
+  "level": "Basics",
+  "a": "The request first passes through the middleware, then FastAPI matches the route, runs the dependencies and validates the path, query and body against my type hints. If validation fails it returns 422 without calling my function at all, as the second request shows. Otherwise my function runs, its return value is filtered by the response_model and turned into JSON, and the response goes back out through the middleware. Knowing this order helps me decide where code belongs: cross-cutting things in middleware, per-route checks in dependencies.",
+  "code": "from fastapi import FastAPI, Request\n\napp = FastAPI()\n\n@app.middleware(\"http\")\nasync def log_steps(request: Request, call_next):\n    print(\"1. middleware: request in\")\n    return await call_next(request)\n\n@app.get(\"/items/{item_id}\")\ndef read_item(item_id: int):\n    print(\"2. route function runs\")\n    return {\"item_id\": item_id}  # turned into JSON",
+  "output": "GET /items/5\n→ 200 OK\n{\"item_id\": 5}\n\nGET /items/abc\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"int_parsing\",\n      \"loc\": [\n        \"path\",\n        \"item_id\"\n      ],\n      \"msg\": \"Input should be a valid integer, unable to parse string as an integer\",\n      \"input\": \"abc\"\n    }\n  ]\n}\n\nServer console:\n1. middleware: request in\n2. route function runs\n1. middleware: request in"
+ },
+ {
+  "q": "What automatic documentation does FastAPI give you?",
+  "level": "Basics",
+  "a": "FastAPI generates an OpenAPI schema from my routes, type hints, and Pydantic models. It serves interactive Swagger UI at /docs, where I can try requests from the browser, and ReDoc at /redoc for clean read-only docs. The raw schema is at /openapi.json, which frontend teams can use to generate clients. Tip: adding a title, summary, and tags makes the docs much easier to read.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI(title=\"Shop API\")\n\n@app.get(\"/items/{item_id}\", tags=[\"items\"])\ndef read_item(item_id: int):\n    return {\"item_id\": item_id}",
+  "output": "GET /docs\n→ 200 OK\ncontent-type: text/html; charset=utf-8\n(Swagger UI HTML page)\n\nGET /openapi.json\n→ 200 OK\ntitle: Shop API\npaths: /items/{item_id}\n(summary of the generated OpenAPI schema)"
+ },
+ {
+  "q": "How do you hide an endpoint from the docs or mark it as deprecated?",
+  "level": "Basics",
+  "a": "I pass include_in_schema=False to the decorator for internal routes like a metrics or debug endpoint; it still works, it just doesn't appear in /docs. For an old route I want clients to move away from, I set deprecated=True, and Swagger shows it crossed out. Hiding a route is not security, so I still protect it with auth.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/v1/users\", deprecated=True)\ndef list_users_old():\n    return [\"anu\", \"ravi\"]\n\n@app.get(\"/internal/metrics\", include_in_schema=False)\ndef metrics():\n    return {\"requests\": 1024}",
+  "output": "GET /internal/metrics\n→ 200 OK\n{\"requests\": 1024}\n(still works, just hidden from /docs)\n\nGET /openapi.json\n→ 200 OK\npaths in the docs: /v1/users\nGET /v1/users: summary='List Users Old', deprecated=True\n(summary of the generated OpenAPI schema)"
+ },
+ {
+  "q": "How do path parameters work, and what happens with the wrong type?",
+  "level": "Basics",
+  "a": "A path parameter is part of the URL, written in curly braces like /items/{item_id}. I add a type hint such as int, and FastAPI converts the string from the URL to that type. If the value can't be converted, FastAPI returns a 422 error automatically, so I don't write that check myself. Tip: put fixed routes like /users/me before /users/{user_id}, because routes are matched in order.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/items/{item_id}\")\ndef read_item(item_id: int):\n    return {\"item_id\": item_id}",
+  "output": "GET /items/5\n→ 200 OK\n{\"item_id\": 5}\n\nGET /items/abc\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"int_parsing\",\n      \"loc\": [\n        \"path\",\n        \"item_id\"\n      ],\n      \"msg\": \"Input should be a valid integer, unable to parse string as an integer\",\n      \"input\": \"abc\"\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you restrict a path parameter to fixed values with an Enum?",
+  "level": "Basics",
+  "a": "I create a class that inherits from both str and Enum, and use it as the type hint of the path parameter. FastAPI then only accepts those values, returns a 422 listing the allowed options for anything else, and shows a dropdown in the docs. Inside the function I can compare against the enum members, so I don't have magic strings all over the code.",
+  "code": "from enum import Enum\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\nclass Category(str, Enum):\n    books = \"books\"\n    toys = \"toys\"\n\n@app.get(\"/products/{category}\")\ndef by_category(category: Category):\n    return {\"category\": category}",
+  "output": "GET /products/books\n→ 200 OK\n{\"category\": \"books\"}\n\nGET /products/cars\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"enum\",\n      \"loc\": [\n        \"path\",\n        \"category\"\n      ],\n      \"msg\": \"Input should be 'books' or 'toys'\",\n      \"input\": \"cars\",\n      \"ctx\": {\n        \"expected\": \"'books' or 'toys'\"\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "Why does route order matter, for example /users/me vs /users/{user_id}?",
+  "level": "Basics",
+  "a": "FastAPI checks routes in the order I declare them and uses the first one that matches. If /users/{user_id} comes first, a request to /users/me matches it, tries to convert \"me\" to an int and returns a 422. So I always declare fixed paths like /users/me before the path with a parameter. In this example the routes are in the wrong order on purpose, so /users/me never reaches its own function.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/users/{user_id}\")  # declared first: catches \"me\" too\ndef get_user(user_id: int):\n    return {\"user_id\": user_id}\n\n@app.get(\"/users/me\")  # never reached: move it above\ndef me():\n    return {\"user\": \"current user\"}",
+  "output": "GET /users/7\n→ 200 OK\n{\"user_id\": 7}\n\nGET /users/me\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"int_parsing\",\n      \"loc\": [\n        \"path\",\n        \"user_id\"\n      ],\n      \"msg\": \"Input should be a valid integer, unable to parse string as an integer\",\n      \"input\": \"me\"\n    }\n  ]\n}"
+ },
+ {
+  "q": "How does FastAPI handle trailing slashes?",
+  "level": "Basics",
+  "a": "If I declare /items/ and a client calls /items, FastAPI answers with a 307 redirect to the other form, and the same happens the other way round. Browsers and TestClient follow it, but it costs an extra round trip, and some clients drop the Authorization header or fail CORS preflight on a redirect. So I pick one style for the whole API, usually without the slash, and tell frontend developers to match it exactly. I can turn the redirect off with FastAPI(redirect_slashes=False), and then the wrong form is simply a 404.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/items/\")  # declared WITH a trailing slash\ndef list_items():\n    return [\"pen\", \"cup\"]\n\n@app.get(\"/users\")  # declared WITHOUT a trailing slash\ndef list_users():\n    return [\"anu\"]",
+  "output": "GET /items/\n→ 200 OK\n[\"pen\", \"cup\"]\n\nGET /items\n→ 307 Temporary Redirect\nlocation: http://testserver/items/\n\nGET /users/\n→ 307 Temporary Redirect\nlocation: http://testserver/users"
+ },
+ {
+  "q": "How do query parameters work? How do you make them optional?",
+  "level": "Basics",
+  "a": "Any function parameter that is not in the path and is a simple type becomes a query parameter, like ?q=pen&limit=10. If I give it a default value it's optional, and if I use str | None = None it can be left out completely. Without a default it becomes required. FastAPI also converts types, so limit=2 arrives as an int.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/items\")\ndef list_items(limit: int = 10, q: str | None = None):\n    return {\"limit\": limit, \"q\": q}",
+  "output": "GET /items\n→ 200 OK\n{\"limit\": 10, \"q\": null}\n\nGET /items?q=pen&limit=2\n→ 200 OK\n{\"limit\": 2, \"q\": \"pen\"}"
+ },
+ {
+  "q": "How do you accept a list of values in a query parameter?",
+  "level": "Basics",
+  "a": "I declare the parameter as list[str] and wrap it with Query(), because without Query() FastAPI would think a list means a JSON body. Then the client repeats the key, like ?tag=red&tag=blue, and I get a normal Python list. I give it a default of None or an empty list so it stays optional.",
+  "code": "from typing import Annotated\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n@app.get(\"/products\")\ndef filter_products(tag: Annotated[list[str] | None, Query()] = None):\n    return {\"tags\": tag}",
+  "output": "GET /products?tag=red&tag=blue\n→ 200 OK\n{\"tags\": [\"red\", \"blue\"]}\n\nGET /products\n→ 200 OK\n{\"tags\": null}"
+ },
+ {
+  "q": "How are boolean query parameters converted?",
+  "level": "Basics",
+  "a": "When I type a query parameter as bool, FastAPI accepts more than just true and false: 1, yes, on and true (any case) become True, and 0, no, off and false become False. Anything else, like maybe, gets a 422. I give it a default, like False, so the parameter is optional and the frontend can just leave it out.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/products\")\ndef products(in_stock: bool = False):\n    return {\"in_stock\": in_stock}",
+  "output": "GET /products?in_stock=true\n→ 200 OK\n{\"in_stock\": true}\n\nGET /products?in_stock=Yes\n→ 200 OK\n{\"in_stock\": true}\n\nGET /products?in_stock=0\n→ 200 OK\n{\"in_stock\": false}\n\nGET /products?in_stock=off\n→ 200 OK\n{\"in_stock\": false}\n\nGET /products\n→ 200 OK\n{\"in_stock\": false}\n\nGET /products?in_stock=maybe\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"bool_parsing\",\n      \"loc\": [\n        \"query\",\n        \"in_stock\"\n      ],\n      \"msg\": \"Input should be a valid boolean, unable to interpret input\",\n      \"input\": \"maybe\"\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you accept a JSON request body?",
+  "level": "Basics",
+  "a": "I define a Pydantic model that describes the JSON shape and use it as the type of a function parameter. FastAPI reads the body, validates every field, converts the types, and gives me a real Python object. If a required field is missing or has the wrong type, the client gets a 422 with details. Fields with defaults or None are optional.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\nclass Item(BaseModel):\n    name: str\n    price: float\n\napp = FastAPI()\n\n@app.post(\"/items\")\ndef create_item(item: Item):\n    return {\"saved\": item.name, \"price\": item.price}",
+  "output": "POST /items\n{\"name\": \"Pen\", \"price\": 10}\n→ 200 OK\n{\"saved\": \"Pen\", \"price\": 10.0}\n\nPOST /items\n{\"name\": \"Pen\"}\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"missing\",\n      \"loc\": [\n        \"body\",\n        \"price\"\n      ],\n      \"msg\": \"Field required\",\n      \"input\": {\n        \"name\": \"Pen\"\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you handle nested JSON with Pydantic models and lists?",
+  "level": "Basics",
+  "a": "I build small models and use them as field types, like list[Item] for an array of objects, and the same works for a model inside another model, like an Address inside an Order. FastAPI validates the whole tree, and if something deep inside is wrong, the error loc tells me the exact path, like body > 1 > qty. I get real objects back, so I can write item.qty with autocomplete instead of digging through dicts.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass Item(BaseModel):\n    name: str\n    qty: int\n\n@app.post(\"/orders\")\ndef create_order(items: list[Item]):  # a JSON array of objects\n    return {\"total_qty\": sum(item.qty for item in items)}",
+  "output": "POST /orders\n[{\"name\": \"Pen\", \"qty\": 3}, {\"name\": \"Book\", \"qty\": 1}]\n→ 200 OK\n{\"total_qty\": 4}\n\nPOST /orders\n[{\"name\": \"Pen\", \"qty\": 3}, {\"name\": \"Book\", \"qty\": \"two\"}]\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"int_parsing\",\n      \"loc\": [\n        \"body\",\n        1,\n        \"qty\"\n      ],\n      \"msg\": \"Input should be a valid integer, unable to parse string as an integer\",\n      \"input\": \"two\"\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do Optional fields and default values work in a Pydantic model?",
+  "level": "Basics",
+  "a": "A field with no default is required, and a field with a default is optional. The type str | None only means the value is allowed to be null; it is still required unless I also write = None. For lists or dicts I use Field(default_factory=list) so every object gets its own fresh list. This difference between \"can be null\" and \"can be missing\" is a common interview trap.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass Profile(BaseModel):\n    bio: str | None = None   # optional, may be null\n    nickname: str | None     # required, but null is allowed\n\n@app.post(\"/profiles\")\ndef create_profile(profile: Profile):\n    return profile",
+  "output": "POST /profiles\n{\"nickname\": null}\n→ 200 OK\n{\"bio\": null, \"nickname\": null}\n\nPOST /profiles\n{}\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"missing\",\n      \"loc\": [\n        \"body\",\n        \"nickname\"\n      ],\n      \"msg\": \"Field required\",\n      \"input\": {}\n    }\n  ]\n}"
+ },
+ {
+  "q": "What is response_model and why use it?",
+  "level": "Basics",
+  "a": "response_model tells FastAPI what shape the response should have. FastAPI filters the returned data through that model, so extra fields like a password are removed automatically, and it also shows the correct schema in the docs. I usually have separate input and output models, like UserIn and UserOut. This is a simple way to avoid leaking sensitive data.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\nclass UserOut(BaseModel):\n    username: str\n\napp = FastAPI()\n\n@app.get(\"/users/{name}\", response_model=UserOut)\ndef get_user(name: str):\n    return {\"username\": name, \"password\": \"secret\"}  # password is filtered out",
+  "output": "GET /users/anu\n→ 200 OK\n{\"username\": \"anu\"}"
+ },
+ {
+  "q": "How do you return a list of models and hide empty fields?",
+  "level": "Basics",
+  "a": "I can use a return type like -> list[ItemOut] (or response_model=list[ItemOut]), and FastAPI validates and filters every item in the list. Fields that are not in ItemOut, like an internal cost, are dropped. With response_model_exclude_none=True, fields whose value is None are left out, which keeps mobile payloads small. I prefer the return type style because my editor also understands it.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass ItemOut(BaseModel):\n    name: str\n    discount: int | None = None\n\n@app.get(\"/items\", response_model_exclude_none=True)\ndef list_items() -> list[ItemOut]:\n    return [{\"name\": \"Pen\", \"cost\": 4}, {\"name\": \"Bag\", \"discount\": 10}]",
+  "output": "GET /items\n→ 200 OK\n[{\"name\": \"Pen\"}, {\"name\": \"Bag\", \"discount\": 10}]"
+ },
+ {
+  "q": "How does FastAPI turn return values into JSON, and what is jsonable_encoder?",
+  "level": "Basics",
+  "a": "When I return a dict or a Pydantic model, FastAPI runs it through jsonable_encoder, which converts types JSON doesn't know, like datetime, UUID and Decimal, into strings or numbers, and then wraps it in a JSONResponse. I call jsonable_encoder myself when I build a JSONResponse by hand or store data in a JSON column or cache, because json.dumps would fail on a datetime.",
+  "code": "from datetime import datetime\nfrom fastapi import FastAPI\nfrom fastapi.encoders import jsonable_encoder\n\napp = FastAPI()\norder = {\"id\": 1, \"placed_at\": datetime(2026, 1, 15, 10, 30)}\n\n@app.get(\"/order\")\ndef get_order():\n    print(jsonable_encoder(order))  # what I'd store in a cache\n    return order  # FastAPI encodes it for me",
+  "output": "GET /order\n→ 200 OK\n{\"id\": 1, \"placed_at\": \"2026-01-15T10:30:00\"}\n\nServer console:\n{'id': 1, 'placed_at': '2026-01-15T10:30:00'}"
+ },
+ {
+  "q": "How do you use field aliases and response_model_exclude?",
+  "level": "Basics",
+  "a": "An alias lets the JSON use a different name than my Python attribute, for example userName from a JavaScript frontend while I keep user_name in Python. By default FastAPI also uses the alias in the response. response_model_exclude and response_model_include let one model return fewer fields for a specific route. They work, but for anything important I prefer a separate output model because it is clearer in the docs.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel, Field\n\napp = FastAPI()\n\nclass User(BaseModel):\n    user_name: str = Field(alias=\"userName\")\n    email: str\n\n@app.post(\"/users\", response_model=User, response_model_exclude={\"email\"})\ndef create_user(user: User):\n    return user",
+  "output": "POST /users\n{\"userName\": \"anu\", \"email\": \"anu@example.com\"}\n→ 200 OK\n{\"userName\": \"anu\"}"
+ },
+ {
+  "q": "How do you set HTTP status codes?",
+  "level": "Basics",
+  "a": "I set the default success code in the decorator with status_code, for example 201 for create and 204 for delete. I use the status module constants so the code is readable. For errors I raise HTTPException with the right code. A 204 response should have no body, so I return nothing.",
+  "code": "from fastapi import FastAPI, status\n\napp = FastAPI()\n\n@app.post(\"/notes\", status_code=status.HTTP_201_CREATED)\ndef create_note(text: str):\n    return {\"text\": text}\n\n@app.delete(\"/notes/{note_id}\", status_code=status.HTTP_204_NO_CONTENT)\ndef delete_note(note_id: int):\n    pass  # 204 = no body",
+  "output": "POST /notes?text=buy milk\n→ 201 Created\n{\"text\": \"buy milk\"}\n\nDELETE /notes/1\n→ 204 No Content"
+ },
+ {
+  "q": "How do you set custom response headers or change the status code at runtime?",
+  "level": "Basics",
+  "a": "I add a parameter of type Response to my route, and FastAPI gives me the response object it will send. I can set headers like Cache-Control or a custom X- header on it, and still return a normal dict. I can also change response.status_code based on logic, for example 201 when an upsert creates something new and 200 when it only updates.",
+  "code": "from fastapi import FastAPI, Response\n\napp = FastAPI()\nsettings = {}\n\n@app.put(\"/settings/{key}\")\ndef upsert_setting(key: str, value: str, response: Response):\n    response.headers[\"Cache-Control\"] = \"no-store\"\n    if key not in settings:\n        response.status_code = 201  # created\n    settings[key] = value\n    return {key: value}",
+  "output": "PUT /settings/theme?value=dark\n→ 201 Created\ncache-control: no-store\n{\"theme\": \"dark\"}\n\nPUT /settings/theme?value=light\n→ 200 OK\n{\"theme\": \"light\"}"
+ },
+ {
+  "q": "How would you build basic CRUD routes?",
+  "level": "Basics",
+  "a": "I map each action to an HTTP method: GET to read, POST to create, PUT to update, and DELETE to remove. Here I show GET and POST with an in-memory dict just to show the idea; PUT and DELETE follow the same pattern, and in a real app this would be a database. In a real app I'd also return 404 when an item doesn't exist (see the HTTPException question). This keeps the API predictable and RESTful.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\ntodos = {}  # in-memory \"database\"\n\n@app.get(\"/todos\")\ndef list_todos():\n    return todos\n\n@app.post(\"/todos\", status_code=201)\ndef create_todo(title: str):\n    todos[len(todos) + 1] = title\n    return todos",
+  "output": "POST /todos?title=Learn FastAPI\n→ 201 Created\n{\"1\": \"Learn FastAPI\"}\n\nGET /todos\n→ 200 OK\n{\"1\": \"Learn FastAPI\"}"
+ },
+ {
+  "q": "What is the difference between PUT and PATCH, and how do you do a partial update?",
+  "level": "Basics",
+  "a": "PUT replaces the whole resource, so fields I don't send go back to their defaults. PATCH changes only the fields I send. For PATCH I use a model where every field is optional, and model_dump(exclude_unset=True) gives me only the fields the client actually sent, which I then merge into the stored item. In a real app I'd also return 404 from PATCH when the id doesn't exist.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass ItemUpdate(BaseModel):  # every field optional\n    name: str | None = None\n    price: float | None = None\n\n@app.patch(\"/items/{item_id}\")\ndef update_item(item_id: int, changes: ItemUpdate):\n    return changes.model_dump(exclude_unset=True)  # only what was sent",
+  "output": "PATCH /items/1\n{\"price\": 12.5}\n→ 200 OK\n{\"price\": 12.5}\n\nPATCH /items/1\n{\"name\": \"Pen Pro\"}\n→ 200 OK\n{\"name\": \"Pen Pro\"}"
+ },
+ {
+  "q": "How does FastAPI decide if a parameter is path, query, or body?",
+  "level": "Basics",
+  "a": "If the name is in the URL path, it's a path parameter. If it's a simple type like int or str and not in the path, it's a query parameter. If it's a Pydantic model, it's read from the JSON body. I can use them all together in one endpoint, and I can be explicit with Path(), Query(), and Body() when I need extra rules.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\nclass Item(BaseModel):\n    name: str\n\napp = FastAPI()\n\n@app.put(\"/items/{item_id}\")\ndef update_item(item_id: int, item: Item, notify: bool = False):\n    #           path ^        body ^      query ^\n    return {\"item_id\": item_id, \"item\": item, \"notify\": notify}",
+  "output": "PUT /items/3?notify=true\n{\"name\": \"Pen\"}\n→ 200 OK\n{\"item_id\": 3, \"item\": {\"name\": \"Pen\"}, \"notify\": true}"
+ },
+ {
+  "q": "How do you add validation rules with Pydantic Field?",
+  "level": "Intermediate",
+  "a": "I use Field() inside the model to add rules like min_length, max_length, gt (greater than), and ge (greater or equal). For query and path parameters I use Query() and Path() with the same kind of rules. FastAPI checks all of them before my code runs and returns every error at once. These rules also show up in the docs.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel, Field\n\nclass Product(BaseModel):\n    name: str = Field(min_length=2)\n    price: float = Field(gt=0)\n\napp = FastAPI()\n\n@app.post(\"/products\")\ndef create_product(product: Product):\n    return product",
+  "output": "POST /products\n{\"name\": \"Pen\", \"price\": 10}\n→ 200 OK\n{\"name\": \"Pen\", \"price\": 10.0}\n\nPOST /products\n{\"name\": \"P\", \"price\": -5}\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"string_too_short\",\n      \"loc\": [\n        \"body\",\n        \"name\"\n      ],\n      \"msg\": \"String should have at least 2 characters\",\n      \"input\": \"P\",\n      \"ctx\": {\n        \"min_length\": 2\n      }\n    },\n    {\n      \"type\": \"greater_than\",\n      \"loc\": [\n        \"body\",\n        \"price\"\n      ],\n      \"msg\": \"Input should be greater than 0\",\n      \"input\": -5,\n      \"ctx\": {\n        \"gt\": 0.0\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "What is the Annotated style for parameters, and why is it recommended?",
+  "level": "Intermediate",
+  "a": "With Annotated I write the type first and put the FastAPI info as metadata, like Annotated[int, Query(gt=0)]. It is the style the FastAPI docs recommend now, because the default value stays a normal Python default and the function still works if I call it outside FastAPI. I can also save a common rule as a type alias, like Limit, and reuse it in many routes. Here I validate a range with gt/le.",
+  "code": "from typing import Annotated\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\nLimit = Annotated[int, Query(gt=0, le=50)]  # reusable rule\n\n@app.get(\"/items\")\ndef read_items(limit: Limit = 10):\n    return {\"limit\": limit}",
+  "output": "GET /items?limit=5\n→ 200 OK\n{\"limit\": 5}\n\nGET /items?limit=100\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"less_than_equal\",\n      \"loc\": [\n        \"query\",\n        \"limit\"\n      ],\n      \"msg\": \"Input should be less than or equal to 50\",\n      \"input\": \"100\",\n      \"ctx\": {\n        \"le\": 50\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you add filtering, sorting and limit/offset pagination to a list endpoint?",
+  "level": "Intermediate",
+  "a": "I take optional filter parameters, a sort parameter restricted with Literal so only known fields are allowed, and limit and offset (in a real app with bounds via Query). I filter first, then sort, then count the total, and only then slice, so the total is the number of matches and not the page size. With a real database each step becomes WHERE, ORDER BY, a COUNT query and LIMIT/OFFSET, and I never put the raw sort value into SQL without whitelisting it.",
+  "code": "from typing import Literal\nfrom fastapi import FastAPI\n\napp = FastAPI()\nPRODUCTS = [{\"name\": \"Pen\", \"price\": 10}, {\"name\": \"Mug\", \"price\": 150},\n            {\"name\": \"Bowl\", \"price\": 90}]\n\n@app.get(\"/products\")\ndef list_products(max_price: int = 1000, sort: Literal[\"name\", \"price\"] = \"name\",\n                  limit: int = 2, offset: int = 0):\n    rows = sorted((p for p in PRODUCTS if p[\"price\"] <= max_price), key=lambda p: p[sort])\n    return {\"total\": len(rows), \"items\": rows[offset:offset + limit]}",
+  "output": "GET /products?max_price=100&sort=price\n→ 200 OK\n{\n  \"total\": 2,\n  \"items\": [\n    {\n      \"name\": \"Pen\",\n      \"price\": 10\n    },\n    {\n      \"name\": \"Bowl\",\n      \"price\": 90\n    }\n  ]\n}\n\nGET /products?sort=color\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"literal_error\",\n      \"loc\": [\n        \"query\",\n        \"sort\"\n      ],\n      \"msg\": \"Input should be 'name' or 'price'\",\n      \"input\": \"color\",\n      \"ctx\": {\n        \"expected\": \"'name' or 'price'\"\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you validate emails and write custom validators?",
+  "level": "Intermediate",
+  "a": "For emails I use EmailStr from Pydantic, which needs the email-validator package (pip install \"pydantic[email]\"). For my own rules I write a function with @field_validator, raise ValueError if the value is bad, and return the value if it's good. FastAPI turns that ValueError into a normal 422 error. Here my validator only allows company emails.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel, EmailStr, field_validator\n\nclass SignUp(BaseModel):\n    email: EmailStr\n    @field_validator(\"email\")\n    def company_only(cls, v):\n        if not v.endswith(\"@example.com\"):\n            raise ValueError(\"use your company email\")\n        return v\n\napp = FastAPI()\n\n@app.post(\"/signup\")\ndef signup(data: SignUp):\n    return data",
+  "output": "POST /signup\n{\"email\": \"anu@example.com\"}\n→ 200 OK\n{\"email\": \"anu@example.com\"}\n\nPOST /signup\n{\"email\": \"anu@gmail.com\"}\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"value_error\",\n      \"loc\": [\n        \"body\",\n        \"email\"\n      ],\n      \"msg\": \"Value error, use your company email\",\n      \"input\": \"anu@gmail.com\",\n      \"ctx\": {\n        \"error\": {}\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you validate fields together and add computed fields?",
+  "level": "Intermediate",
+  "a": "When a rule depends on more than one field, like check_out must be after check_in, I use @model_validator(mode=\"after\"), which runs once all fields are valid. If I raise ValueError, FastAPI turns it into a 422. For values derived from other fields, like the number of nights, I use @computed_field, so they appear in the response and the docs without being sent by the client.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel, computed_field, model_validator\n\napp = FastAPI()\n\nclass Stay(BaseModel):\n    check_in: int   # day numbers keep the example short\n    check_out: int\n\n    @model_validator(mode=\"after\")\n    def check_dates(self):\n        if self.check_out <= self.check_in:\n            raise ValueError(\"check_out must be after check_in\")\n        return self\n\n    @computed_field\n    def nights(self) -> int:\n        return self.check_out - self.check_in\n\n@app.post(\"/stays\")\ndef create_stay(stay: Stay):\n    return stay",
+  "output": "POST /stays\n{\"check_in\": 1, \"check_out\": 4}\n→ 200 OK\n{\"check_in\": 1, \"check_out\": 4, \"nights\": 3}\n\nPOST /stays\n{\"check_in\": 4, \"check_out\": 1}\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"value_error\",\n      \"loc\": [\n        \"body\"\n      ],\n      \"msg\": \"Value error, check_out must be after check_in\",\n      \"input\": {\n        \"check_in\": 4,\n        \"check_out\": 1\n      },\n      \"ctx\": {\n        \"error\": {}\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you configure model behavior with model_config?",
+  "level": "Intermediate",
+  "a": "In Pydantic v2 I set model_config = ConfigDict(...) on the model. extra=\"forbid\" rejects unknown fields, which protects me from a client sneaking in something like role=admin. str_strip_whitespace cleans up text input before validation, so I don't repeat that in every route. Other useful options are str_to_lower, frozen=True for read-only objects and from_attributes=True for ORM objects.",
+  "code": "from fastapi import FastAPI\nfrom pydantic import BaseModel, ConfigDict\n\napp = FastAPI()\n\nclass SignUp(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\", str_strip_whitespace=True)\n    username: str\n\n@app.post(\"/signup\")\ndef signup(data: SignUp):\n    return data",
+  "output": "POST /signup\n{\"username\": \"  anu  \"}\n→ 200 OK\n{\"username\": \"anu\"}\n\nPOST /signup\n{\"username\": \"anu\", \"role\": \"admin\"}\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"extra_forbidden\",\n      \"loc\": [\n        \"body\",\n        \"role\"\n      ],\n      \"msg\": \"Extra inputs are not permitted\",\n      \"input\": \"admin\"\n    }\n  ]\n}"
+ },
+ {
+  "q": "What is a 422 error and can you customize it?",
+  "level": "Intermediate",
+  "a": "422 Unprocessable Content (older name: Unprocessable Entity) is what FastAPI returns when the request data doesn't match my types or rules. The body has a detail list, and each error has type, loc (where the problem is), msg, and input. If the frontend wants a simpler format, I add an exception handler for RequestValidationError and return my own shape. I keep the status as 422 so clients still know it's a validation problem.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.exceptions import RequestValidationError\nfrom fastapi.responses import JSONResponse\n\napp = FastAPI()\n\n@app.exception_handler(RequestValidationError)\nasync def validation_handler(request, exc):\n    return JSONResponse({\"ok\": False, \"error\": exc.errors()[0][\"msg\"]}, 422)\n\n@app.get(\"/items/{item_id}\")\ndef read_item(item_id: int):\n    return {\"item_id\": item_id}",
+  "output": "GET /items/abc\n→ 422 Unprocessable Content\n{\n  \"ok\": false,\n  \"error\": \"Input should be a valid integer, unable to parse string as an integer\"\n}"
+ },
+ {
+  "q": "How do you return errors with HTTPException?",
+  "level": "Intermediate",
+  "a": "I raise HTTPException with a status code and a detail message, and FastAPI stops the request and sends that as JSON. I use it for things like 404 not found, 401 not logged in, or 403 not allowed. I can also add custom headers. I raise it instead of returning it, so it works even from inside helper functions and dependencies.",
+  "code": "from fastapi import FastAPI, HTTPException\n\napp = FastAPI()\nusers = {1: \"Anu\"}\n\n@app.get(\"/users/{user_id}\")\ndef get_user(user_id: int):\n    if user_id not in users:\n        raise HTTPException(status_code=404, detail=\"User not found\")\n    return {\"id\": user_id, \"name\": users[user_id]}",
+  "output": "GET /users/1\n→ 200 OK\n{\"id\": 1, \"name\": \"Anu\"}\n\nGET /users/99\n→ 404 Not Found\n{\"detail\": \"User not found\"}"
+ },
+ {
+  "q": "How do you create a custom exception handler?",
+  "level": "Intermediate",
+  "a": "I register a handler with @app.exception_handler for an exception type, usually my own class for a business error like OutOfStockError (here a plain ValueError to keep it short). The handler receives the request and the exception and returns a response in the format I want. This keeps my route code clean because I just raise the error and one place decides how it looks.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.responses import JSONResponse\n\napp = FastAPI()\n\n@app.exception_handler(ValueError)\nasync def value_error_handler(request, exc):\n    return JSONResponse({\"error\": str(exc)}, status_code=409)\n\n@app.post(\"/buy/{product}\")\ndef buy(product: str):\n    raise ValueError(f\"{product} is sold out\")",
+  "output": "POST /buy/book\n→ 409 Conflict\n{\"error\": \"book is sold out\"}"
+ },
+ {
+  "q": "How do you document error responses with the responses parameter?",
+  "level": "Intermediate",
+  "a": "By default the docs only show the success response and the 422 validation error, even if my route can raise a 404. I add responses={404: {\"model\": ErrorMessage, \"description\": ...}} to the decorator, and Swagger UI then shows the 404 and its JSON shape too. It doesn't change what the route returns; it's documentation for frontend teams and generated clients, so I keep the model matching what HTTPException really sends, which is {\"detail\": ...}.",
+  "code": "from fastapi import FastAPI, HTTPException\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass ErrorMessage(BaseModel):\n    detail: str\n\n@app.get(\"/items/{item_id}\", responses={404: {\"model\": ErrorMessage, \"description\": \"Not found\"}})\ndef get_item(item_id: int):\n    if item_id != 1:\n        raise HTTPException(404, \"Item not found\")\n    return {\"id\": 1, \"name\": \"Pen\"}",
+  "output": "GET /items/9\n→ 404 Not Found\n{\"detail\": \"Item not found\"}\n\nGET /openapi.json\n→ 200 OK\nresponses documented for GET /items/{item_id}:\n  200  Successful Response  (-)\n  404  Not found  (ErrorMessage)\n  422  Validation Error  (HTTPValidationError)\n(summary of the generated OpenAPI schema)"
+ },
+ {
+  "q": "How do you customize the 404 response for unknown URLs?",
+  "level": "Intermediate",
+  "a": "A 404 for a URL with no route is raised by Starlette, not by my code, so a handler for FastAPI's HTTPException alone may not catch every case. I register a handler for starlette.exceptions.HTTPException, which covers both my own raise HTTPException and the router's 404. Then every error in the API has the same JSON shape, which makes the frontend's error handling much simpler.",
+  "code": "from fastapi import FastAPI, Request\nfrom fastapi.responses import JSONResponse\nfrom starlette.exceptions import HTTPException as StarletteHTTPException\n\napp = FastAPI()\n\n@app.exception_handler(StarletteHTTPException)\nasync def http_error(request: Request, exc: StarletteHTTPException):\n    body = {\"error\": exc.detail, \"path\": request.url.path}\n    return JSONResponse(body, status_code=exc.status_code)",
+  "output": "GET /no-such-page\n→ 404 Not Found\n{\"error\": \"Not Found\", \"path\": \"/no-such-page\"}"
+ },
+ {
+  "q": "How do you organize a bigger project with APIRouter?",
+  "level": "Intermediate",
+  "a": "I split routes by feature into separate files, each with its own APIRouter, and then include them in main.py with include_router. I set a prefix and tags on each router so I don't repeat /users everywhere and the docs are grouped. A typical structure is app/main.py, app/routers/, app/models/, app/schemas/, and app/core/config.py. Here it's in one file just so it can run.",
+  "code": "from fastapi import APIRouter, FastAPI\n\nrouter = APIRouter(prefix=\"/users\", tags=[\"users\"])  # routers/users.py\n\n@router.get(\"/\")\ndef list_users():\n    return [\"anu\", \"ravi\"]\n\napp = FastAPI()  # main.py\napp.include_router(router)",
+  "output": "GET /users/\n→ 200 OK\n[\"anu\", \"ravi\"]"
+ },
+ {
+  "q": "How do you add OpenAPI tags and metadata to the docs?",
+  "level": "Intermediate",
+  "a": "I pass title and version (and optionally description and contact) to FastAPI(), and a list of openapi_tags with a description for each tag. Then I put tags=[...] on each route or on the whole APIRouter, and Swagger UI groups the endpoints under those headings in that order. A short summary on each route also helps, because it becomes the line people see in the docs and the operation name in generated clients.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI(\n    title=\"Shop API\",\n    version=\"2.1.0\",\n    openapi_tags=[{\"name\": \"users\", \"description\": \"Sign up and profiles\"}],\n)\n\n@app.get(\"/users\", tags=[\"users\"], summary=\"List users\")\ndef list_users():\n    return []",
+  "output": "GET /openapi.json\n→ 200 OK\ninfo: Shop API 2.1.0\ntags:\n  users: Sign up and profiles\nGET /users -> tags ['users'], summary 'List users'\n(summary of the generated OpenAPI schema)"
+ },
+ {
+  "q": "How do you serve static files, send a file download, or mount a sub-application?",
+  "level": "Intermediate",
+  "a": "app.mount() attaches a whole separate ASGI app under a path. I use it with StaticFiles to serve a folder of images or CSS, and I can also mount another FastAPI app the same way, which then gets its own docs. To send one file as a download I return FileResponse with a filename, which sets the Content-Disposition header. In production I usually let Nginx or a CDN serve static files because it's faster.",
+  "code": "from pathlib import Path\nfrom fastapi import FastAPI\nfrom fastapi.responses import FileResponse\nfrom fastapi.staticfiles import StaticFiles\n\nPath(\"static\").mkdir()  # demo: a folder with one file\nPath(\"static/hello.txt\").write_text(\"Hello from a static file\")\n\napp = FastAPI()\napp.mount(\"/static\", StaticFiles(directory=\"static\"), name=\"static\")\n\n@app.get(\"/download\")\ndef download():\n    return FileResponse(\"static/hello.txt\", filename=\"report.txt\")",
+  "output": "GET /static/hello.txt\n→ 200 OK\ncontent-type: text/plain; charset=utf-8\nHello from a static file\n\nGET /download\n→ 200 OK\ncontent-disposition: attachment; filename=\"report.txt\"\nHello from a static file"
+ },
+ {
+  "q": "What is dependency injection with Depends?",
+  "level": "Intermediate",
+  "a": "Depends lets me declare that a route needs something, and FastAPI calls that function and passes the result in. I use it to share logic like pagination, getting the current user, or a DB session, instead of copying code into every route. Dependencies can have their own parameters, which FastAPI reads from the request. It also makes testing easy because I can override dependencies.",
+  "code": "from fastapi import Depends, FastAPI\n\napp = FastAPI()\n\ndef pagination(page: int = 1, size: int = 10):\n    return {\"offset\": (page - 1) * size, \"size\": size}\n\n@app.get(\"/products\")\ndef list_products(p: dict = Depends(pagination)):\n    return p",
+  "output": "GET /products?page=3\n→ 200 OK\n{\"offset\": 20, \"size\": 10}"
+ },
+ {
+  "q": "How do you apply one dependency to many routes, like an API key check?",
+  "level": "Intermediate",
+  "a": "I can add dependencies=[Depends(...)] on a router or on the whole app, so every route under it runs that check. This is good for things like API key or auth checks where the route doesn't need the return value. The dependency raises HTTPException if the check fails. Here it's on the whole app, so every route is protected.",
+  "code": "from fastapi import Depends, FastAPI, Header, HTTPException\n\ndef verify_api_key(x_api_key: str | None = Header(default=None)):\n    if x_api_key != \"secret-key\":\n        raise HTTPException(status_code=401, detail=\"Invalid API key\")\n\napp = FastAPI(dependencies=[Depends(verify_api_key)])\n\n@app.get(\"/stats\")\ndef stats():\n    return {\"users\": 42}",
+  "output": "GET /stats\n→ 401 Unauthorized\n{\"detail\": \"Invalid API key\"}\n\nGET /stats\nX-API-Key: secret-key\n→ 200 OK\n{\"users\": 42}"
+ },
+ {
+  "q": "What is a yield dependency and how do you use it for a DB session?",
+  "level": "Intermediate",
+  "a": "A dependency with yield runs the code before yield when the request starts, gives the value to the route, and runs the code after yield when the request is done. That's perfect for a database session because I can open it, hand it to the route, and always close it in a finally block, even if there's an error. In a real app the yielded value would be SQLAlchemy's SessionLocal().",
+  "code": "from fastapi import Depends, FastAPI\n\napp = FastAPI()\n\ndef get_db():\n    try:\n        yield \"db-session\"  # real app: SessionLocal()\n    finally:\n        print(\"session closed\")\n\n@app.get(\"/users\")\ndef list_users(db: str = Depends(get_db)):\n    return {\"using\": db}",
+  "output": "GET /users\n→ 200 OK\n{\"using\": \"db-session\"}\n\nServer console:\nsession closed"
+ },
+ {
+  "q": "How do you use a class as a dependency?",
+  "level": "Intermediate",
+  "a": "FastAPI can call anything callable, so a class works as a dependency: its __init__ parameters become query parameters, and I get a typed object instead of a dict. With Annotated[Filters, Depends()] I don't even repeat the class name. I can also make a configurable dependency by creating an instance with settings and giving the class a __call__ method, like a paginator with a different max size per route.",
+  "code": "from typing import Annotated\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\nclass Filters:\n    def __init__(self, q: str | None = None, sort: str = \"name\"):\n        self.q, self.sort = q, sort\n\n@app.get(\"/products\")\ndef products(f: Annotated[Filters, Depends()]):\n    return {\"q\": f.q, \"sort\": f.sort}",
+  "output": "GET /products\n→ 200 OK\n{\"q\": null, \"sort\": \"name\"}\n\nGET /products?q=pen&sort=price\n→ 200 OK\n{\"q\": \"pen\", \"sort\": \"price\"}"
+ },
+ {
+  "q": "What are sub-dependencies, and is a dependency called twice in one request?",
+  "level": "Intermediate",
+  "a": "A dependency can itself depend on other dependencies, so I build a chain like get_token, then get_user, then the route. FastAPI resolves the whole tree for me. If the same dependency appears more than once in one request, FastAPI calls it only once and reuses the result, which you can see in the console here. If I really need a fresh call each time, I use Depends(func, use_cache=False).",
+  "code": "from fastapi import Depends, FastAPI\n\napp = FastAPI()\n\ndef get_token():\n    print(\"get_token called\")\n    return \"abc123\"\n\ndef get_user(token: str = Depends(get_token)):\n    return {\"name\": \"anu\"}\n\n@app.get(\"/me\")\ndef me(user: dict = Depends(get_user), token: str = Depends(get_token)):\n    return {\"user\": user, \"token\": token}",
+  "output": "GET /me\n→ 200 OK\n{\"user\": {\"name\": \"anu\"}, \"token\": \"abc123\"}\n\nServer console:\nget_token called"
+ },
+ {
+  "q": "How do you implement role-based authorization?",
+  "level": "Intermediate",
+  "a": "I write a dependency that looks up the current user's role and raises 403 Forbidden if it isn't allowed, and attach it to the route with dependencies=[Depends(...)]. 401 means \"I don't know who you are\" and 403 means \"I know you, but you're not allowed\", so a missing login should get a 401 from the auth dependency. In a bigger app I make a small factory, require_role(\"admin\"), so each route declares the roles it needs right on the endpoint.",
+  "code": "from fastapi import Depends, FastAPI, Header, HTTPException\n\napp = FastAPI()\nROLES = {\"t-anu\": \"admin\", \"t-ravi\": \"viewer\"}\n\ndef require_admin(x_token: str = Header()):\n    if ROLES.get(x_token) != \"admin\":\n        raise HTTPException(403, \"Not enough permissions\")\n\n@app.delete(\"/products/{pid}\", dependencies=[Depends(require_admin)])\ndef delete_product(pid: int):\n    return {\"deleted\": pid}",
+  "output": "DELETE /products/7\nX-Token: t-ravi\n→ 403 Forbidden\n{\"detail\": \"Not enough permissions\"}\n\nDELETE /products/7\nX-Token: t-anu\n→ 200 OK\n{\"deleted\": 7}"
+ },
+ {
+  "q": "How do you read headers and cookies, and set a cookie?",
+  "level": "Intermediate",
+  "a": "I use Header() and Cookie() as default values for parameters. For headers, FastAPI converts underscores to dashes, so user_agent reads the User-Agent header. To set a cookie I add a Response parameter and call response.set_cookie. For login cookies I'd set httponly=True so JavaScript can't read them.",
+  "code": "from fastapi import Cookie, FastAPI, Header, Response\n\napp = FastAPI()\n\n@app.get(\"/whoami\")\ndef whoami(user_agent: str = Header(None), session_id: str = Cookie(None)):\n    return {\"user_agent\": user_agent, \"session_id\": session_id}\n\n@app.post(\"/login\")\ndef login(response: Response):\n    response.set_cookie(\"session_id\", \"abc123\", httponly=True)\n    return {\"logged_in\": True}",
+  "output": "GET /whoami\nUser-Agent: my-app/1.0\nCookie: session_id=xyz789\n→ 200 OK\n{\"user_agent\": \"my-app/1.0\", \"session_id\": \"xyz789\"}\n\nPOST /login\n→ 200 OK\nset-cookie: session_id=abc123; HttpOnly; Path=/; SameSite=lax\n{\"logged_in\": true}"
+ },
+ {
+  "q": "When do you use the Request object directly?",
+  "level": "Intermediate",
+  "a": "Normally I declare exactly what I need as parameters, because then it is validated and documented. But when I need low-level details, I add request: Request and read things like the method, URL, client IP, raw headers, or the raw body with await request.json(). I use it for things like logging, webhooks where I must verify a signature on the raw body, or reading app.state. Note that data read this way is not validated or shown in the docs.",
+  "code": "from fastapi import FastAPI, Request\n\napp = FastAPI()\n\n@app.post(\"/webhook\")\nasync def webhook(request: Request):\n    body = await request.json()\n    return {\"method\": request.method, \"path\": request.url.path, \"body\": body}",
+  "output": "POST /webhook\n{\"event\": \"paid\"}\n→ 200 OK\n{\n  \"method\": \"POST\",\n  \"path\": \"/webhook\",\n  \"body\": {\n    \"event\": \"paid\"\n  }\n}"
+ },
+ {
+  "q": "How do you handle form data?",
+  "level": "Intermediate",
+  "a": "For HTML form posts I use Form() instead of a Pydantic body, because the data comes as form-encoded, not JSON. This needs the python-multipart package installed. Missing form fields give a normal 422 error. OAuth2 login forms also use this format.",
+  "code": "from fastapi import FastAPI, Form\n\napp = FastAPI()\n\n@app.post(\"/login\")\ndef login(username: str = Form(), password: str = Form()):\n    if password != \"pass123\":\n        return {\"ok\": False}\n    return {\"ok\": True, \"user\": username}",
+  "output": "POST /login\n(form) username=anu&password=pass123\n→ 200 OK\n{\"ok\": true, \"user\": \"anu\"}\n\nPOST /login\n(form) username=anu\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"missing\",\n      \"loc\": [\n        \"body\",\n        \"password\"\n      ],\n      \"msg\": \"Field required\",\n      \"input\": null\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you upload files?",
+  "level": "Intermediate",
+  "a": "I use UploadFile, which needs python-multipart. UploadFile gives me the filename, content type, and an async read() method, and it spools large files to disk instead of keeping everything in memory. I always check the content type and size before saving. For multiple files I use list[UploadFile].",
+  "code": "from fastapi import FastAPI, UploadFile\n\napp = FastAPI()\n\n@app.post(\"/upload\")\nasync def upload(file: UploadFile):\n    content = await file.read()\n    return {\"filename\": file.filename, \"size\": len(content)}",
+  "output": "POST /upload\n(multipart) file=notes.txt, text/plain\n→ 200 OK\n{\"filename\": \"notes.txt\", \"size\": 23}"
+ },
+ {
+  "q": "What are background tasks?",
+  "level": "Intermediate",
+  "a": "BackgroundTasks lets me run a function after the response is sent, so the user doesn't wait for it. I use it for small jobs like sending a welcome email or writing a log. For heavy or important jobs that need retries, I'd use a real queue like Celery, RQ, or ARQ instead. The task runs in the same process, so if the server dies the task is lost.",
+  "code": "from fastapi import BackgroundTasks, FastAPI\n\napp = FastAPI()\nemail_log = []\n\ndef send_welcome_email(email: str):\n    email_log.append(f\"welcome email sent to {email}\")\n\n@app.post(\"/register\")\ndef register(email: str, background_tasks: BackgroundTasks):\n    background_tasks.add_task(send_welcome_email, email)\n    return {\"message\": \"registered, email will be sent\"}",
+  "output": "POST /register?email=anu@example.com\n→ 200 OK\n{\"message\": \"registered, email will be sent\"}\n\nLog after the response was sent:\nwelcome email sent to anu@example.com"
+ },
+ {
+  "q": "What is middleware and how do you write one?",
+  "level": "Intermediate",
+  "a": "Middleware is code that runs for every request before it reaches the route and for every response before it goes back. I use it for things like logging, timing, adding headers, or request IDs. I write it with @app.middleware(\"http\") and call call_next(request) to continue. A common example is adding an X-Process-Time header; here I add a fixed header so the output stays the same every run.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.middleware(\"http\")\nasync def add_header(request, call_next):\n    response = await call_next(request)  # run the route\n    response.headers[\"X-App-Version\"] = \"1.0\"\n    return response\n\n@app.get(\"/ping\")\ndef ping():\n    return {\"pong\": True}",
+  "output": "GET /ping\n→ 200 OK\nx-app-version: 1.0\n{\"pong\": true}"
+ },
+ {
+  "q": "How do you add a request ID to every request?",
+  "level": "Intermediate",
+  "a": "I write a middleware that takes the X-Request-ID header if the caller (like a load balancer) sent one, or makes a new ID with uuid4, and adds it to the response headers. I put it in every log line, so when a user reports an error I can find all the logs for that one request across services. I can also store it on request.state so route code can read it.",
+  "code": "import uuid\nfrom fastapi import FastAPI, Request\n\napp = FastAPI()\n\n@app.middleware(\"http\")\nasync def add_request_id(request: Request, call_next):\n    rid = request.headers.get(\"X-Request-ID\") or uuid.uuid4().hex\n    response = await call_next(request)\n    response.headers[\"X-Request-ID\"] = rid\n    return response\n\n@app.get(\"/orders\")\ndef orders():\n    return []",
+  "output": "GET /orders\nX-Request-ID: abc-123\n→ 200 OK\nx-request-id: abc-123\n[]"
+ },
+ {
+  "q": "How do you compress responses with GZip?",
+  "level": "Intermediate",
+  "a": "I add GZipMiddleware with a minimum_size, so only responses bigger than that are compressed when the client sends Accept-Encoding: gzip. Small responses aren't worth the CPU, so anything under minimum_size is sent uncompressed. Big JSON lists often shrink by 70 to 90 percent, but if Nginx or a CDN already compresses, I do it there instead of twice.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.middleware.gzip import GZipMiddleware\n\napp = FastAPI()\napp.add_middleware(GZipMiddleware, minimum_size=500)  # bytes\n\n@app.get(\"/report\")\ndef report():\n    return {\"rows\": [f\"row {i}\" for i in range(100)]}  # ~1 KB",
+  "output": "GET /report\nAccept-Encoding: gzip\n→ 200 OK\ncontent-encoding: gzip\n(body was sent gzip-compressed; the client unzips it automatically)"
+ },
+ {
+  "q": "What is CORS and how do you enable it?",
+  "level": "Intermediate",
+  "a": "CORS is a browser security rule that blocks a frontend on one origin, like localhost:5173, from calling an API on another origin unless the API allows it. In FastAPI I add CORSMiddleware with the allowed origins, and if needed the allowed methods and headers. In production I list the exact frontend domains instead of using \"*\". You only see CORS problems in the browser, not in tools like curl or Postman.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.middleware.cors import CORSMiddleware\n\napp = FastAPI()\napp.add_middleware(CORSMiddleware, allow_origins=[\"http://localhost:5173\"])\n\n@app.get(\"/data\")\ndef data():\n    return {\"value\": 1}",
+  "output": "GET /data\nOrigin: http://localhost:5173\n→ 200 OK\naccess-control-allow-origin: http://localhost:5173\n{\"value\": 1}\n\nGET /data\nOrigin: http://evil.com\n→ 200 OK\n(no access-control-allow-origin header in the response)\n{\"value\": 1}"
+ },
+ {
+  "q": "What do TrustedHostMiddleware and HTTPSRedirectMiddleware do?",
+  "level": "Intermediate",
+  "a": "TrustedHostMiddleware rejects requests whose Host header isn't in my allowed list with a 400, which blocks host header attacks like poisoned password-reset links. HTTPSRedirectMiddleware sends any plain http request to the https URL with a redirect. Behind a load balancer that ends TLS, I usually let the proxy do the redirect, or run Uvicorn with --proxy-headers so the app knows the original request was https.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware\nfrom fastapi.middleware.trustedhost import TrustedHostMiddleware\n\napp = FastAPI()\napp.add_middleware(HTTPSRedirectMiddleware)\napp.add_middleware(TrustedHostMiddleware,\n                   allowed_hosts=[\"api.example.com\", \"*.example.com\"])\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}",
+  "output": "GET /health\nHost: evil.com\n→ 400 Bad Request\nInvalid host header\n\nGET /health\nHost: api.example.com\n→ 307 Temporary Redirect\nlocation: https://api.example.com/health"
+ },
+ {
+  "q": "How do you manage settings and environment variables?",
+  "level": "Intermediate",
+  "a": "I use pydantic-settings and create a Settings class that inherits from BaseSettings. It reads values from environment variables or a .env file and validates their types, so a wrong value fails at startup. In bigger apps I wrap it in a function with lru_cache so it's created once, and inject it with Depends. Secrets never go in the code, only in env vars.",
+  "code": "from fastapi import FastAPI\nfrom pydantic_settings import BaseSettings\n\nclass Settings(BaseSettings):\n    debug: bool = False\n\nsettings = Settings()  # reads env vars, e.g. export DEBUG=true\napp = FastAPI()\n\n@app.get(\"/info\")\ndef info():\n    return settings",
+  "output": "GET /info\n→ 200 OK\n{\"debug\": true}"
+ },
+ {
+  "q": "When should you use async def vs def for endpoints?",
+  "level": "Intermediate",
+  "a": "I use async def when the code inside awaits async libraries, like httpx.AsyncClient, an async DB driver, or asyncio.sleep. I use a normal def when I call blocking libraries, like requests or a sync DB driver, because FastAPI runs def routes in a thread pool so they don't block the event loop. The big mistake is calling blocking code like time.sleep inside async def, which freezes the whole server. Both styles give the same response to the client.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/async\")\nasync def async_route():  # for code that awaits (httpx, asyncpg)\n    return {\"type\": \"async def\"}\n\n@app.get(\"/sync\")\ndef sync_route():  # for blocking code: runs in a thread pool\n    return {\"type\": \"def\"}",
+  "output": "GET /async\n→ 200 OK\n{\"type\": \"async def\"}\n\nGET /sync\n→ 200 OK\n{\"type\": \"def\"}"
+ },
+ {
+  "q": "What happens if you call blocking code inside async def, and how do you fix it?",
+  "level": "Intermediate",
+  "a": "An async def route runs directly on the event loop, so a blocking call like time.sleep, requests.get, or a heavy loop freezes every other request on that worker. Here three requests to /bad take three times as long because they run one after another. The fix is to use an async library, make the route a plain def, or push the blocking call to a thread with asyncio.to_thread or run_in_threadpool. For heavy CPU work I use a background worker or process pool instead.",
+  "code": "import asyncio, time\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/bad\")\nasync def bad():\n    time.sleep(0.5)  # blocks the event loop!\n\n@app.get(\"/good\")\nasync def good():\n    await asyncio.to_thread(time.sleep, 0.5)  # runs in a thread",
+  "output": "Sending 3 requests at the same time:\nGET /bad x3 → all 200 OK, total time ≈ 1.5s\nGET /good x3 → all 200 OK, total time ≈ 0.5s\n(/bad runs them one after another; /good runs them in parallel)"
+ },
+ {
+  "q": "How do you test async endpoints?",
+  "level": "Intermediate",
+  "a": "TestClient works fine for async endpoints too, but when the test itself needs to await things, like an async database fixture, I write an async test. I mark it with @pytest.mark.anyio (the plugin comes with AnyIO, which FastAPI already installs) and use httpx.AsyncClient with ASGITransport, which calls the app directly without a server. One gotcha: ASGITransport doesn't run lifespan events, so if the app needs them I use a lifespan manager or plain TestClient.",
+  "code": "# test_main.py\nimport pytest\nfrom httpx import ASGITransport, AsyncClient\nfrom main import app\n\n@pytest.mark.anyio\nasync def test_price():\n    transport = ASGITransport(app=app)\n    async with AsyncClient(transport=transport, base_url=\"http://test\") as client:\n        r = await client.get(\"/price/abc\")\n    assert r.json() == {\"symbol\": \"ABC\", \"price\": 101.5}",
+  "output": "$ pytest -q\n.                                                                        [100%]\n1 passed in 0.19s"
+ },
+ {
+  "q": "How do you implement authentication with OAuth2 and JWT?",
+  "level": "Advanced",
+  "a": "The client first posts username and password to a /token endpoint as a form (OAuth2PasswordRequestForm), and if they're correct I return a signed JWT access token. For protected routes I use OAuth2PasswordBearer, which reads the Authorization: Bearer header, and then decode and verify the token, usually in a get_current_user dependency. Here I use the PyJWT library and show only the protected route; in a real app I'd also hash passwords with bcrypt or argon2, add an \"exp\" expiry, and keep the secret in env vars.",
+  "code": "import jwt\nfrom fastapi import Depends, FastAPI, HTTPException\nfrom fastapi.security import OAuth2PasswordBearer\n\napp = FastAPI()\noauth2 = OAuth2PasswordBearer(tokenUrl=\"token\")  # reads the Bearer header\n\n@app.get(\"/users/me\")\ndef me(token: str = Depends(oauth2)):\n    try:\n        user = jwt.decode(token, \"change-me\", algorithms=[\"HS256\"])[\"sub\"]\n    except jwt.PyJWTError:\n        raise HTTPException(401, \"Invalid token\")\n    return {\"username\": user}",
+  "output": "GET /users/me\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbnUifQ.jKTdaKoQbZ533GqxB2-bu-1VW7rZjeC_g9020-KVm4Y\n→ 200 OK\n{\"username\": \"anu\"}\n\nGET /users/me\nAuthorization: Bearer bad.token.here\n→ 401 Unauthorized\n{\"detail\": \"Invalid token\"}"
+ },
+ {
+  "q": "How does a refresh token flow work?",
+  "level": "Advanced",
+  "a": "At login I return a short-lived access token, around 15 minutes, and a long-lived refresh token, days or weeks. The client sends the access token on every request, and when it expires it calls /refresh with the refresh token to get a new access token without asking for the password again. I put a type claim in each token so a stolen access token can't be used as a refresh token, and in a real app I store refresh tokens server-side so I can revoke them and rotate them on every use. Expiry is left out here only to keep the tokens in the output stable.",
+  "code": "import jwt\nfrom fastapi import Body, FastAPI, HTTPException\n\nSECRET = \"change-me\"\napp = FastAPI()\n\n@app.post(\"/refresh\")\ndef refresh(refresh_token: str = Body(embed=True)):\n    data = jwt.decode(refresh_token, SECRET, algorithms=[\"HS256\"])\n    if data[\"type\"] != \"refresh\":\n        raise HTTPException(401, \"Not a refresh token\")\n    new = jwt.encode({\"sub\": data[\"sub\"], \"type\": \"access\"}, SECRET, algorithm=\"HS256\")\n    return {\"access_token\": new}",
+  "output": "POST /refresh\n{\"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbnUiLCJ0eXBlIjoicmVmcmVzaCJ9.PHimzVZuqsgnK2G32s5Tbi_G28J_s46XqGcgET5yvdk\"}\n→ 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbnUiLCJ0eXBlIjoiYWNjZXNzIn0.pVHCZbqkskEtWz3-OTLmeXyJnXEDL3mqYay9Eeca4Wg\"\n}\n\nPOST /refresh\n{\"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbnUiLCJ0eXBlIjoiYWNjZXNzIn0.pVHCZbqkskEtWz3-OTLmeXyJnXEDL3mqYay9Eeca4Wg\"}\n→ 401 Unauthorized\n{\"detail\": \"Not a refresh token\"}"
+ },
+ {
+  "q": "How do OAuth2 scopes work in FastAPI?",
+  "level": "Advanced",
+  "a": "Scopes are named permissions inside the token, like items:read or items:write. I declare them on OAuth2PasswordBearer, ask for them per route with Security(dependency, scopes=[...]), and the dependency gets a SecurityScopes object listing what this route needs. If the token lacks a scope I return 403, not 401, because the user is known but not allowed. In a real app the scopes come from the JWT's scope claim; here a small dict stands in for decoding.",
+  "code": "from typing import Annotated\nfrom fastapi import FastAPI, HTTPException, Security\nfrom fastapi.security import OAuth2PasswordBearer, SecurityScopes\n\napp = FastAPI()\noauth2 = OAuth2PasswordBearer(tokenUrl=\"token\", scopes={\"items:write\": \"Create items\"})\nTOKENS = {\"reader-token\": [\"items:read\"], \"admin-token\": [\"items:read\", \"items:write\"]}\n\ndef check_scopes(needed: SecurityScopes, token: Annotated[str, Security(oauth2)]):\n    for scope in needed.scopes:\n        if scope not in TOKENS.get(token, []):\n            raise HTTPException(403, f\"Missing scope: {scope}\")\n\n@app.post(\"/items\", dependencies=[Security(check_scopes, scopes=[\"items:write\"])])\ndef create_item():\n    return {\"created\": True}",
+  "output": "POST /items\nAuthorization: Bearer reader-token\n→ 403 Forbidden\n{\"detail\": \"Missing scope: items:write\"}\n\nPOST /items\nAuthorization: Bearer admin-token\n→ 200 OK\n{\"created\": true}"
+ },
+ {
+  "q": "When would you use API keys instead of JWT tokens?",
+  "level": "Advanced",
+  "a": "I use API keys for machine-to-machine access, like a partner's server calling my API: they're simple, long-lived and easy to revoke, and I store only their hash in the database. I use JWT access tokens for users who log in, because they're short-lived and carry claims like the user id and roles, so I don't hit the database on every request. FastAPI has APIKeyHeader and OAuth2PasswordBearer for each, and both show up as Authorize options in the docs. Either way they must only travel over HTTPS.",
+  "code": "from typing import Annotated\nfrom fastapi import Depends, FastAPI, HTTPException\nfrom fastapi.security import APIKeyHeader\n\napp = FastAPI()\nAPI_KEYS = {\"sk_partner_123\": \"partner-1\"}  # real app: hashed, in the DB\n\n@app.get(\"/partner/orders\")\ndef partner_orders(key: Annotated[str, Depends(APIKeyHeader(name=\"X-API-Key\"))]):\n    if key not in API_KEYS:\n        raise HTTPException(401, \"Invalid API key\")\n    return {\"client\": API_KEYS[key], \"orders\": 12}",
+  "output": "GET /partner/orders\nX-API-Key: sk_partner_123\n→ 200 OK\n{\"client\": \"partner-1\", \"orders\": 12}\n\nGET /partner/orders\nX-API-Key: wrong\n→ 401 Unauthorized\n{\"detail\": \"Invalid API key\"}"
+ },
+ {
+  "q": "How do you store passwords safely?",
+  "level": "Advanced",
+  "a": "I never store the plain password; I store a slow, salted hash and compare hashes at login. A random salt per user means two users with the same password get different hashes, and a slow algorithm makes brute force expensive. This example uses Python's built-in hashlib.pbkdf2_hmac to show the idea, but in production I use a tested library like passlib or pwdlib with bcrypt or argon2. I also use hmac.compare_digest so the comparison takes constant time.",
+  "code": "import hashlib, hmac, os\n\ndef hash_pw(password: str, salt: bytes) -> str:\n    return hashlib.pbkdf2_hmac(\"sha256\", password.encode(), salt, 100_000).hex()\n\nsalt = os.urandom(16)              # random salt per user\nstored = hash_pw(\"s3cret!\", salt)  # save salt + hash, never the password\n\nprint(\"wrong:\", hmac.compare_digest(hash_pw(\"wrong\", salt), stored))\nprint(\"right:\", hmac.compare_digest(hash_pw(\"s3cret!\", salt), stored))",
+  "output": "wrong: False\nright: True"
+ },
+ {
+  "q": "How do you connect FastAPI to a database?",
+  "level": "Advanced",
+  "a": "I open the connection (or SQLAlchemy engine) once when the app starts and use it inside the routes. In real projects I usually use SQLAlchemy or SQLModel with a session per request from a yield dependency, PostgreSQL, and Alembic for migrations. This example uses Python's built-in sqlite3 so it runs anywhere; check_same_thread=False is needed only for SQLite because FastAPI may use different threads. I always pass values as ? parameters, never with string formatting, to avoid SQL injection.",
+  "code": "import sqlite3\nfrom fastapi import FastAPI\n\napp = FastAPI()\ndb = sqlite3.connect(\"shop.db\", check_same_thread=False)\ndb.execute(\"CREATE TABLE IF NOT EXISTS heroes (name TEXT)\")\n\n@app.post(\"/heroes\")\ndef add_hero(name: str):\n    db.execute(\"INSERT INTO heroes VALUES (?)\", (name,))\n    return db.execute(\"SELECT name FROM heroes\").fetchall()",
+  "output": "POST /heroes?name=Spider-Man\n→ 200 OK\n[[\"Spider-Man\"]]\n\nPOST /heroes?name=Iron Man\n→ 200 OK\n[[\"Spider-Man\"], [\"Iron Man\"]]"
+ },
+ {
+  "q": "How do you use async SQLAlchemy with FastAPI?",
+  "level": "Advanced",
+  "a": "I create an engine with create_async_engine and an async driver, like asyncpg for PostgreSQL, and an async_sessionmaker. A yield dependency gives each request its own AsyncSession, and in async def routes I await session.execute or session.get and session.commit. Two gotchas: lazy-loading a relationship after the query raises an error in async mode, so I load relationships eagerly with selectinload, and I set expire_on_commit=False so objects are still usable after commit.",
+  "code": "from fastapi import Depends, FastAPI\nfrom sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine\n\nengine = create_async_engine(\"postgresql+asyncpg://app:secret@db/shop\")\nSessionLocal = async_sessionmaker(engine, expire_on_commit=False)\napp = FastAPI()\n\nasync def get_session():\n    async with SessionLocal() as session:\n        yield session\n\n@app.get(\"/users/{user_id}\")\nasync def get_user(user_id: int, session: AsyncSession = Depends(get_session)):\n    return await session.get(User, user_id)  # User = your ORM model",
+  "output": "Not run here (needs PostgreSQL). What it does:\n- one async engine + connection pool for the whole app\n- one AsyncSession per request, closed after the response\n- await session.get(...) frees the event loop while the DB works\n- relationships: use selectinload(...), lazy loading raises in async"
+ },
+ {
+  "q": "How do you manage database schema changes with Alembic?",
+  "level": "Advanced",
+  "a": "Alembic is the migration tool for SQLAlchemy: each schema change is a versioned Python script with an upgrade and a downgrade, committed to git with the code. I change my models, run alembic revision --autogenerate, and always review the generated script, because autogenerate can miss renames and treat them as drop plus add. Then alembic upgrade head runs in the deploy pipeline before the new app version starts, and for zero downtime I make changes backward compatible, like adding a nullable column first and backfilling later.",
+  "code": "# after changing a model (e.g. add User.phone)\nalembic revision --autogenerate -m \"add phone to users\"\nalembic upgrade head      # apply all new migrations\nalembic downgrade -1      # roll back the last one\n\n# migrations/versions/3f2a_add_phone_to_users.py (generated: review it!)\ndef upgrade():\n    op.add_column(\"users\", sa.Column(\"phone\", sa.String(20), nullable=True))\n\ndef downgrade():\n    op.drop_column(\"users\", \"phone\")",
+  "output": "Workflow (illustrative, not a recorded run):\n1. change the SQLAlchemy model\n2. autogenerate a migration script and review it\n3. commit it with the code change\n4. CI/CD runs `alembic upgrade head` before the new version starts\n5. the alembic_version table records which revision the DB is on"
+ },
+ {
+  "q": "What are lifespan events (startup and shutdown)?",
+  "level": "Advanced",
+  "a": "Lifespan is an async context manager I pass to FastAPI(lifespan=...). Code before yield runs once at startup, like loading an ML model, creating a DB pool, or an HTTP client, and code after yield runs at shutdown to clean up. It replaces the older @app.on_event(\"startup\") style. I store shared objects on app.state so routes can use them.",
+  "code": "from contextlib import asynccontextmanager\nfrom fastapi import FastAPI\n\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    print(\"startup: load model, open DB pool\")\n    yield\n    print(\"shutdown: close connections\")\n\napp = FastAPI(lifespan=lifespan)\n\n@app.get(\"/\")\ndef home():\n    return {\"status\": \"ready\"}",
+  "output": "GET /\n→ 200 OK\n{\"status\": \"ready\"}\n\nServer console:\nstartup: load model, open DB pool\nshutdown: close connections"
+ },
+ {
+  "q": "How do you test a FastAPI app?",
+  "level": "Advanced",
+  "a": "I use TestClient, which calls the app directly without starting a server, together with pytest. I check the status code and the JSON body for both success and error cases. For dependencies like the database or current user, I use app.dependency_overrides to swap in a fake. For async tests with an async DB, I use httpx.AsyncClient with pytest-anyio or pytest-asyncio.",
+  "code": "from fastapi.testclient import TestClient\nfrom main import app  # the app under test\n\nclient = TestClient(app)\n\ndef test_read_item():\n    response = client.get(\"/items/1\")\n    assert response.status_code == 200\n    assert response.json() == {\"id\": 1, \"name\": \"pen\"}\n\ndef test_item_not_found():\n    assert client.get(\"/items/99\").status_code == 404",
+  "output": "$ pytest -q\n..                                                                       [100%]\n2 passed in 0.18s"
+ },
+ {
+  "q": "How do you mock dependencies in tests with dependency_overrides?",
+  "level": "Advanced",
+  "a": "app.dependency_overrides is a dict where the key is the real dependency function and the value is a fake one. FastAPI then calls my fake instead, everywhere that dependency is used, so I can test routes without a real login or database. I always clear the overrides after each test (here at the end of the test, or in a fixture), so one test doesn't affect another. The same trick works for swapping a real database for a test SQLite database.",
+  "code": "# test_main.py   (main.py has get_current_user and /me)\nfrom fastapi.testclient import TestClient\nfrom main import app, get_current_user\n\nclient = TestClient(app)\n\ndef test_me_with_fake_user():\n    app.dependency_overrides[get_current_user] = lambda: {\"name\": \"anu\"}\n    assert client.get(\"/me\").json() == {\"name\": \"anu\"}\n    app.dependency_overrides.clear()  # don't leak into other tests",
+  "output": "$ pytest -q\n.                                                                        [100%]\n1 passed in 0.17s"
+ },
+ {
+  "q": "How do WebSockets work in FastAPI?",
+  "level": "Advanced",
+  "a": "A WebSocket keeps one connection open so the server and client can both send messages any time, which is good for chat, live notifications, or dashboards. I use @app.websocket, accept the connection, and then loop over incoming messages with async for, which ends cleanly when the client leaves (with a while True loop I'd catch WebSocketDisconnect instead). For many users across several servers I'd use something like Redis pub/sub to broadcast.",
+  "code": "from fastapi import FastAPI, WebSocket\n\napp = FastAPI()\n\n@app.websocket(\"/ws/chat\")\nasync def chat(websocket: WebSocket):\n    await websocket.accept()\n    async for message in websocket.iter_text():  # ends when the client leaves\n        await websocket.send_text(f\"You said: {message}\")",
+  "output": "WS connect /ws/chat\n→ hi\n← You said: hi"
+ },
+ {
+  "q": "What response types can you return besides JSON?",
+  "level": "Advanced",
+  "a": "By default FastAPI returns JSON, but I can return other response classes. HTMLResponse and PlainTextResponse send HTML or text, RedirectResponse sends the client to another URL, JSONResponse lets me set a custom status or headers, StreamingResponse sends data in chunks, which is good for big files or AI token streaming, and FileResponse sends a file.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.responses import HTMLResponse, RedirectResponse\n\napp = FastAPI()\n\n@app.get(\"/page\", response_class=HTMLResponse)\ndef page():\n    return \"<h1>Hello</h1>\"\n\n@app.get(\"/old-page\")\ndef old_page():\n    return RedirectResponse(\"/page\")",
+  "output": "GET /page\n→ 200 OK\ncontent-type: text/html; charset=utf-8\n<h1>Hello</h1>\n\nGET /old-page\n→ 307 Temporary Redirect\nlocation: /page"
+ },
+ {
+  "q": "How do you stream a large CSV export?",
+  "level": "Advanced",
+  "a": "Instead of building the whole file in memory, I return a StreamingResponse with a generator that yields a few rows at a time, so memory stays flat even for millions of rows and the download starts immediately. I set media_type to text/csv, plus a Content-Disposition header so the browser saves it as a file. With a database I iterate a server-side cursor in batches; for very slow exports I'd generate the file in a background job and send a download link instead.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.responses import StreamingResponse\n\napp = FastAPI()\n\ndef csv_rows():  # real app: read from a DB cursor in batches\n    yield \"id,product\\n\"\n    for i in range(1, 4):\n        yield f\"{i},item-{i}\\n\"\n\n@app.get(\"/export.csv\")\ndef export():\n    disposition = {\"Content-Disposition\": \"attachment; filename=orders.csv\"}\n    return StreamingResponse(csv_rows(), media_type=\"text/csv\", headers=disposition)",
+  "output": "GET /export.csv\n→ 200 OK\ncontent-type: text/csv; charset=utf-8\ncontent-disposition: attachment; filename=orders.csv\nid,product\n1,item-1\n2,item-2\n3,item-3"
+ },
+ {
+  "q": "How do you send Server-Sent Events (SSE)?",
+  "level": "Advanced",
+  "a": "SSE is a one-way stream from server to browser over a normal HTTP response with the text/event-stream type, and the browser reads it with new EventSource(url), which also reconnects automatically. It's simpler than WebSockets when only the server pushes, like order status updates or AI tokens. In recent FastAPI I set response_class=EventSourceResponse and yield ServerSentEvent objects, and FastAPI writes the event: and data: lines for me.",
+  "code": "from fastapi import FastAPI\nfrom fastapi.sse import EventSourceResponse, ServerSentEvent\n\napp = FastAPI()\n\n@app.get(\"/orders/{order_id}/events\", response_class=EventSourceResponse)\nasync def order_events(order_id: int):\n    for status in [\"placed\", \"packed\", \"shipped\"]:\n        yield ServerSentEvent(event=\"status\", data={\"status\": status})",
+  "output": "GET /orders/7/events\n→ 200 OK\ncontent-type: text/event-stream; charset=utf-8\nevent: status\ndata: {\"status\": \"placed\"}\n\nevent: status\ndata: {\"status\": \"packed\"}\n\nevent: status\ndata: {\"status\": \"shipped\"}"
+ },
+ {
+  "q": "How do you implement pagination?",
+  "level": "Advanced",
+  "a": "I accept page and size (or limit and offset) as query parameters with limits, like size between 1 and 100, so nobody can ask for a million rows. I return the items plus metadata like total and page so the frontend can build page buttons. With a database I use OFFSET and LIMIT, or cursor-based pagination for very large tables because it stays fast.",
+  "code": "from fastapi import FastAPI, Query\n\napp = FastAPI()\nITEMS = [f\"item-{i}\" for i in range(1, 24)]  # 23 items\n\n@app.get(\"/items\")\ndef list_items(page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):\n    start = (page - 1) * size\n    return {\"page\": page, \"total\": len(ITEMS),\n            \"items\": ITEMS[start:start + size]}",
+  "output": "GET /items?page=3&size=10\n→ 200 OK\n{\n  \"page\": 3,\n  \"total\": 23,\n  \"items\": [\n    \"item-21\",\n    \"item-22\",\n    \"item-23\"\n  ]\n}\n\nGET /items?size=500\n→ 422 Unprocessable Content\n{\n  \"detail\": [\n    {\n      \"type\": \"less_than_equal\",\n      \"loc\": [\n        \"query\",\n        \"size\"\n      ],\n      \"msg\": \"Input should be less than or equal to 100\",\n      \"input\": \"500\",\n      \"ctx\": {\n        \"le\": 100\n      }\n    }\n  ]\n}"
+ },
+ {
+  "q": "How do you version an API?",
+  "level": "Advanced",
+  "a": "The simplest way is URL versioning, where the version is part of the path, like /v1 and /v2; in a bigger app I put each version in its own APIRouter with that prefix. Old clients keep using v1 while new clients move to v2, and I only remove v1 after announcing a deprecation date. Other options are a header or a query parameter, but URL versioning is the easiest to see and test.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/v1/users/{user_id}\")\ndef get_user_v1(user_id: int):\n    return {\"id\": user_id, \"name\": \"Anu Thomas\"}\n\n@app.get(\"/v2/users/{user_id}\")\ndef get_user_v2(user_id: int):\n    return {\"id\": user_id, \"first_name\": \"Anu\", \"last_name\": \"Thomas\"}",
+  "output": "GET /v1/users/1\n→ 200 OK\n{\"id\": 1, \"name\": \"Anu Thomas\"}\n\nGET /v2/users/1\n→ 200 OK\n{\"id\": 1, \"first_name\": \"Anu\", \"last_name\": \"Thomas\"}"
+ },
+ {
+  "q": "How would you structure a large FastAPI app with routers, services and repositories?",
+  "level": "Advanced",
+  "a": "I split it into layers: routers handle only HTTP (parsing input, status codes), services hold the business rules, and repositories are the only code that talks to the database. Dependencies wire them together, so in tests I can override the service or the repository with a fake. Here it's one file to keep it runnable, but in a real project each class lives in its own module inside a feature package like app/users/.",
+  "code": "from fastapi import APIRouter, Depends, FastAPI\n\nclass UserRepo:  # repository: the only code that talks to the DB\n    def get(self, user_id: int):\n        return {\"id\": user_id, \"email\": \"ANU@X.COM\"}\n\nclass UserService:  # service: business rules\n    def __init__(self, repo: UserRepo = Depends()):\n        self.repo = repo\n\n    def get_user(self, user_id: int):\n        user = self.repo.get(user_id)\n        return user | {\"email\": user[\"email\"].lower()}\n\nrouter = APIRouter(prefix=\"/users\")  # router: HTTP only\n\n@router.get(\"/{user_id}\")\ndef get_user(user_id: int, service: UserService = Depends()):\n    return service.get_user(user_id)\n\napp = FastAPI()\napp.include_router(router)",
+  "output": "GET /users/1\n→ 200 OK\n{\"id\": 1, \"email\": \"anu@x.com\"}"
+ },
+ {
+  "q": "How would you add rate limiting?",
+  "level": "Advanced",
+  "a": "Rate limiting stops one client from sending too many requests, and the server answers 429 Too Many Requests when the limit is hit. The idea is to count requests per client (IP, API key, or user) in a time window. This simple version keeps counts in memory without a time window and works only for one process; in production I'd store the counts in Redis with an expiry or use a library like slowapi, or do it at the gateway like Nginx or a cloud API gateway.",
+  "code": "from fastapi import FastAPI, HTTPException, Request\n\napp = FastAPI()\nhits = {}  # client IP -> count (real app: Redis with expiry)\n\n@app.get(\"/search\")\ndef search(q: str, request: Request):\n    ip = request.client.host\n    hits[ip] = hits.get(ip, 0) + 1\n    if hits[ip] > 2:  # limit: 2 requests\n        raise HTTPException(429, \"Too many requests\")\n    return {\"results\": [q]}",
+  "output": "GET /search?q=a\n→ 200 OK\n{\"results\": [\"a\"]}\n\nGET /search?q=b\n→ 200 OK\n{\"results\": [\"b\"]}\n\nGET /search?q=c\n→ 429 Too Many Requests\n{\"detail\": \"Too many requests\"}"
+ },
+ {
+  "q": "How do you add health check endpoints?",
+  "level": "Advanced",
+  "a": "I usually add two: a liveness check that only says the process is running, and a readiness check that also verifies dependencies like the database or Redis. Kubernetes or a load balancer calls them, restarting the pod if liveness fails and stopping traffic if readiness fails. Readiness returns 503 when something is down, so tools can react to the status code without parsing the body. I keep them fast and hide them from the public docs.",
+  "code": "from fastapi import FastAPI, Response\n\napp = FastAPI()\nDB_UP = False  # real app: run \"SELECT 1\"\n\n@app.get(\"/health/live\")\ndef live():\n    return {\"status\": \"ok\"}\n\n@app.get(\"/health/ready\")\ndef ready(response: Response):\n    response.status_code = 200 if DB_UP else 503\n    return {\"database\": DB_UP}",
+  "output": "GET /health/live\n→ 200 OK\n{\"status\": \"ok\"}\n\nGET /health/ready\n→ 503 Service Unavailable\n{\"database\": false}"
+ },
+ {
+  "q": "How do you add observability: logging, metrics and tracing?",
+  "level": "Advanced",
+  "a": "Logs tell me what happened, metrics tell me how much and how fast, and traces show one request's path across services. I log in JSON with a request ID (here a middleware writes one JSON line per request), expose a /metrics endpoint that Prometheus scrapes (usually via prometheus-fastapi-instrumentator), and add OpenTelemetry to trace calls to the database and other APIs. One tip: label logs and metrics with the route template like /items/{item_id}, not the real URL, otherwise every ID creates a new time series.",
+  "code": "import json\nfrom fastapi import FastAPI, Request\n\napp = FastAPI()\n\n@app.middleware(\"http\")\nasync def log_json(request: Request, call_next):\n    response = await call_next(request)\n    route = request.scope[\"route\"].path  # template, not the real URL\n    print(json.dumps({\"route\": route, \"status\": response.status_code}))\n    return response\n\n@app.get(\"/items/{item_id}\")\ndef get_item(item_id: int):\n    return {\"id\": item_id}",
+  "output": "GET /items/1\n→ 200 OK\n{\"id\": 1}\n\nGET /items/2\n→ 200 OK\n{\"id\": 2}\n\nServer console:\n{\"route\": \"/items/{item_id}\", \"status\": 200}\n{\"route\": \"/items/{item_id}\", \"status\": 200}"
+ },
+ {
+  "q": "What is an ETag and how do you use it for caching?",
+  "level": "Advanced",
+  "a": "An ETag is a short fingerprint of a response, usually a hash of the data. The client sends it back in the If-None-Match header next time, and if the data hasn't changed I return 304 Not Modified with no body, which saves bandwidth. The browser or app then uses its cached copy. ETags can also prevent lost updates, by having clients send If-Match on PUT and returning 412 if the data changed meanwhile.",
+  "code": "from fastapi import FastAPI, Request, Response\n\napp = FastAPI()\nETAG = '\"v1\"'  # real app: a hash of the data\n\n@app.get(\"/product\")\ndef get_product(request: Request, response: Response):\n    if request.headers.get(\"if-none-match\") == ETAG:\n        return Response(status_code=304)\n    response.headers[\"ETag\"] = ETAG\n    return {\"id\": 1, \"name\": \"Pen\"}",
+  "output": "GET /product\n→ 200 OK\netag: \"v1\"\n{\"id\": 1, \"name\": \"Pen\"}\n\nGET /product\nIf-None-Match: \"v1\"\n→ 304 Not Modified\n(empty body: the client uses its cached copy)"
+ },
+ {
+  "q": "How do you make a POST request idempotent?",
+  "level": "Advanced",
+  "a": "GET, PUT and DELETE are naturally idempotent, but POST is not, so if a client retries a payment after a timeout it could be charged twice. I ask the client to send a unique Idempotency-Key header per operation and store the result under that key. If the same key comes again, I return the saved result instead of doing the work again, which you can see in the console here. In production I keep the keys in Redis or the database with an expiry.",
+  "code": "from fastapi import Body, FastAPI, Header\n\napp = FastAPI()\nprocessed = {}  # real app: Redis/DB with expiry\n\n@app.post(\"/payments\")\ndef pay(amount: int = Body(embed=True), idempotency_key: str = Header()):\n    if idempotency_key not in processed:\n        print(f\"charging {amount}\")\n        processed[idempotency_key] = {\"payment_id\": len(processed) + 1}\n    return processed[idempotency_key]",
+  "output": "POST /payments\nIdempotency-Key: k-1\n{\"amount\": 500}\n→ 200 OK\n{\"payment_id\": 1}\n\nPOST /payments\nIdempotency-Key: k-1\n{\"amount\": 500}\n→ 200 OK\n{\"payment_id\": 1}\n\nServer console:\ncharging 500"
+ },
+ {
+  "q": "When would you use Celery or ARQ instead of BackgroundTasks?",
+  "level": "Advanced",
+  "a": "BackgroundTasks runs in the same process right after the response, so it's fine for quick things like a log line, but the job is lost if the server restarts and there are no retries. For heavy or important work, like generating reports, sending bulk emails or calling slow third-party APIs, I push a job to a queue (Redis or RabbitMQ) and separate worker processes run it with retries, scheduling and monitoring. Celery is the mature choice for sync code, and ARQ is a lighter asyncio-native option. The endpoint just returns 202 Accepted with a job ID that the client can poll.",
+  "code": "from celery import Celery  # tasks.py: runs in a separate worker process\ncelery = Celery(\"shop\", broker=\"redis://redis:6379/0\")\n\n@celery.task(max_retries=3)\ndef build_report(user_id: int):\n    ...  # slow work\n\n# main.py (FastAPI)\n@app.post(\"/reports\", status_code=202)\ndef create_report(user_id: int):\n    job = build_report.delay(user_id)  # only enqueues, returns at once\n    return {\"job_id\": job.id, \"status\": \"queued\"}",
+  "output": "How it flows (illustrative, needs Redis and a worker):\nPOST /reports  -> 202 {\"job_id\": \"<id>\", \"status\": \"queued\"}\nworker         -> picks the job from Redis and runs build_report\nclient         -> polls the job ID until it is SUCCESS\nif the worker crashes, the job stays in the queue and is retried"
+ },
+ {
+  "q": "How do you deploy a FastAPI app?",
+  "level": "Advanced",
+  "a": "I package it in a Docker image and run it with Uvicorn, or with Gunicorn managing several Uvicorn workers to use all CPU cores. A common rule is about (2 x CPU cores) + 1 workers, but on Kubernetes I often run one worker per container and scale with more pods. I put it behind a reverse proxy or load balancer like Nginx for HTTPS, and I turn off --reload in production.",
+  "code": "# Dockerfile\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY ./app ./app\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\", \"--workers\", \"4\"]\n\n# docker build -t shop-api . && docker run -p 8000:8000 shop-api",
+  "output": "What happens:\n1. docker build creates an image with Python, your deps and code.\n2. docker run starts the container and maps port 8000.\n3. Uvicorn starts 4 worker processes that share the port.\n\nThe API is then reachable at http://<server>:8000\nand docs at http://<server>:8000/docs"
+ },
+ {
+  "q": "How do you make a FastAPI app faster?",
+  "level": "Advanced",
+  "a": "First I make sure I never block the event loop: async libraries inside async def, and plain def for blocking code. I reuse expensive objects like DB connection pools and HTTP clients by creating them once in lifespan, and I use caching (for example Redis) for data that doesn't change often, like in this example. I also add database indexes, avoid N+1 queries, paginate large lists, move slow jobs to a background worker, and run multiple workers. And I always measure with profiling before optimizing.",
+  "code": "from fastapi import FastAPI\n\napp = FastAPI()\ncache = {}  # real app: Redis\n\n@app.get(\"/weather/{city}\")\nasync def weather(city: str):\n    if city in cache:\n        return {\"source\": \"cache\", **cache[city]}\n    cache[city] = {\"city\": city, \"temp\": 31}  # real app: slow API call\n    return {\"source\": \"api\", **cache[city]}",
+  "output": "GET /weather/kochi\n→ 200 OK\n{\"source\": \"api\", \"city\": \"kochi\", \"temp\": 31}\n\nGET /weather/kochi\n→ 200 OK\n{\"source\": \"cache\", \"city\": \"kochi\", \"temp\": 31}"
+ }
+]

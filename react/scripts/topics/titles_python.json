@@ -1,0 +1,502 @@
+[
+ {
+  "title": "What is Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the built-in data types in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between mutable and immutable objects?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between list, tuple, set and dict?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add, update and remove items in a list?",
+  "level": "Basics"
+ },
+ {
+  "title": "What other list methods do you use often?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you change a tuple if it is immutable?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add and remove items in a set, and what are set operations?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add, update and remove items in a dictionary?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you loop over a dictionary?",
+  "level": "Basics"
+ },
+ {
+  "title": "Strings are immutable, so how do you change one?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does string slicing work, and what are common string methods?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are f-strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does indexing and negative indexing work in a list?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do if/elif/else and loops work in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does range() work?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do functions and default arguments work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are *args and **kwargs?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between 'is' and '=='?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is None in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are truthy and falsy values?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does type conversion work in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do print() and input() work?",
+  "level": "Basics"
+ },
+ {
+  "title": "Which string methods do you use to check and clean text?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does list slicing with a step work, and how do you reverse a list?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create and work with nested (2D) lists?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you swap variables and unpack tuples?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do //, %, ** and round() work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the else clause on for and while loops?",
+  "level": "Basics"
+ },
+ {
+  "title": "Which built-in functions do you use most often?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you merge dictionaries, and when do you use get, setdefault or defaultdict?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between set and frozenset?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the rules for naming variables in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between comments and docstrings?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is operator precedence in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does the 'in' operator work for different types?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do and, or and not work, and what is short-circuiting?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you work with file paths using pathlib?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are list, dict and set comprehensions?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a lambda function?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are map(), filter() and reduce()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do zip() and enumerate() do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you sort with sorted() and a key?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between a shallow copy and a deep copy?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the mutable default argument pitfall?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is scope in Python, the LEGB rule, and global/nonlocal?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does exception handling work (try/except/else/finally) and how do you create a custom exception?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the with statement and a context manager?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you read and write files in Python?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are modules and what does if __name__ == \"__main__\" mean?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are Counter, defaultdict, namedtuple and deque from collections?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are the most useful functions in itertools?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do functools.lru_cache and partial do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you work with JSON in Python?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you work with dates and times using datetime?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you use regular expressions with the re module?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Why is a generator expression more memory-efficient than a list comprehension?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you raise exceptions, and what does 'raise from' do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Why use the logging module instead of print?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is recursion, and what is the recursion limit?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are keyword-only and positional-only parameters?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you use heapq for a priority queue?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are OrderedDict and ChainMap from collections?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does the format specification mini-language work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a data pipeline with generators?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is an Enum and when do you use it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you use Optional, Union, TypedDict and Protocol from typing?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do classes and __init__ work, and what is self?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do inheritance and super() work?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between instance, class and static methods?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are dunder methods like __str__, __repr__, __len__ and __eq__?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does @property do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a decorator, and how do you write one with arguments?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a generator, and what is the difference between yield and return?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is an iterator, and how is it different from an iterable?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a closure?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the GIL, and when do you use threading vs multiprocessing vs asyncio?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do async and await work with asyncio?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are type hints?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a dataclass?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does * and ** unpacking work?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the walrus operator (:=)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between class attributes and instance attributes?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does multiple inheritance work, and what is the MRO?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are abstract base classes (abc)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does operator overloading work in Python?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is __slots__ and when would you use it?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does writing 'Pythonic' code mean, and what is PEP 8?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a metaclass?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are descriptors in Python?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between __getattr__ and __getattribute__?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does __call__ do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you limit concurrency and add timeouts in asyncio?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does Python manage memory: reference counting, garbage collection and weakref?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you write unit tests with unittest and mock dependencies?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Coding: Reverse a string",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Check if a string is a palindrome",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Check if two strings are anagrams",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Count each character in a string",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: FizzBuzz",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Fibonacci series",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Find duplicates in a list",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Two Sum",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Flatten a nested list",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Remove duplicates while keeping order",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Find the second largest number",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Word frequency in a sentence",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Merge two sorted lists",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Binary search",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Bubble sort",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Find the missing number from 1 to n",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Maximum subarray sum (Kadane's algorithm)",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Valid parentheses",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Transpose a matrix",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Check if a number is prime",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Reverse the words in a sentence",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Count the vowels in a string",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Factorial (iterative and recursive)",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Find the longest word in a sentence",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Rotate a list by k positions",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Print a matrix in spiral order",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Merge overlapping intervals",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Longest common prefix",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Group anagrams",
+  "level": "Coding round"
+ },
+ {
+  "title": "Coding: Implement an LRU cache",
+  "level": "Coding round"
+ }
+]

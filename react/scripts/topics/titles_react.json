@@ -1,0 +1,470 @@
+[
+ {
+  "title": "What is React?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the Virtual DOM?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is JSX?",
+  "level": "Basics"
+ },
+ {
+  "title": "Function components vs class components?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are props?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is state?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between props and state?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you render lists, and why do keys matter?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you do conditional rendering?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you handle events in React?",
+  "level": "Basics"
+ },
+ {
+  "title": "Controlled vs uncontrolled inputs?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you handle forms?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is lifting state up?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the children prop?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are Fragments?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add, remove, update and toggle items in array state? (todo list)",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you update nested object state?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you handle multiple inputs with one onChange handler?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you do form validation with error messages?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you control a select, checkbox and radio buttons?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does a child send data to its parent?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you destructure props and set default values?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add conditional classes and styles?",
+  "level": "Basics"
+ },
+ {
+  "title": "Inline styles vs CSS Modules vs Tailwind: which do you use?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you type-check props? PropTypes vs TypeScript",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a component tree, and what does one-way data flow mean?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does React render? Render phase vs commit phase",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the rules of JSX?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you pass arguments to an event handler?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a SyntheticEvent? e.target vs e.currentTarget and stopPropagation",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you render nothing, and why does {count && ...} show a 0?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you import images and other static assets in a Vite React app?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you organise the folder structure of a React project?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are hooks in React, and what types of hooks are there?",
+  "level": "Basics"
+ },
+ {
+  "title": "What built-in hooks does React have?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create a simple custom hook to toggle open and close?",
+  "level": "Basics"
+ },
+ {
+  "title": "useState and functional updates",
+  "level": "Intermediate"
+ },
+ {
+  "title": "useEffect: dependency array and cleanup",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is useRef used for?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is useMemo?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is useCallback?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the Context API / useContext?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is useReducer?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a custom hook?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are the rules of hooks?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a lazy initializer in useState?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Derived state vs duplicated state",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are common useEffect mistakes?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the stale closure problem with setInterval?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "useLayoutEffect vs useEffect?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is useId?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are useTransition and useDeferredValue?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you pass a ref to a child? forwardRef vs ref as a prop (React 19)",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is useImperativeHandle?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you cancel a fetch in useEffect with AbortController?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you write a useLocalStorage custom hook?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you close a dropdown when the user clicks outside? (useOnClickOutside)",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a textarea with a character counter?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build dependent dropdowns (country and city)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you paginate a list?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a list with search, filter and sort?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build an accessible modal that closes on Escape and manages focus?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a stopwatch with start, stop and reset?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a global store with Context and useReducer?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "If useState can do everything, why do we need useReducer?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "When should you use useCallback (and when not)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "useEffect vs useCallback: what is the difference?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you validate inputs: real-time, on blur, or on submit?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is React Hook Form and why use it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "When does a component re-render?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is React.memo?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do lifecycle methods map to hooks?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are error boundaries?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is lazy loading with React.lazy and Suspense?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are portals?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Why do effects run twice in StrictMode?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Why should state be immutable? How do you update arrays and objects?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is batching in React?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is reconciliation and how does the key prop affect it?",
+  "level": "Advanced"
+ },
+ {
+  "title": "HOCs vs custom hooks?",
+  "level": "Advanced"
+ },
+ {
+  "title": "React Router basics",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you fetch data in useEffect with loading and error states?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you build a debounced search input?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Why is using the index as a key a problem when reordering a list?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Actions and useActionState in React 19?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is useOptimistic?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Server Components vs Client Components?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the compound components pattern?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the render props pattern?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Context vs Redux vs Zustand: how do you choose state management?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is Redux and what are store, actions and reducers?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is Redux Toolkit and why use it instead of plain Redux?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you use createSlice, configureStore, useSelector and useDispatch?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does Redux Toolkit let you \"mutate\" state in reducers?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you handle async logic with createAsyncThunk?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between client state and server state?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is RTK Query and how do you define an API with createApi?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does RTK Query caching and invalidation work (providesTags / invalidatesTags)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is React Query (TanStack Query) and how does useQuery work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you update data with useMutation and invalidateQueries in React Query?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are staleTime and gcTime (cacheTime) in React Query?",
+  "level": "Advanced"
+ },
+ {
+  "title": "React Query vs RTK Query vs Redux: when do you use which?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you optimize performance in a React app?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you test React components with React Testing Library?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the use() API in React 19, and how does Suspense work for data?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Server Actions (Server Functions)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "CSR vs SSR vs SSG: what is hydration?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Next.js vs Vite: when would you choose each?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is concurrent rendering (and React Fiber)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Why does React.memo sometimes not help? (inline objects and functions)",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you make React components accessible?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does React protect against XSS, and when is dangerouslySetInnerHTML risky?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do environment variables work in Vite?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Coding task: build a counter with undo and redo",
+  "level": "Advanced"
+ },
+ {
+  "title": "Coding task: todo list with All / Active / Completed filters",
+  "level": "Advanced"
+ },
+ {
+  "title": "Coding task: build a star rating component",
+  "level": "Advanced"
+ },
+ {
+  "title": "Coding task: build an OTP input with auto-focus and paste",
+  "level": "Advanced"
+ }
+]

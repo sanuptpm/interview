@@ -1,0 +1,234 @@
+[
+ {
+  "title": "What is Docker and why do we use it?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between a container and a virtual machine?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between an image and a container?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the Docker Engine, the daemon and the CLI?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is Docker Hub and what is a registry?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the basic commands to manage images and containers?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do the common docker run flags -d, -p, --name, -e, --rm and -it do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you use docker exec and docker logs?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the basic Dockerfile instructions?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you build an image with docker build -t?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are image tags and how should you version images?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you filter and format the output of docker images and docker ps?",
+  "level": "Basics"
+ },
+ {
+  "title": "What states can a container be in, and how do you move between them?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you copy files between a container and the host with docker cp?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you see live resource usage and processes of running containers?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you see what changed inside a container and how an image was built?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between CMD and ENTRYPOINT?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between COPY and ADD?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between ARG and ENV?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are layers and how does the build cache work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a .dockerignore file?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a multi-stage build? Show a React app built with Node and served by Nginx.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How would you write a multi-stage build for a Python app?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you reduce Docker image size?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between volumes, bind mounts and tmpfs mounts?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you persist database data in Docker?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Explain Docker networking: bridge, host, none and user-defined networks.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does port mapping work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you handle environment variables and secrets?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is Docker Compose? Show a FastAPI + PostgreSQL + React stack.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are the most used docker compose commands?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a healthcheck and why use it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are restart policies?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are Compose profiles and override files?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you get hot reload in development with Docker Compose?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are BuildKit cache mounts and how do they speed up builds?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Alpine vs slim vs distroless base images: what are the trade-offs?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build multi-architecture images with docker buildx?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between named and anonymous volumes, and how do you back up a volume?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Why should containers run as a non-root user?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you scan images for vulnerabilities? What is Docker Scout?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you set resource limits like --memory and --cpus?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is docker inspect used for?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you clean up disk space with docker system prune?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Explain the container lifecycle, PID 1 and graceful shutdown.",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are logging drivers?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you debug a container that exits immediately?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you Dockerize a FastAPI app?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you Dockerize a React (Vite) app for production, including client-side routing?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you use Docker in CI/CD, for example GitHub Actions build and push?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between Docker and Kubernetes? What does orchestration mean?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is Docker Swarm?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What Docker best practices do you follow?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you harden a container at runtime (capabilities, read-only filesystem, seccomp)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is rootless Docker and why would you use it?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are image signing and SBOMs, and why do they matter?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you debug networking between two containers?",
+  "level": "Advanced"
+ },
+ {
+  "title": "As a Docker user, what are the Kubernetes basics: Pods, Deployments and Services?",
+  "level": "Advanced"
+ }
+]

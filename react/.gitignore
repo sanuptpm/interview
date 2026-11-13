@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local Python environment for regenerating example outputs
+scripts/.venv
+scripts/**/work

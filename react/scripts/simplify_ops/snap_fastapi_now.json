@@ -1,0 +1,432 @@
+[
+ {
+  "q": "What is FastAPI and why would you use it over Flask or Django?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "What is ASGI vs WSGI, and what is Uvicorn?",
+  "level": "Basics",
+  "lines": 9
+ },
+ {
+  "q": "How do you create a minimal FastAPI app and run it?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "How would you structure a small FastAPI project?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What happens to a request inside FastAPI, from arrival to response?",
+  "level": "Basics",
+  "lines": 13
+ },
+ {
+  "q": "What automatic documentation does FastAPI give you?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "How do you hide an endpoint from the docs or mark it as deprecated?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "How do path parameters work, and what happens with the wrong type?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "How do you restrict a path parameter to fixed values with an Enum?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "Why does route order matter, for example /users/me vs /users/{user_id}?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "How does FastAPI handle trailing slashes?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "How do query parameters work? How do you make them optional?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "How do you accept a list of values in a query parameter?",
+  "level": "Basics",
+  "lines": 8
+ },
+ {
+  "q": "How are boolean query parameters converted?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "How do you accept a JSON request body?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How do you handle nested JSON with Pydantic models and lists?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How do Optional fields and default values work in a Pydantic model?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "What is response_model and why use it?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "How do you return a list of models and hide empty fields?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How does FastAPI turn return values into JSON, and what is jsonable_encoder?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "How do you use field aliases and response_model_exclude?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How do you set HTTP status codes?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "How do you set custom response headers or change the status code at runtime?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How would you build basic CRUD routes?",
+  "level": "Basics",
+  "lines": 13
+ },
+ {
+  "q": "What is the difference between PUT and PATCH, and how do you do a partial update?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How does FastAPI decide if a parameter is path, query, or body?",
+  "level": "Basics",
+  "lines": 12
+ },
+ {
+  "q": "How do you add validation rules with Pydantic Field?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "What is the Annotated style for parameters, and why is it recommended?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "How do you add filtering, sorting and limit/offset pagination to a list endpoint?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "How do you validate emails and write custom validators?",
+  "level": "Intermediate",
+  "lines": 16
+ },
+ {
+  "q": "How do you validate fields together and add computed fields?",
+  "level": "Intermediate",
+  "lines": 22
+ },
+ {
+  "q": "How do you configure model behavior with model_config?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "What is a 422 error and can you customize it?",
+  "level": "Intermediate",
+  "lines": 13
+ },
+ {
+  "q": "How do you return errors with HTTPException?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "How do you create a custom exception handler?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "How do you document error responses with the responses parameter?",
+  "level": "Intermediate",
+  "lines": 13
+ },
+ {
+  "q": "How do you customize the 404 response for unknown URLs?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "How do you organize a bigger project with APIRouter?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "How do you add OpenAPI tags and metadata to the docs?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "How do you serve static files, send a file download, or mount a sub-application?",
+  "level": "Intermediate",
+  "lines": 14
+ },
+ {
+  "q": "What is dependency injection with Depends?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "How do you apply one dependency to many routes, like an API key check?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "What is a yield dependency and how do you use it for a DB session?",
+  "level": "Intermediate",
+  "lines": 13
+ },
+ {
+  "q": "How do you use a class as a dependency?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "What are sub-dependencies, and is a dependency called twice in one request?",
+  "level": "Intermediate",
+  "lines": 14
+ },
+ {
+  "q": "How do you implement role-based authorization?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "How do you read headers and cookies, and set a cookie?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "When do you use the Request object directly?",
+  "level": "Intermediate",
+  "lines": 8
+ },
+ {
+  "q": "How do you handle form data?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "How do you upload files?",
+  "level": "Intermediate",
+  "lines": 8
+ },
+ {
+  "q": "What are background tasks?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "What is middleware and how do you write one?",
+  "level": "Intermediate",
+  "lines": 13
+ },
+ {
+  "q": "How do you add a request ID to every request?",
+  "level": "Intermediate",
+  "lines": 15
+ },
+ {
+  "q": "How do you compress responses with GZip?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "What is CORS and how do you enable it?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "What do TrustedHostMiddleware and HTTPSRedirectMiddleware do?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "How do you manage settings and environment variables?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "When should you use async def vs def for endpoints?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "What happens if you call blocking code inside async def, and how do you fix it?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "How do you test async endpoints?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "How do you implement authentication with OAuth2 and JWT?",
+  "level": "Advanced",
+  "lines": 14
+ },
+ {
+  "q": "How does a refresh token flow work?",
+  "level": "Advanced",
+  "lines": 13
+ },
+ {
+  "q": "How do OAuth2 scopes work in FastAPI?",
+  "level": "Advanced",
+  "lines": 16
+ },
+ {
+  "q": "When would you use API keys instead of JWT tokens?",
+  "level": "Advanced",
+  "lines": 12
+ },
+ {
+  "q": "How do you store passwords safely?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do you connect FastAPI to a database?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "How do you use async SQLAlchemy with FastAPI?",
+  "level": "Advanced",
+  "lines": 14
+ },
+ {
+  "q": "How do you manage database schema changes with Alembic?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "What are lifespan events (startup and shutdown)?",
+  "level": "Advanced",
+  "lines": 14
+ },
+ {
+  "q": "How do you test a FastAPI app?",
+  "level": "Advanced",
+  "lines": 12
+ },
+ {
+  "q": "How do you mock dependencies in tests with dependency_overrides?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do WebSockets work in FastAPI?",
+  "level": "Advanced",
+  "lines": 9
+ },
+ {
+  "q": "What response types can you return besides JSON?",
+  "level": "Advanced",
+  "lines": 12
+ },
+ {
+  "q": "How do you stream a large CSV export?",
+  "level": "Advanced",
+  "lines": 14
+ },
+ {
+  "q": "How do you send Server-Sent Events (SSE)?",
+  "level": "Advanced",
+  "lines": 9
+ },
+ {
+  "q": "How do you implement pagination?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do you version an API?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "How would you structure a large FastAPI app with routers, services and repositories?",
+  "level": "Advanced",
+  "lines": 22
+ },
+ {
+  "q": "How would you add rate limiting?",
+  "level": "Advanced",
+  "lines": 12
+ },
+ {
+  "q": "How do you add health check endpoints?",
+  "level": "Advanced",
+  "lines": 13
+ },
+ {
+  "q": "How do you add observability: logging, metrics and tracing?",
+  "level": "Advanced",
+  "lines": 15
+ },
+ {
+  "q": "What is an ETag and how do you use it for caching?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "How do you make a POST request idempotent?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "When would you use Celery or ARQ instead of BackgroundTasks?",
+  "level": "Advanced",
+  "lines": 12
+ },
+ {
+  "q": "How do you deploy a FastAPI app?",
+  "level": "Advanced",
+  "lines": 9
+ },
+ {
+  "q": "How do you make a FastAPI app faster?",
+  "level": "Advanced",
+  "lines": 11
+ }
+]

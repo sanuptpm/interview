@@ -80,26 +80,16 @@ typeof function () {} // function`,
   return a + b
 }
 
-function greet(name) {
-  return 'Hello, ' + name
-}
+function noReturn() {}
 
-function noReturn() {
-  const x = 1
-}
-
-add(2, 3)          // 5
-greet('Anu')       // "Hello, Anu"
-noReturn()         // undefined`,
+add(2, 3)      // 5
+noReturn()     // undefined`,
     result: (() => {
       function add(a, b) {
         return a + b
       }
-      function greet(name) {
-        return 'Hello, ' + name
-      }
       function noReturn() {}
-      return { add: add(2, 3), greet: greet('Anu'), noReturn: String(noReturn()) }
+      return { add: add(2, 3), noReturn: String(noReturn()) }
     })(),
   },
   {
@@ -179,23 +169,19 @@ user.email             // undefined (missing key)`,
   },
   {
     title: "How does a switch statement work?",
-    note: "switch compares one value against several case values using strict equality, so the string '1' won't match case 1. When a case matches, the code runs until a break; if I forget break, it falls through into the next case. I use that on purpose to group cases together, and default handles anything that didn't match.",
-    code: "function getRole(code) {\n  let role\n  switch (code) {\n    case 1:\n      role = 'admin'\n      break\n    case 2:\n    case 3:            // 2 and 3 share this code\n      role = 'editor'\n      break\n    default:\n      role = 'guest'\n  }\n  return role\n}\n[1, 2, 3, '1', 9].map(getRole)",
+    note: "switch compares one value against several case values using strict equality, so the string '1' won't match case 1. When a case matches, the code runs until a break or return; if there's neither, it falls through into the next case. I use that on purpose to group cases together, and default handles anything that didn't match.",
+    code: "function getRole(code) {\n  switch (code) {\n    case 1:\n      return 'admin'\n    case 2:\n    case 3:          // falls through: 2 and 3 share this code\n      return 'editor'\n    default:\n      return 'guest'\n  }\n}\n[1, 2, 3, '1', 9].map(getRole)",
     result: (() => {
       function getRole(code) {
-        let role
         switch (code) {
           case 1:
-            role = 'admin'
-            break
+            return 'admin'
           case 2:
           case 3:
-            role = 'editor'
-            break
+            return 'editor'
           default:
-            role = 'guest'
+            return 'guest'
         }
-        return role
       }
       return [1, 2, 3, '1', 9].map(getRole)
     })(),
@@ -203,7 +189,7 @@ user.email             // undefined (missing key)`,
   {
     title: "What are for, while and do-while loops, break and continue?",
     note: "A for loop is best when I know how many times to repeat, and a while loop repeats as long as a condition is true. do-while checks the condition after the body, so it always runs at least once. Inside any loop, continue skips to the next round and break stops the loop completely.",
-    code: "const evens = []\nfor (let i = 1; i <= 10; i++) {\n  if (i % 2 !== 0) continue   // skip odd numbers\n  if (i > 8) break            // stop the loop\n  evens.push(i)\n}\n\nlet n = 3\nconst countdown = []\nwhile (n > 0) {\n  countdown.push(n)\n  n--\n}\n\nlet runs = 0\ndo {\n  runs++\n} while (runs < 0)   // false, but it still runs once",
+    code: "const evens = []\nfor (let i = 1; i <= 10; i++) {\n  if (i % 2 !== 0) continue   // skip odd numbers\n  if (i > 8) break            // stop the loop\n  evens.push(i)\n}\n\nlet n = 3\nwhile (n > 0) n--             // repeats while true\n\nlet runs = 0\ndo { runs++ } while (runs < 0)   // false, but it still runs once",
     result: (() => {
       const evens = []
       for (let i = 1; i <= 10; i++) {
@@ -212,16 +198,12 @@ user.email             // undefined (missing key)`,
         evens.push(i)
       }
       let n = 3
-      const countdown = []
-      while (n > 0) {
-        countdown.push(n)
-        n--
-      }
+      while (n > 0) n--
       let runs = 0
       do {
         runs++
       } while (runs < 0)
-      return { evens, countdown, runs }
+      return { evens, n, runs }
     })(),
   },
   {
@@ -342,23 +324,16 @@ rest`,
     title: "How do you add, update and remove items in an array?",
     note: "Arrays are mutable, so I can change them in place. push adds to the end and unshift to the start; pop removes from the end and shift from the start, and both return the removed item. I update an item by assigning to its index, and splice can remove or insert anywhere. In React state I don't mutate like this; I create a new array with spread, map or filter instead.",
     code: `const nums = [10, 20, 30]
-
-// Add
-nums.push(40)        // end   -> [10, 20, 30, 40]
-nums.unshift(5)      // start -> [5, 10, 20, 30, 40]
-
-// Update
-nums[1] = 11         // change by index
-nums[nums.length - 1] = 99   // change the last item
-
-// Remove
-const last = nums.pop()      // removes 99
-const first = nums.shift()   // removes 5
-nums.splice(1, 1)            // removes 1 item at index 1
+nums.push(40)       // add to end    -> [10, 20, 30, 40]
+nums.unshift(5)     // add to start  -> [5, 10, 20, 30, 40]
+nums[1] = 11        // update by index
+nums.pop()          // remove from end, returns 40
+nums.shift()        // remove from start, returns 5
+nums.splice(1, 1)   // remove 1 item at index 1
+nums                // [11, 30]
 
 // Without mutating (React style)
 const added = [...nums, 50]
-const updated = nums.map((n) => (n === 11 ? 100 : n))
 const removed = nums.filter((n) => n !== 11)`,
     result: (() => {
       const nums = [10, 20, 30]
@@ -366,19 +341,15 @@ const removed = nums.filter((n) => n !== 11)`,
       nums.unshift(5)
       const afterAdd = [...nums]
       nums[1] = 11
-      nums[nums.length - 1] = 99
-      const afterUpdate = [...nums]
       const last = nums.pop()
       const first = nums.shift()
       nums.splice(1, 1)
       return {
         afterAdd,
-        afterUpdate,
         last,
         first,
         afterRemove: nums,
         added: [...nums, 50],
-        updated: nums.map((n) => (n === 11 ? 100 : n)),
         removed: nums.filter((n) => n !== 11),
       }
     })(),
@@ -387,19 +358,15 @@ const removed = nums.filter((n) => n !== 11)`,
     title: "How do you add, update and delete properties in an object?",
     note: "I add or update a property with dot or bracket notation; if the key exists it's updated, otherwise it's added. Brackets are needed when the key is in a variable. I remove a property with the delete operator, and check if it exists with the in operator or hasOwn. In React state, I create a new object with spread instead of changing it.",
     code: `const user = { name: 'Anu', age: 22 }
-
 user.city = 'Kochi'      // add
 user.age = 23            // update
 const key = 'role'
 user[key] = 'dev'        // bracket notation with a variable
 delete user.city         // delete
 
-console.log('city' in user)          // false
-console.log(Object.hasOwn(user, 'role'))  // true
-
-// Without mutating (React style)
-const updated = { ...user, age: 24 }
-const { role, ...withoutRole } = user   // "remove" role`,
+'city' in user                // false
+Object.hasOwn(user, 'role')   // true
+const updated = { ...user, age: 24 }   // React style: a new object`,
     result: (() => {
       const user = { name: 'Anu', age: 22 }
       user.city = 'Kochi'
@@ -407,14 +374,11 @@ const { role, ...withoutRole } = user   // "remove" role`,
       const key = 'role'
       user[key] = 'dev'
       delete user.city
-      const { role, ...withoutRole } = user
       return {
         user,
         hasCity: 'city' in user,
         hasRole: Object.hasOwn(user, 'role'),
-        role,
         updated: { ...user, age: 24 },
-        withoutRole,
       }
     })(),
   },

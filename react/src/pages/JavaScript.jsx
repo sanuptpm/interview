@@ -161,10 +161,10 @@ console.log('IIFE:', fixed.map((f) => f())) // 0, 1, 2`,
   regular() {
     return this.name
   },
-  arrow: () => typeof this,   // no own this
+  arrow: () => this === user,   // no own this
 }
 console.log(user.regular())   // Anu
-console.log(user.arrow())     // undefined: not user`,
+console.log(user.arrow())     // false: this is not user`,
   },
   {
     q: 'What is "this" inside a nested regular function?',
@@ -1177,7 +1177,8 @@ console.log(new Person('Anu').hi())`,
     q: 'Why is "this" lost when you pass a method as a callback? How do you fix it?',
     level: 'Advanced',
     a: "When I pass a method somewhere, like setTimeout(user.greet) or onClick={user.greet}, only the function is passed and the link to the object is lost. So this is undefined in strict mode, or the global object otherwise. I fix it with bind, or by wrapping the call in an arrow function so the method is still called on the object.",
-    code: `const user = {
+    code: `'use strict'
+const user = {
   name: 'Anu',
   greet() { console.log('Hi, ' + this.name) },
 }

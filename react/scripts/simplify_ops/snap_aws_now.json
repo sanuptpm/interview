@@ -1,0 +1,357 @@
+[
+ {
+  "q": "What is cloud computing and what is AWS?",
+  "level": "Basics",
+  "lines": 5
+ },
+ {
+  "q": "What is the difference between IaaS, PaaS and SaaS?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What are Regions, Availability Zones and edge locations?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "What is the AWS shared responsibility model?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "What are the EC2 pricing models: On-Demand, Reserved, Spot and Savings Plans?",
+  "level": "Basics",
+  "lines": 6
+ },
+ {
+  "q": "What is the AWS Free Tier and how do you avoid surprise bills?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What is IAM? Explain users, groups, roles and policies.",
+  "level": "Basics",
+  "lines": 8
+ },
+ {
+  "q": "What does an IAM policy look like, and what is least privilege?",
+  "level": "Basics",
+  "lines": 8
+ },
+ {
+  "q": "What are the best practices for the root account and MFA?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What is EC2? Explain instance types, AMIs and key pairs.",
+  "level": "Basics",
+  "lines": 8
+ },
+ {
+  "q": "What is EC2 user data?",
+  "level": "Basics",
+  "lines": 9
+ },
+ {
+  "q": "What is S3? Explain buckets and objects.",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "What are S3 storage classes and lifecycle rules?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What is S3 versioning?",
+  "level": "Basics",
+  "lines": 7
+ },
+ {
+  "q": "What is a presigned URL?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What is an S3 bucket policy?",
+  "level": "Basics",
+  "lines": 11
+ },
+ {
+  "q": "What is the difference between EBS, EFS and S3?",
+  "level": "Basics",
+  "lines": 9
+ },
+ {
+  "q": "How do you set up the AWS CLI with named profiles?",
+  "level": "Basics",
+  "lines": 8
+ },
+ {
+  "q": "How do you use tags and resource groups?",
+  "level": "Basics",
+  "lines": 10
+ },
+ {
+  "q": "What is a VPC? What is the difference between public and private subnets?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What are route tables, an Internet Gateway and a NAT Gateway?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is a security group, and how is it different from a NACL?",
+  "level": "Intermediate",
+  "lines": 8
+ },
+ {
+  "q": "What is an Elastic Load Balancer? ALB vs NLB?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is an Auto Scaling group?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is Route 53 and what routing policies does it support?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "What is CloudFront?",
+  "level": "Intermediate",
+  "lines": 8
+ },
+ {
+  "q": "When would you choose RDS, Aurora or DynamoDB?",
+  "level": "Intermediate",
+  "lines": 7
+ },
+ {
+  "q": "How do DynamoDB keys work, and what is the difference between Query and Scan?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is ElastiCache and how do you use it?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is AWS Lambda and what can trigger it?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "What is a Lambda cold start, and what are the main Lambda limits?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "What is API Gateway?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is the difference between SQS, SNS and EventBridge?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is CloudWatch? Explain metrics, logs and alarms.",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is CloudTrail?",
+  "level": "Intermediate",
+  "lines": 5
+ },
+ {
+  "q": "What is the difference between Secrets Manager and Parameter Store?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is the difference between ECS, EKS and Fargate?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "What is ECR and how do you push an image to it?",
+  "level": "Intermediate",
+  "lines": 9
+ },
+ {
+  "q": "What is Elastic Beanstalk?",
+  "level": "Intermediate",
+  "lines": 5
+ },
+ {
+  "q": "How would you build an S3 upload -> Lambda -> DynamoDB pipeline?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is AWS Step Functions?",
+  "level": "Intermediate",
+  "lines": 12
+ },
+ {
+  "q": "How do you add sign-up and login with Amazon Cognito user pools?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "What is a Lambda authorizer in API Gateway?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "What are VPC endpoints and when do you need them?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "Bastion host vs SSM Session Manager: how do you access private instances?",
+  "level": "Intermediate",
+  "lines": 7
+ },
+ {
+  "q": "What is the difference between RDS Multi-AZ and read replicas?",
+  "level": "Intermediate",
+  "lines": 7
+ },
+ {
+  "q": "What is the difference between a DynamoDB GSI and LSI?",
+  "level": "Intermediate",
+  "lines": 11
+ },
+ {
+  "q": "What are DynamoDB Streams and how do you use them?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "When would you use Kinesis Data Streams instead of SQS?",
+  "level": "Intermediate",
+  "lines": 10
+ },
+ {
+  "q": "How do you design for high availability and fault tolerance?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "What are the disaster recovery strategies on AWS?",
+  "level": "Advanced",
+  "lines": 9
+ },
+ {
+  "q": "What is the difference between vertical and horizontal scaling?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "What are the pillars of the AWS Well-Architected Framework?",
+  "level": "Advanced",
+  "lines": 9
+ },
+ {
+  "q": "What is infrastructure as code? CloudFormation vs Terraform vs CDK?",
+  "level": "Advanced",
+  "lines": 8
+ },
+ {
+  "q": "How do you set up CI/CD on AWS? (CodePipeline or GitHub Actions with OIDC)",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "How do you deploy a React (Vite) app on AWS?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do you deploy a FastAPI app on AWS?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "How do you optimize costs on AWS?",
+  "level": "Advanced",
+  "lines": 8
+ },
+ {
+  "q": "What are your AWS security best practices? (KMS, WAF, Shield, GuardDuty)",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "Why use an IAM role for EC2 or Lambda instead of access keys?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How does cross-account access with assume-role work?",
+  "level": "Advanced",
+  "lines": 9
+ },
+ {
+  "q": "How do you troubleshoot an EC2 instance that is not reachable?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do you troubleshoot a Lambda timeout?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do you troubleshoot an S3 403 Access Denied error?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "What are AWS Organizations and Service Control Policies (SCPs)?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "How do you design a multi-account strategy (landing zone, Control Tower)?",
+  "level": "Advanced",
+  "lines": 8
+ },
+ {
+  "q": "How do you do blue/green and canary deployments on AWS?",
+  "level": "Advanced",
+  "lines": 10
+ },
+ {
+  "q": "What are Lambda reserved and provisioned concurrency?",
+  "level": "Advanced",
+  "lines": 7
+ },
+ {
+  "q": "How do you trace requests across services with AWS X-Ray?",
+  "level": "Advanced",
+  "lines": 11
+ },
+ {
+  "q": "Design question: how would you build an image-processing pipeline on AWS?",
+  "level": "Advanced",
+  "lines": 12
+ },
+ {
+  "q": "Design question: how would you build a URL shortener on AWS?",
+  "level": "Advanced",
+  "lines": 12
+ }
+]

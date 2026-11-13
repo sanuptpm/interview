@@ -180,6 +180,29 @@ export function snippetToApp(code) {
     }
   })
 
+  // 2b. A loose const that a component or function uses (a Redux slice, fake
+  //     data, a fetcher) must live at module level, not inside the generated
+  //     App. Only plain values move: no hook calls, nothing that reads App state.
+  const hookCall = /(^|[^.\w])use(?:[A-Z]\w*)?\s*\(/
+  const refersTo = (names, text) =>
+    names.some((n) => new RegExp(`(^|[^.\\w])${escapeRe(n)}\\b`).test(text))
+  const plain = items.filter(
+    (i) => i.kind === 'body' && i.names.length && !hookCall.test(stripComments(i.text))
+  )
+  const appNames = items.filter((i) => i.kind === 'body' && !plain.includes(i)).flatMap((i) => i.names)
+  for (let moved = true; moved; ) {
+    moved = false
+    const moduleCode = stripComments(
+      items.filter((i) => ['module', 'default'].includes(i.kind)).map((i) => i.text).join('\n')
+    )
+    for (const item of plain) {
+      if (item.kind !== 'body' || refersTo(appNames, stripComments(item.text))) continue
+      if (!refersTo(item.names, moduleCode)) continue
+      item.kind = 'module'
+      moved = true
+    }
+  }
+
   const live = items.map((i) => i.text).join('\n')
   const liveCode = stripComments(live)
   const hasDefault = items.some((i) => i.kind === 'default' || /\bexport\s+default\b/.test(i.text))

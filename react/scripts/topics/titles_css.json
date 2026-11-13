@@ -1,0 +1,402 @@
+[
+ {
+  "title": "What is CSS and how is a CSS rule written?",
+  "level": "Basics"
+ },
+ {
+  "title": "Inline vs internal vs external CSS?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the universal, type and group selectors?",
+  "level": "Basics"
+ },
+ {
+  "title": "id vs class?",
+  "level": "Basics"
+ },
+ {
+  "title": "Descendant selector vs child selector?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the + and ~ selectors?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is an attribute selector?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you write colors in CSS (hex, rgb, hsl)?",
+  "level": "Basics"
+ },
+ {
+  "title": "px vs em vs rem vs %?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are ch and ex units?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are vh and vw?",
+  "level": "Basics"
+ },
+ {
+  "title": "Which CSS properties do you use to style text?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you set fonts and use web fonts?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the CSS box model?",
+  "level": "Basics"
+ },
+ {
+  "title": "margin vs padding?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does box-sizing: border-box do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a CSS reset, and how is it different from normalize.css?",
+  "level": "Basics"
+ },
+ {
+  "title": "border vs outline?",
+  "level": "Basics"
+ },
+ {
+  "title": "Difference between block, inline and inline-block?",
+  "level": "Basics"
+ },
+ {
+  "title": "display: none vs visibility: hidden?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does the cascade decide which rule wins? When is !important okay?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is specificity?",
+  "level": "Basics"
+ },
+ {
+  "title": "Specificity puzzle: which color wins?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Which properties are inherited?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do inherit, initial, unset and revert do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Pseudo-class vs pseudo-element?",
+  "level": "Basics"
+ },
+ {
+  "title": "What can you do with ::before and ::after?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you style ::selection, ::placeholder and ::marker?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are :hover, :active, :focus and :focus-visible?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are min-width and max-width used for?",
+  "level": "Basics"
+ },
+ {
+  "title": "Explain position: relative, absolute, fixed and sticky.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you center a div?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are place-items and place-content?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "justify-content vs align-items in flexbox?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is CSS Grid? How is it different from Flexbox?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is z-index?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does :nth-child() do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are CSS variables?",
+  "level": "Intermediate"
+ },
+ {
+  "title": ":root vs html selector?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a media query?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "transition vs animation?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "opacity vs rgba()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does overflow do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are scroll-behavior and scroll-snap?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does overscroll-behavior do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is margin collapsing?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does position: sticky work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a fixed header that doesn't cover the content?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does flex-wrap do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does flex: 1 mean?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is grid-template-areas?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build the holy grail layout with grid?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a sticky footer layout?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you make equal-height columns?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you show \"...\" when text is too long?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you center with position and transform?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are float and clear?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is :not()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is clamp()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you write responsive, fluid typography?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do text-wrap: balance and text-wrap: pretty do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is aspect-ratio?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you make a triangle with CSS?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is calc()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the :has() selector?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is currentColor?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you implement dark mode in CSS?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is mobile-first design?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you hide text visually but keep it for screen readers?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you check color contrast and keep styles accessible?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does pointer-events: none do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you fix a parent that collapses around floated children?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is CSS nesting? Do we still need SASS?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is utility-first CSS, like Tailwind?",
+  "level": "Advanced"
+ },
+ {
+  "title": "background-size: cover vs contain?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are linear and radial gradients? Can you use multiple backgrounds?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "box-shadow vs text-shadow vs filter: drop-shadow()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you make a circle with CSS?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do the order and align-self properties do in flexbox?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are flex-basis and flex-shrink?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "auto-fit vs auto-fill in CSS Grid?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you make a grid item span multiple columns or rows?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a stacking context? How does isolation: isolate help?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does object-fit do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do responsive images work with srcset, sizes and picture?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the filter property do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are the transform functions and transform-origin?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Explain animation-iteration-count, direction and fill-mode. What is prefers-reduced-motion?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are container queries?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does display: contents do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are logical properties like margin-inline and padding-block?",
+  "level": "Advanced"
+ },
+ {
+  "title": ":first-child vs :first-of-type?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a toggle with only CSS using :checked?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are CSS counters?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is BEM naming?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you write print styles?",
+  "level": "Advanced"
+ },
+ {
+  "title": "@import vs link, and what is critical CSS?",
+  "level": "Advanced"
+ },
+ {
+  "title": "CSS-in-JS vs CSS Modules?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does will-change do, and why are transform and opacity fast to animate?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Reflow vs repaint: what is layout thrashing?",
+  "level": "Advanced"
+ }
+]

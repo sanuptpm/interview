@@ -1,0 +1,230 @@
+[
+ {
+  "title": "What is JavaScript?",
+  "level": "Basics"
+ },
+ {
+  "title": "What data types does JavaScript have?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you write and call a function?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create arrays and objects and read values from them?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is let?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is const?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do typeof and instanceof work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are comparison and logical operators?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does a switch statement work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are for, while and do-while loops, break and continue?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is an arrow function?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are template literals?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you use escape characters in strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the spread operator with arrays?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the spread operator with objects?",
+  "level": "Basics"
+ },
+ {
+  "title": "What happens when you spread a string?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are rest parameters?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is destructuring?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do default values and rest work in array destructuring?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add, update and remove items in an array?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you add, update and delete properties in an object?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does map do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does filter do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does find do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does findIndex do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do findLast and findLastIndex do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does reduce do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does forEach do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are some and every?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does includes do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does slice do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do at and fill do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does splice do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you sort numbers?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does sort work with strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are toSorted, toReversed and with?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does Array.from do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the common string methods?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are startsWith and endsWith?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do split and join do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does indexOf do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does concat do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does flat do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the common number methods?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are Number.MAX_SAFE_INTEGER and Number.EPSILON?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you format money and numbers with Intl.NumberFormat?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you convert between strings, numbers and arrays?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the common Math methods?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you work with dates?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you format dates with Intl.DateTimeFormat?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are Object.keys, values and entries?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do Object.assign and Object.freeze do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do Object.groupBy and Map.groupBy do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are Set and Map?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are optional chaining and nullish coalescing?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does optional chaining work with function calls and arrays?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the ternary operator?",
+  "level": "Basics"
+ }
+]

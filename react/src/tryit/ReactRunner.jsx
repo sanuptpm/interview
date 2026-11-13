@@ -69,6 +69,11 @@ function ReactRunner({ code, tailwind = false, height = HEIGHT }) {
             'react-dom': '^19.0.0',
             // Extra libraries, only when the example imports them
             ...(code.includes('react-hook-form') && { 'react-hook-form': '7.91.0' }),
+            ...(code.includes('@reduxjs/toolkit') && { '@reduxjs/toolkit': '2.13.0' }),
+            ...((code.includes('react-redux') || code.includes('@reduxjs/toolkit')) && {
+              'react-redux': '9.3.1',
+            }),
+            ...(code.includes('@tanstack/react-query') && { '@tanstack/react-query': '5.105.0' }),
           },
         }}
         options={{

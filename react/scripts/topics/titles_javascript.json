@@ -1,0 +1,522 @@
+[
+ {
+  "title": "Difference between var, let and const?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is hoisting?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Hoisting puzzle: function declarations vs var?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the Temporal Dead Zone (TDZ)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Difference between == and ===?",
+  "level": "Basics"
+ },
+ {
+  "title": "Difference between null and undefined?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the data types in JavaScript?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are truthy and falsy values?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a closure?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "setTimeout inside a loop: var vs let?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Closures in loops: how do you fix the var version without let?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does \"this\" work in arrow vs regular functions?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is \"this\" inside a nested regular function?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Difference between call, apply and bind?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the event loop? Guess the order.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a Promise?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is async / await?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Promise.all vs Promise.race vs Promise.allSettled?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Shallow copy vs deep copy?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "structuredClone vs JSON.parse(JSON.stringify())?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Why is {} === {} false?",
+  "level": "Basics"
+ },
+ {
+  "title": "map vs forEach?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a higher-order function?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is currying?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Currying with variable arguments: sum(1)(2)(3)() and a generic curry?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is debouncing?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is memoization?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Memoize a function with several arguments using a Map.",
+  "level": "Coding round"
+ },
+ {
+  "title": "What is prototype / prototypal inheritance?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Why is 0.1 + 0.2 !== 0.3?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you check for NaN?",
+  "level": "Basics"
+ },
+ {
+  "title": "Remove duplicates from an array?",
+  "level": "Coding round"
+ },
+ {
+  "title": "What is type coercion? Guess the output.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Pass by value vs pass by reference?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "|| vs ?? (nullish coalescing)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are default parameters?",
+  "level": "Basics"
+ },
+ {
+  "title": "const vs Object.freeze?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is an IIFE?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is throttling? How is it different from debouncing?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Implement debounce with a leading option.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write your own version of map (polyfill).",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write polyfills for filter and reduce.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write a polyfill for bind.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write a polyfill for Promise.all.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Flatten a nested array without .flat()?",
+  "level": "Coding round"
+ },
+ {
+  "title": "What are practical uses of flatMap?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Count how many times each item appears?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Group an array of objects by a property?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Sort an array of objects by a property?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Sort an array of objects by multiple keys?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Remove duplicate objects from an array by a key?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Merge two arrays of objects by id?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Find the largest and smallest number in an array?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Check if two strings are anagrams?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Group words that are anagrams of each other.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Find the first non-repeating character?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Count the vowels in a string?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Check if the brackets in a string are balanced?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Factorial and Fibonacci with recursion?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Split an array into chunks?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Two sum: find two numbers that add up to a target?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Rotate an array by k positions?",
+  "level": "Coding round"
+ },
+ {
+  "title": "What are try, catch and finally?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are getters and setters?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a generator function?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are tagged templates?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is event bubbling?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is event delegation?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "preventDefault vs stopPropagation?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "localStorage vs sessionStorage vs cookies?",
+  "level": "Basics"
+ },
+ {
+  "title": "Arrow function vs regular function: what are the differences?",
+  "level": "Basics"
+ },
+ {
+  "title": "Function declaration vs function expression?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is lexical scope and the scope chain?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Global vs function vs block scope?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the call stack? What causes a stack overflow?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a pure function? What are side effects?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is immutability? How do you update nested data without mutating it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does it mean that functions are first-class?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is \"use strict\"?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Map vs plain object?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are private fields and static members in classes?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does the new keyword do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Why is \"this\" lost when you pass a method as a callback? How do you fix it?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does class inheritance work with super?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does method chaining work?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are property descriptors (writable, enumerable, configurable)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Proxy and Reflect?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does reactivity work? Build a tiny reactive store with Proxy.",
+  "level": "Advanced"
+ },
+ {
+  "title": "Prototype chain puzzle: guess the output.",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are iterators and how do you make an object iterable?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are WeakMap and WeakSet? How do they relate to garbage collection?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Which array methods change the original array?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do JSON.stringify and JSON.parse do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you compare two objects deeply?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write your own deep clone function.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Reverse the words in a sentence?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Capitalize the first letter of every word?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Find the second largest number in an array?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Find the missing number from 1 to n?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Check if a number is prime?",
+  "level": "Coding round"
+ },
+ {
+  "title": "Swap two variables without a temp variable?",
+  "level": "Coding round"
+ },
+ {
+  "title": "for...in vs for...of?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are labels with break and continue?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Why does [10, 1, 5, 100].sort() give the wrong order?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "setTimeout vs setInterval?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is callback hell and how do you avoid it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Run promises in sequence vs in parallel?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you handle errors with async/await?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Event loop puzzle: microtasks vs macrotasks?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Event loop puzzle with async/await: guess the order.",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does Promise chaining work? What does .then return?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Promise states puzzle: can a promise settle twice?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does an async function return?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What happens to an error in a promise chain without a catch in between?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is Promise.any?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is AbortController?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are compose and pipe?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Write a function that runs only once.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Implement an LRU cache.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Implement an event emitter (on, off, once, emit).",
+  "level": "Coding round"
+ },
+ {
+  "title": "Retry a failing promise with exponential backoff.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Add a timeout to a promise with Promise.race.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Run async tasks with a concurrency limit (N at a time).",
+  "level": "Coding round"
+ },
+ {
+  "title": "Get a nested value by a path string like 'a.b.c'.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Flatten a nested object into dot-notation keys.",
+  "level": "Coding round"
+ },
+ {
+  "title": "String compression: turn 'aaabb' into 'a3b2'.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Find the longest substring without repeating characters.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Print a matrix in spiral order.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Implement binary search.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Merge overlapping intervals.",
+  "level": "Coding round"
+ }
+]

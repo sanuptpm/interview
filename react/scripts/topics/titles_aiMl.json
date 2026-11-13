@@ -1,0 +1,298 @@
+[
+ {
+  "title": "What is the difference between AI, ML and deep learning?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are supervised, unsupervised and reinforcement learning?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between classification and regression?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are features and labels?",
+  "level": "Basics"
+ },
+ {
+  "title": "Why do we split data into training, validation and test sets?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does a typical ML workflow look like?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is overfitting and underfitting?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the bias-variance tradeoff?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you handle missing values?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between StandardScaler and MinMaxScaler?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between one-hot encoding and label encoding?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is feature engineering?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does train_test_split work and why use stratify?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you clean data with pandas, like removing duplicates and outliers?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you do quick exploratory data analysis (EDA) with pandas?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create time series features like moving averages and lags?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does linear regression work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does logistic regression work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does a decision tree work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a random forest?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does K-Nearest Neighbors (KNN) work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a Support Vector Machine (SVM)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is Naive Bayes?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does K-means clustering work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is PCA and what is explained variance?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is gradient boosting (and XGBoost)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between bagging and boosting?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are accuracy, precision, recall and F1-score?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a confusion matrix?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is ROC-AUC?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Why does accuracy fail on imbalanced data and how do you handle imbalance?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are MAE, MSE, RMSE and R\u00b2 for regression?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is k-fold cross-validation?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you tune hyperparameters with GridSearchCV?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is regularization? L1 vs L2?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is gradient descent and the learning rate?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is data leakage and how do pipelines prevent it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you split time series data for training and validation?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you do feature selection?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you handle categorical features with very many categories?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does oversampling like SMOTE help with class imbalance?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you use a precision-recall curve to tune the decision threshold?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are learning curves and what do they tell you?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you build a text classification pipeline with TF-IDF?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does anomaly detection with Isolation Forest work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you run a simple A/B test?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you explain which features a model relies on?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a neural network and a neuron?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are activation functions like sigmoid, ReLU and softmax?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is backpropagation?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are epochs, batches and iterations?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between CNNs and RNNs?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are transformers and the attention mechanism?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are embeddings and cosine similarity?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a Large Language Model (LLM)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are tokens and the context window?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is prompt engineering?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is RAG (Retrieval-Augmented Generation)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "When do you use prompting vs RAG vs fine-tuning?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are hallucinations and how do you reduce them?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a vector database?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you evaluate LLM outputs?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is temperature and sampling in LLMs?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you save and deploy an ML model?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is MLOps and how do you monitor models for drift?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is responsible AI and how do you check a model for bias?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is early stopping?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What do dropout and batch normalization do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between one-hot vectors and word embeddings?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does a recommendation system with collaborative filtering work?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do LLM agents and tool calling work?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you chunk documents for RAG?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you evaluate the retrieval part of a RAG system?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you think about cost and latency tradeoffs in LLM apps?",
+  "level": "Advanced"
+ }
+]

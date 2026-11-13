@@ -305,14 +305,15 @@ p { font-size: 18px; font-weight: bold; }`,
     level: 'Intermediate',
     a: "inherit takes the parent's value, and initial resets to the default from the CSS spec, so color: initial is black and display: initial is inline, even on a div. unset acts like inherit for inherited properties and like initial for the rest, and revert goes back to the browser's own default style. I use all: unset to strip a button's styles completely, and revert when I want an element back to its normal browser look.",
     html: `<div class="parent">
-  <h4>normal rule: red</h4>
   <h4 class="inherit">inherit: parent's indigo</h4>
+  <h4 class="unset">unset: like inherit for color</h4>
   <h4 class="initial">initial: black</h4>
   <h4 class="revert">revert: browser bold is back</h4>
 </div>`,
     css: `.parent { color: #6366f1; }
 h4 { color: #ef4444; font-weight: 400; margin: 2px 0; }
 .inherit { color: inherit; }
+.unset   { color: unset; }
 .initial { color: initial; }
 .revert  { color: inherit; font-weight: revert; }`,
   },
