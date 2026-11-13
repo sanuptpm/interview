@@ -1,0 +1,330 @@
+[
+ {
+  "title": "What is TypeScript and why use it?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between TypeScript and JavaScript (compile time vs runtime)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the basic types in TypeScript?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is type inference?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between any and unknown?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between object, Object and {}?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between void and never?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you type function parameters, return values, optional and default params?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are union types?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are literal types?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a type alias?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is an interface?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between interface and type?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are optional and readonly properties?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are enums, and what do you use instead?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a type assertion (as)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the non-null assertion operator (!)?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do null and undefined work with strictNullChecks?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the basics of tsconfig.json (strict, target, module)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does noImplicitAny do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does esModuleInterop do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does skipLibCheck do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you set up path aliases with paths (and why not baseUrl)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does type narrowing work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you narrow with in and instanceof?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a discriminated union?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a custom type guard (x is Type)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is an assertion function (asserts x is Type)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you make a switch exhaustive with never?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are generics?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are generic constraints (extends)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do generic interfaces and default type parameters work?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does keyof do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are typeof and indexed access types?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do Partial, Required and Readonly do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do Pick and Omit do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is Record?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do Exclude, Extract and NonNullable do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do ReturnType, Parameters and Awaited do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do ConstructorParameters and InstanceType do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does NoInfer do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does ThisType do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are function overloads?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are access modifiers (public, private, protected)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are readonly class fields and parameter properties?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is an abstract class?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does implements do in a class?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is an index signature?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are intersection types?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is structural typing?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are declaration files (.d.ts) and @types?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the declare keyword do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a namespace, and do you still use it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are type-only imports (import type)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the satisfies operator do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are mapped types?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are conditional types?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What does infer do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are template literal types?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Uppercase, Lowercase, Capitalize and Uncapitalize?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a recursive type?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is variance (covariance and contravariance)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is a unique symbol?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are branded (nominal) types?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is module augmentation?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are decorators in TypeScript 5?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you type React component props and children?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between React.FC and a plain function component?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between ReactNode and JSX.Element?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you type event handlers in React?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you type useState and useRef?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you type a custom hook?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you reuse props with ComponentProps?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you write a generic React component?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you type API responses safely?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Which strict mode flags matter most?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Write a typed groupBy function.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write a generic pick function.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write a type-safe event emitter.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Implement DeepReadonly<T>.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Re-implement Partial and Pick (MyPartial, MyPick).",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write a typed debounce function.",
+  "level": "Coding round"
+ }
+]

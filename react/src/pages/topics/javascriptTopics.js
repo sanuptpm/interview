@@ -167,6 +167,7 @@ export default [
     topic: "Coding: arrays & objects",
     questions: [
       "Remove duplicates from an array?",
+      "Find the elements that appear only once in an array?",
       "Find the largest and smallest number in an array?",
       "Find the second largest number in an array?",
       "Find the missing number from 1 to n?",

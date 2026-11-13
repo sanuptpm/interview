@@ -1,0 +1,19 @@
+Context vs Redux vs Zustand: how do you choose state management?
+@@
+  {
+    q: 'What is useSyncExternalStore?',
+    level: 'Advanced',
+    a: 'useSyncExternalStore subscribes a component to data that lives outside React, like a browser API or a store library. I give it a subscribe function and a getSnapshot function, plus an optional server snapshot for SSR, and React re-renders when the value changes. Libraries like Redux and Zustand use it under the hood; getSnapshot must return the same value when nothing changed, or it renders forever.',
+    code: `import { useSyncExternalStore } from 'react'
+
+function subscribe(onChange) {
+  window.addEventListener('resize', onChange)
+  return () => window.removeEventListener('resize', onChange)
+}
+
+function WindowWidth() {
+  const width = useSyncExternalStore(subscribe, () => window.innerWidth, () => 0)
+  return <p>Window width: {width}px (resize the window)</p>
+}`,
+    output: <SyncExternalStoreDemo />,
+  },

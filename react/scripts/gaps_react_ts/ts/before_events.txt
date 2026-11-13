@@ -1,0 +1,35 @@
+How do you type React component props and children?
+@@
+  {
+    q: 'What is the difference between React.FC and a plain function component?',
+    level: 'Intermediate',
+    kind: 'error',
+    tsx: true,
+    a: "React.FC<Props> types a component through the variable, while a plain function types the props parameter directly. Since React 18, FC no longer adds children automatically, so the two behave almost the same. I prefer plain functions because they also work with generics and default exports, and I add children to the props type only when the component needs it.",
+    code: `import type { FC } from "react"
+
+type Props = { name: string }
+
+const HelloFC: FC<Props> = ({ name }) => <p>Hi {name}</p>
+function Hello({ name }: Props) {
+  return <p>Hi {name}</p>
+}
+
+const a = <HelloFC name="Ann" />
+const b = <Hello name="Ann">extra</Hello>   // children not in Props`,
+  },
+  {
+    q: 'What is the difference between ReactNode and JSX.Element?',
+    level: 'Intermediate',
+    kind: 'error',
+    tsx: true,
+    a: "JSX.Element is only the result of a JSX expression, like <b>hi</b>. ReactNode is anything React can render: elements, strings, numbers, arrays, null and undefined. I type children and slots as ReactNode, and use JSX.Element only when I really need an element, for example a prop I will clone.",
+    code: `import type { JSX, ReactNode } from "react"
+
+const Box = ({ children }: { children: ReactNode }) => <div>{children}</div>
+const Icon = ({ icon }: { icon: JSX.Element }) => <span>{icon}</span>
+
+const a = <Box>{"text"}{42}{null}</Box>   // ReactNode accepts all of these
+const b = <Icon icon={<b>!</b>} />          // ok: a JSX element
+const c = <Icon icon="!" />`,
+  },

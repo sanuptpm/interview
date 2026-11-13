@@ -1,0 +1,48 @@
+What do ReturnType, Parameters and Awaited do?
+@@
+  {
+    q: 'What do ConstructorParameters and InstanceType do?',
+    level: 'Intermediate',
+    kind: 'prints',
+    run: 'tsc',
+    a: "They are the class versions of Parameters and ReturnType. ConstructorParameters<typeof C> gives the tuple of arguments that new C(...) takes, and InstanceType<typeof C> gives the type of the object it creates. I use them in factory functions and dependency-injection helpers, so they stay in sync when the constructor changes.",
+    code: `class User {
+  constructor(public name: string, public age: number) {}
+}
+
+type Args = ConstructorParameters<typeof User>   // [name: string, age: number]
+type U = InstanceType<typeof User>               // User
+
+function create(...args: Args): U {
+  return new User(...args)
+}
+console.log(create("Ann", 30))`,
+  },
+  {
+    q: 'What does NoInfer do?',
+    level: 'Advanced',
+    kind: 'error',
+    a: "NoInfer<T> tells TypeScript not to use that position when it infers the generic type. Below, C is inferred only from the colors array, so the initial value must be one of those colors. Without NoInfer, \"green\" would simply widen C to include it and the bug would pass.",
+    code: `function pick<C extends string>(colors: C[], initial: NoInfer<C>) {
+  return initial
+}
+
+pick(["red", "blue"], "red")     // ok
+pick(["red", "blue"], "green")   // not in the list`,
+  },
+  {
+    q: 'What does ThisType do?',
+    level: 'Advanced',
+    kind: 'prints',
+    a: "ThisType<T> is a marker type that sets what this means inside the methods of an object literal. Libraries like the old Vue options API used it so that methods can use this.count even though count is defined in a separate data object. I rarely write it myself, but it explains how those APIs get typed this.",
+    code: `function make<D, M>(o: { data: D; methods: M & ThisType<D & M> }) {
+  return { ...o.data, ...o.methods } as D & M
+}
+
+const counter = make({
+  data: { count: 0 },
+  methods: { inc() { this.count++ } },   // this: { count: number } & methods
+})
+counter.inc()
+console.log(counter.count)`,
+  },

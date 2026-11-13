@@ -1,0 +1,16 @@
+What is variance (covariance and contravariance)?
+@@
+  {
+    q: 'What is a unique symbol?',
+    level: 'Advanced',
+    kind: 'both',
+    a: "unique symbol is the type of one specific symbol, declared with const x: unique symbol = Symbol(). Each one is its own type, so two symbols with the same description are not interchangeable. I use them as hidden property keys that can't clash with normal string keys, and they are a common way to build branded types.",
+    code: `const ID: unique symbol = Symbol("id")
+const OTHER: unique symbol = Symbol("id")
+
+type User = { [ID]: number; name: string }
+const u: User = { [ID]: 1, name: "Ann" }
+console.log(u[ID])
+
+let s: typeof ID = OTHER   // a different unique symbol`,
+  },

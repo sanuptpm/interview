@@ -9,7 +9,7 @@ import TryItButton from '../tryit/TryItButton.jsx'
 // a string (shown as text) or a React element (a live demo).
 
 // tryKind: which "Try it" editor to offer for this question (or nothing).
-export function QuestionCard({ number, q, a, code, output, tryKind, language }) {
+export function QuestionCard({ number, q, a, code, output, tryKind, language, wrapOutput }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -32,7 +32,11 @@ export function QuestionCard({ number, q, a, code, output, tryKind, language }) 
       <div className="flex min-w-0 flex-col">
         <p className="text-xs font-semibold text-slate-400 uppercase">Output</p>
         {typeof output === 'string' ? (
-          <pre className="mt-1 flex-1 overflow-x-auto rounded-lg bg-emerald-50 p-3 font-mono text-sm text-emerald-800">
+          <pre
+            className={`mt-1 flex-1 overflow-x-auto rounded-lg bg-emerald-50 p-3 font-mono text-sm text-emerald-800 ${
+              wrapOutput ? 'break-words whitespace-pre-wrap' : ''
+            }`}
+          >
             {output}
           </pre>
         ) : (
@@ -54,7 +58,8 @@ export function QuestionCard({ number, q, a, code, output, tryKind, language }) 
 // tryKind(item) returns the editor kind for a question ('js', 'python', ...) or null.
 // language: highlight.js language for the examples, or a function item => language.
 // topics: sub-topic order (see src/pages/topics/).
-function QuestionPage({ title, intro, questions, tryKind, language, topics }) {
+// wrapOutput: wrap long output lines (e.g. compiler errors) instead of scrolling sideways.
+function QuestionPage({ title, intro, questions, tryKind, language, topics, wrapOutput }) {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
@@ -72,6 +77,7 @@ function QuestionPage({ title, intro, questions, tryKind, language, topics }) {
             {...item}
             tryKind={tryKind ? tryKind(item) : null}
             language={typeof language === 'function' ? language(item) : language}
+            wrapOutput={wrapOutput}
           />
         )}
       />

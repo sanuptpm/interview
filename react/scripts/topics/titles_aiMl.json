@@ -16,6 +16,10 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between parameters and hyperparameters?",
+  "level": "Basics"
+ },
+ {
   "title": "Why do we split data into training, validation and test sets?",
   "level": "Basics"
  },
@@ -32,11 +36,59 @@
   "level": "Basics"
  },
  {
+  "title": "Why are NumPy arrays faster than Python lists?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do shape and reshape() work in NumPy?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does axis=0 vs axis=1 mean in NumPy and pandas?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is broadcasting in NumPy?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you load a CSV with read_csv() and look at it with head() and describe()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between loc and iloc in pandas?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do value_counts(), unique() and nunique() do in pandas?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does groupby() work in pandas?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between merge(), join() and concat() in pandas?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "When do you use apply() vs vectorized operations in pandas?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you handle missing values?",
   "level": "Basics"
  },
  {
+  "title": "What is the difference between dropna() and fillna()?",
+  "level": "Basics"
+ },
+ {
   "title": "What is the difference between StandardScaler and MinMaxScaler?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between fit(), transform() and fit_transform()?",
   "level": "Basics"
  },
  {
@@ -72,6 +124,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between predict() and predict_proba()?",
+  "level": "Basics"
+ },
+ {
   "title": "How does a decision tree work?",
   "level": "Intermediate"
  },
@@ -96,6 +152,18 @@
   "level": "Intermediate"
  },
  {
+  "title": "How do you choose k in K-means with the elbow method and silhouette score?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is DBSCAN and how is it different from K-means?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the curse of dimensionality?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is PCA and what is explained variance?",
   "level": "Intermediate"
  },
@@ -113,6 +181,10 @@
  },
  {
   "title": "What is a confusion matrix?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are false positives and false negatives (Type I and Type II errors)?",
   "level": "Intermediate"
  },
  {
@@ -136,7 +208,15 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between GridSearchCV and RandomizedSearchCV?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is regularization? L1 vs L2?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are loss functions like MSE and cross-entropy?",
   "level": "Intermediate"
  },
  {
@@ -144,7 +224,15 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between batch, stochastic and mini-batch gradient descent?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is data leakage and how do pipelines prevent it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a ColumnTransformer and when do you use it?",
   "level": "Intermediate"
  },
  {
@@ -169,6 +257,10 @@
  },
  {
   "title": "What are learning curves and what do they tell you?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between bag-of-words and TF-IDF?",
   "level": "Intermediate"
  },
  {
@@ -200,11 +292,23 @@
   "level": "Advanced"
  },
  {
+  "title": "What are vanishing and exploding gradients?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are optimizers like SGD with momentum and Adam?",
+  "level": "Advanced"
+ },
+ {
   "title": "What are epochs, batches and iterations?",
   "level": "Advanced"
  },
  {
   "title": "What is the difference between CNNs and RNNs?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is transfer learning?",
   "level": "Advanced"
  },
  {

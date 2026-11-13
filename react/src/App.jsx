@@ -21,6 +21,7 @@ const Palindrome = lazy(() => import('./pages/Palindrome.jsx'))
 const ReduxCounter = lazy(() => import('./pages/ReduxCounter.jsx'))
 const CssQuestions = lazy(() => import('./pages/CssQuestions.jsx'))
 const JavaScript = lazy(() => import('./pages/JavaScript.jsx'))
+const TypeScriptQuestions = lazy(() => import('./pages/TypeScriptQuestions.jsx'))
 const ReactQuestions = lazy(() => import('./pages/ReactQuestions.jsx'))
 const PythonQuestions = lazy(() => import('./pages/PythonQuestions.jsx'))
 const FastApiQuestions = lazy(() => import('./pages/FastApiQuestions.jsx'))
@@ -109,6 +110,15 @@ const programs = [
     title: 'JavaScript Interview Questions',
     description: 'Basics (let/const, arrow functions, spread, map, filter...) and interview questions with live output.',
     component: JavaScript,
+  },
+  {
+    path: '/typescript-questions',
+    group: 'questions',
+    badge: 'TypeScript',
+    badgeColor: 'bg-blue-50 text-blue-800',
+    title: 'TypeScript Interview Questions',
+    description: 'Types, interfaces, generics, utility types, narrowing and TypeScript with React.',
+    component: TypeScriptQuestions,
   },
   {
     path: '/react-questions',

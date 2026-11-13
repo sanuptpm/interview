@@ -8,6 +8,7 @@ export default [
       'What are tables, rows and columns?',
       'What are common SQL data types?',
       'What is the difference between DDL, DML, DCL and TCL?',
+      'How do you create and change a table with CREATE TABLE and ALTER TABLE?',
       'What is the difference between SQL and NoSQL databases?',
     ],
   },
@@ -15,6 +16,8 @@ export default [
     topic: 'Keys & constraints',
     questions: [
       'What is a primary key?',
+      'What is the difference between a primary key and a unique key?',
+      'What are candidate, composite, surrogate and natural keys?',
       'What is a foreign key?',
       'What do UNIQUE, NOT NULL, CHECK and DEFAULT constraints do?',
       'How does ON DELETE CASCADE work?',
@@ -25,6 +28,7 @@ export default [
     questions: [
       'How do you do CRUD operations in SQL?',
       'How do WHERE, ORDER BY and LIMIT work in a SELECT?',
+      'How do you paginate results with LIMIT and OFFSET?',
       'What are aliases in SQL?',
       'What does DISTINCT do?',
       'In what order does SQL actually run the clauses of a SELECT?',
@@ -39,9 +43,12 @@ export default [
     questions: [
       'How do LIKE, IN and BETWEEN work?',
       'How do you handle NULL values in SQL?',
+      'What do COALESCE, IFNULL and NULLIF do?',
+      'How do you convert data types with CAST?',
       'Why is NULL = NULL not true? Explain three-valued logic.',
       'How do you use CASE in ORDER BY for a custom sort order?',
       'Which string functions do you use most in SQL?',
+      'Which math functions do you use in SQL (ROUND, ABS, CEIL, FLOOR, MOD)?',
       'How do you work with dates in SQL?',
       'How does CASE WHEN work?',
       'How do you query JSON data stored in a column?',
@@ -74,8 +81,10 @@ export default [
     questions: [
       'What is the difference between IN, EXISTS and JOIN for matching rows in another table?',
       'What is the difference between UNION and UNION ALL?',
+      'What is the difference between INTERSECT and EXCEPT?',
       'What is a subquery and a correlated subquery?',
       'What does EXISTS do?',
+      'What do ANY and ALL do with a subquery?',
     ],
   },
   {
@@ -90,8 +99,10 @@ export default [
   {
     topic: 'Window functions & CTEs',
     questions: [
+      'What is the difference between GROUP BY and a window function like SUM() OVER?',
       'What are window functions? Explain ROW_NUMBER, RANK and DENSE_RANK.',
       'How do you use LAG and LEAD?',
+      'What do FIRST_VALUE and LAST_VALUE do?',
       'What is a window frame (ROWS BETWEEN), and how do you compute a moving average?',
       'What do NTILE, PERCENT_RANK and CUME_DIST do?',
       'What is a CTE and a recursive CTE?',
@@ -103,6 +114,7 @@ export default [
     questions: [
       'What is an index and how do you check if a query uses it?',
       'Does column order matter in a composite index?',
+      'What is the difference between a clustered and a non-clustered index?',
       'How do you optimize a slow SQL query?',
       'What is the N+1 query problem?',
       'What is connection pooling?',
@@ -115,6 +127,7 @@ export default [
     questions: [
       'What is normalization? Explain 1NF, 2NF and 3NF.',
       'What is denormalization and when would you use it?',
+      'What is an ER diagram, and what are one-to-one, one-to-many and many-to-many relationships?',
       'How would you design a database for a simple shop (users, products, orders)?',
       'What is the difference between OLTP and OLAP, and what is a star schema?',
     ],

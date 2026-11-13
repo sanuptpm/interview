@@ -1,0 +1,20 @@
+What is the compound components pattern?
+@@
+  {
+    q: 'What do Children, cloneElement and isValidElement do?',
+    level: 'Advanced',
+    a: 'They let a component inspect and change the children it receives. Children.toArray or Children.map walk over the children, isValidElement tells me whether a child is a real element and not text, and cloneElement copies an element with extra props. They break easily when children are wrapped in other components, so in new code I prefer passing data as props, context or render props.',
+    code: `import { Children, cloneElement, isValidElement } from 'react'
+
+function Steps({ children }) {
+  const items = Children.toArray(children).filter(isValidElement)
+  return items.map((child, i) => cloneElement(child, { children: 'Step ' + (i + 1) + ': ' + child.props.children }))
+}
+
+<Steps>
+  <p>Add to cart</p>
+  plain text is skipped
+  <p>Pay</p>
+</Steps>`,
+    output: <ChildrenApiDemo />,
+  },

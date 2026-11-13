@@ -1,0 +1,39 @@
+css: 59 checklist items, 17 missing:
+  - margin/padding/border shorthands
+  - background properties
+  - transitions (duration/timing/delay)
+  - animations/@keyframes
+  - flex-direction
+  - gap
+  - flex-grow
+  - align-content
+  - fr unit
+  - repeat()/minmax()
+  - min()/max()
+  - :is()/:where()
+  - cascade layers @layer
+  - visibility vs opacity
+  - cursor
+  - list-style
+  - table styles
+database: 49 checklist items, 13 missing:
+  - OFFSET / pagination
+  - COALESCE/NULLIF/IFNULL
+  - CAST
+  - INTERSECT/EXCEPT
+  - ANY/ALL
+  - FIRST_VALUE
+  - SUM OVER / GROUP BY vs window
+  - math functions
+  - CREATE/ALTER TABLE
+  - ER design / relationships
+  - candidate/composite/surrogate/natural keys
+  - primary vs unique key
+  - clustered vs non-clustered index
+git: 45 checklist items, 6 missing:
+  - commit -a
+  - push -u
+  - grep
+  - shortlog
+  - describe
+  - archive

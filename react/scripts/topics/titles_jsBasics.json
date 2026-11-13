@@ -226,5 +226,109 @@
  {
   "title": "What is the ternary operator?",
   "level": "Basics"
+ },
+ {
+  "title": "What is the difference between indexOf() and lastIndexOf()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do push(), pop(), shift() and unshift() return?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does reverse() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does reduceRight() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you check if a value is an array?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does the length property of an array work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are Array.of(), toSpliced() and copyWithin()?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you get a character from a string (charAt, [], at, charCodeAt)?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you change case and trim spaces in a string?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do padStart(), padEnd() and repeat() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between replace() and replaceAll()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between slice(), substring() and substr() for strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do match() and matchAll() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you compare strings with localeCompare()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does Object.fromEntries() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between Object.freeze() and Object.seal()?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you check if an object has a property?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do Object.create() and Object.getPrototypeOf() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is Object.is() and how is it different from ===?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between parseInt(), parseFloat() and Number()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between toFixed() and toPrecision()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do Number.isInteger(), Number.isFinite() and Number.isNaN() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does toString() convert numbers to other bases?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between Math.round(), Math.floor(), Math.ceil() and Math.trunc()?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you get a random number in a range?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do Math.pow(), Math.sqrt(), Math.abs() and Math.sign() do?",
+  "level": "Basics"
  }
 ]

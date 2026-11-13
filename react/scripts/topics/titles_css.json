@@ -32,6 +32,14 @@
   "level": "Basics"
  },
  {
+  "title": "How do you style lists with list-style?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you style a table (border-collapse, zebra rows)?",
+  "level": "Basics"
+ },
+ {
   "title": "px vs em vs rem vs %?",
   "level": "Basics"
  },
@@ -60,6 +68,10 @@
   "level": "Basics"
  },
  {
+  "title": "How do the margin, padding and border shorthands work?",
+  "level": "Basics"
+ },
+ {
   "title": "What does box-sizing: border-box do?",
   "level": "Basics"
  },
@@ -82,6 +94,10 @@
  {
   "title": "How does the cascade decide which rule wins? When is !important okay?",
   "level": "Basics"
+ },
+ {
+  "title": "What are cascade layers (@layer)?",
+  "level": "Advanced"
  },
  {
   "title": "What is specificity?",
@@ -136,7 +152,19 @@
   "level": "Intermediate"
  },
  {
+  "title": "What does flex-direction do?",
+  "level": "Basics"
+ },
+ {
   "title": "What is CSS Grid? How is it different from Flexbox?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do grid-template-columns and the fr unit work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do repeat() and minmax() do in CSS Grid?",
   "level": "Intermediate"
  },
  {
@@ -164,7 +192,19 @@
   "level": "Intermediate"
  },
  {
+  "title": "How do you write a CSS transition (duration, timing function, delay)?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create a CSS animation with @keyframes?",
+  "level": "Basics"
+ },
+ {
   "title": "opacity vs rgba()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between visibility: hidden and opacity: 0?",
   "level": "Intermediate"
  },
  {
@@ -196,8 +236,20 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between align-items and align-content?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the gap property do?",
+  "level": "Basics"
+ },
+ {
   "title": "What does flex: 1 mean?",
   "level": "Intermediate"
+ },
+ {
+  "title": "What does flex-grow do?",
+  "level": "Basics"
  },
  {
   "title": "What is grid-template-areas?",
@@ -232,6 +284,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between :is() and :where()?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is clamp()?",
   "level": "Intermediate"
  },
@@ -253,6 +309,10 @@
  },
  {
   "title": "What is calc()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do min() and max() do in CSS?",
   "level": "Intermediate"
  },
  {
@@ -284,6 +344,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What does the cursor property do?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you fix a parent that collapses around floated children?",
   "level": "Intermediate"
  },
@@ -298,6 +362,10 @@
  {
   "title": "background-size: cover vs contain?",
   "level": "Intermediate"
+ },
+ {
+  "title": "What do background-repeat, background-position and background-attachment do?",
+  "level": "Basics"
  },
  {
   "title": "What are linear and radial gradients? Can you use multiple backgrounds?",

@@ -12,6 +12,7 @@ export default [
       "Which properties are inherited?",
       "Specificity puzzle: which color wins?",
       "What do inherit, initial, unset and revert do?",
+      "What are cascade layers (@layer)?",
     ],
   },
   {
@@ -25,6 +26,7 @@ export default [
       "What does :nth-child() do?",
       ":first-child vs :first-of-type?",
       "What is :not()?",
+      "What is the difference between :is() and :where()?",
       "What is the :has() selector?",
     ],
   },
@@ -53,12 +55,20 @@ export default [
     ],
   },
   {
+    topic: "Lists & tables",
+    questions: [
+      "How do you style lists with list-style?",
+      "How do you style a table (border-collapse, zebra rows)?",
+    ],
+  },
+  {
     topic: "Variables & functions",
     questions: [
       "What are CSS variables?",
       ":root vs html selector?",
       "What is currentColor?",
       "What is calc()?",
+      "What do min() and max() do in CSS?",
       "What is clamp()?",
       "How do you write responsive, fluid typography?",
     ],
@@ -68,6 +78,7 @@ export default [
     questions: [
       "What is the CSS box model?",
       "margin vs padding?",
+      "How do the margin, padding and border shorthands work?",
       "What does box-sizing: border-box do?",
       "border vs outline?",
       "What are min-width and max-width used for?",
@@ -82,7 +93,9 @@ export default [
       "Difference between block, inline and inline-block?",
       "display: none vs visibility: hidden?",
       "opacity vs rgba()?",
+      "What is the difference between visibility: hidden and opacity: 0?",
       "What does pointer-events: none do?",
+      "What does the cursor property do?",
       "What are float and clear?",
       "How do you fix a parent that collapses around floated children?",
       "What does overflow do?",
@@ -106,8 +119,12 @@ export default [
   {
     topic: "Flexbox",
     questions: [
+      "What does flex-direction do?",
       "justify-content vs align-items in flexbox?",
       "What does flex-wrap do?",
+      "What does the gap property do?",
+      "What is the difference between align-items and align-content?",
+      "What does flex-grow do?",
       "What does flex: 1 mean?",
       "What are flex-basis and flex-shrink?",
       "What do the order and align-self properties do in flexbox?",
@@ -119,6 +136,8 @@ export default [
     topic: "Grid",
     questions: [
       "What is CSS Grid? How is it different from Flexbox?",
+      "How do grid-template-columns and the fr unit work?",
+      "What do repeat() and minmax() do in CSS Grid?",
       "What is grid-template-areas?",
       "auto-fit vs auto-fill in CSS Grid?",
       "How do you make a grid item span multiple columns or rows?",
@@ -129,6 +148,7 @@ export default [
   {
     topic: "Backgrounds & shapes",
     questions: [
+      "What do background-repeat, background-position and background-attachment do?",
       "background-size: cover vs contain?",
       "What are linear and radial gradients? Can you use multiple backgrounds?",
       "box-shadow vs text-shadow vs filter: drop-shadow()?",
@@ -142,6 +162,8 @@ export default [
     topic: "Transforms & animation",
     questions: [
       "What are the transform functions and transform-origin?",
+      "How do you write a CSS transition (duration, timing function, delay)?",
+      "How do you create a CSS animation with @keyframes?",
       "transition vs animation?",
       "Explain animation-iteration-count, direction and fill-mode. What is prefers-reduced-motion?",
       "What does will-change do, and why are transform and opacity fast to animate?",

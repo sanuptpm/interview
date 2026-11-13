@@ -40,7 +40,7 @@ export function runCode(code) {
 // For short examples written as bare expressions (like `numbers.map(...)`),
 // wrap each standalone top-level expression line in console.log so the editor shows its value.
 export function addConsoleLogs(code) {
-  const skip = /^(const|let|var|function|class|if|else|for|while|do|switch|return|import|export|try|catch|finally|throw|async|await|\/\/|\/\*|\*|}|\)|]|;|console\.)/
+  const skip = /^((const|let|var|function|class|if|else|for|while|do|switch|return|import|export|try|catch|finally|throw|async|await)\b|\/\/|\/\*|\*|}|\)|]|;|console\.)/
   return code
     .split('\n')
     .map((line) => {

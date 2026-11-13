@@ -1,0 +1,20 @@
+What is the stale closure problem with setInterval?
+@@
+  {
+    q: 'What is useEffectEvent?',
+    level: 'Advanced',
+    a: 'useEffectEvent (stable in React 19.2) wraps a function that an effect calls, so it always sees the latest props and state without being a dependency. That lets me keep the effect reacting only to what should restart it: below, changing roomId reconnects, but changing theme does not. I only call these functions from inside effects, never during render.',
+    code: `function Room({ roomId, theme }) {
+  const onConnected = useEffectEvent(() => {
+    console.log('Connected to ' + roomId + ' (' + theme + ')') // latest theme
+  })
+
+  useEffect(() => {
+    const id = setTimeout(onConnected, 500) // pretend to connect
+    return () => clearTimeout(id)
+  }, [roomId]) // theme is not a dependency
+}`,
+    output: `roomId 'general', theme 'light'  -> Connected to general (light)
+theme changes to 'dark'          -> nothing (no reconnect)
+roomId changes to 'travel'       -> Connected to travel (dark)`,
+  },

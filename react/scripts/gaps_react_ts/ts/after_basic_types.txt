@@ -1,0 +1,15 @@
+What is the difference between any and unknown?
+@@
+  {
+    q: 'What is the difference between object, Object and {}?',
+    level: 'Intermediate',
+    kind: 'error',
+    a: "object means any non-primitive value, like an object, array or function. {} (and Object) are much looser: they accept every value except null and undefined, so even a string or number fits. When I want \"a plain object with some keys\" I write Record<string, unknown> instead of {}, because {} catches almost nothing.",
+    code: `let a: object = { x: 1 }     // any non-primitive
+let b: {} = "hi"             // anything except null / undefined
+let c: Record<string, unknown> = { x: 1 }   // a plain object
+
+a = "hi"     // string is a primitive
+b = 42       // fine
+b = null`,
+  },

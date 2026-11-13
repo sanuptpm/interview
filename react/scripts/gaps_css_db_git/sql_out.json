@@ -1,0 +1,54 @@
+{
+ "How do you paginate results with LIMIT and OFFSET?": {
+  "code": "CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO products (name) VALUES ('Pen'), ('Book'), ('Bag'), ('Cup'), ('Lamp');\n\n-- page 2 with 2 rows per page: OFFSET = (page - 1) * 2\nSELECT id, name FROM products ORDER BY id LIMIT 2 OFFSET 2;",
+  "output": "╭────┬──────╮\n│ id │ name │\n╞════╪══════╡\n│  3 │ Bag  │\n│  4 │ Cup  │\n╰────┴──────╯"
+ },
+ "What do COALESCE, IFNULL and NULLIF do?": {
+  "code": "CREATE TABLE users (name TEXT, nickname TEXT, phone TEXT);\nINSERT INTO users VALUES ('Asha', NULL, '555-0101'),\n                         ('Ravi', 'Rav', ''), ('Meera', NULL, NULL);\n\nSELECT name,\n       COALESCE(nickname, name) AS display_name,\n       IFNULL(phone, 'none') AS phone,\n       NULLIF(phone, '') AS empty_as_null\nFROM users;",
+  "output": "╭───────┬──────────────┬──────────┬───────────────╮\n│ name  │ display_name │  phone   │ empty_as_null │\n╞═══════╪══════════════╪══════════╪═══════════════╡\n│ Asha  │ Asha         │ 555-0101 │ 555-0101      │\n│ Ravi  │ Rav          │          │               │\n│ Meera │ Meera        │ none     │               │\n╰───────┴──────────────┴──────────┴───────────────╯"
+ },
+ "How do you convert data types with CAST?": {
+  "code": "SELECT CAST('42' AS INTEGER) + 8 AS num,\n       7 / 2 AS int_division,\n       CAST(7 AS REAL) / 2 AS real_division,\n       CAST(3.99 AS INTEGER) AS truncated,\n       CAST(2026 AS TEXT) || '-01' AS text_value;",
+  "output": "╭─────┬──────────────┬───────────────┬───────────┬────────────╮\n│ num │ int_division │ real_division │ truncated │ text_value │\n╞═════╪══════════════╪═══════════════╪═══════════╪════════════╡\n│  50 │            3 │           3.5 │         3 │ 2026-01    │\n╰─────┴──────────────┴───────────────┴───────────┴────────────╯"
+ },
+ "Which math functions do you use in SQL (ROUND, ABS, CEIL, FLOOR, MOD)?": {
+  "code": "SELECT ROUND(19.456, 2) AS rounded,\n       ABS(-15) AS absolute,\n       CAST(CEIL(4.1) AS INTEGER) AS ceil,\n       CAST(FLOOR(4.9) AS INTEGER) AS floor,\n       17 % 5 AS remainder;",
+  "output": "╭─────────┬──────────┬──────┬───────┬───────────╮\n│ rounded │ absolute │ ceil │ floor │ remainder │\n╞═════════╪══════════╪══════╪═══════╪═══════════╡\n│   19.46 │       15 │    5 │     4 │         2 │\n╰─────────┴──────────┴──────┴───────┴───────────╯"
+ },
+ "What is the difference between INTERSECT and EXCEPT?": {
+  "code": "CREATE TABLE online (customer TEXT);\nCREATE TABLE store (customer TEXT);\nINSERT INTO online VALUES ('Asha'), ('Ravi'), ('John');\nINSERT INTO store VALUES ('Ravi'), ('Meera'), ('John');\n\nSELECT customer FROM online INTERSECT SELECT customer FROM store;\n\nSELECT customer FROM online EXCEPT SELECT customer FROM store;",
+  "output": "╭──────────╮\n│ customer │\n╞══════════╡\n│ John     │\n│ Ravi     │\n╰──────────╯\n\n╭──────────╮\n│ customer │\n╞══════════╡\n│ Asha     │\n╰──────────╯"
+ },
+ "What do ANY and ALL do with a subquery?": {
+  "code": "CREATE TABLE emp (name TEXT, dept TEXT, salary INT);\nINSERT INTO emp VALUES ('Asha', 'IT', 70000), ('Ravi', 'IT', 50000),\n                       ('Meera', 'HR', 60000), ('John', 'HR', 40000);\n\n-- salary > ALL (SELECT salary ... 'HR') is the same as > MAX\nSELECT name FROM emp WHERE salary > (SELECT MAX(salary) FROM emp WHERE dept = 'HR');\n\n-- salary > ANY (SELECT salary ... 'HR') is the same as > MIN\nSELECT name FROM emp WHERE salary > (SELECT MIN(salary) FROM emp WHERE dept = 'HR');",
+  "output": "╭──────╮\n│ name │\n╞══════╡\n│ Asha │\n╰──────╯\n\n╭───────╮\n│ name  │\n╞═══════╡\n│ Asha  │\n│ Ravi  │\n│ Meera │\n╰───────╯"
+ },
+ "What do FIRST_VALUE and LAST_VALUE do?": {
+  "code": "CREATE TABLE emp (name TEXT, dept TEXT, salary INT);\nINSERT INTO emp VALUES ('Asha', 'IT', 70000), ('Ravi', 'IT', 50000),\n                       ('Meera', 'HR', 60000), ('John', 'HR', 40000);\n\nSELECT name, dept, salary,\n  FIRST_VALUE(name) OVER (PARTITION BY dept ORDER BY salary DESC) AS top_paid,\n  LAST_VALUE(name) OVER (PARTITION BY dept ORDER BY salary DESC\n    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS lowest_paid\nFROM emp ORDER BY dept, salary DESC;",
+  "output": "╭───────┬──────┬────────┬──────────┬─────────────╮\n│ name  │ dept │ salary │ top_paid │ lowest_paid │\n╞═══════╪══════╪════════╪══════════╪═════════════╡\n│ Meera │ HR   │  60000 │ Meera    │ John        │\n│ John  │ HR   │  40000 │ Meera    │ John        │\n│ Asha  │ IT   │  70000 │ Asha     │ Ravi        │\n│ Ravi  │ IT   │  50000 │ Asha     │ Ravi        │\n╰───────┴──────┴────────┴──────────┴─────────────╯"
+ },
+ "What is the difference between GROUP BY and a window function like SUM() OVER?": {
+  "code": "CREATE TABLE sales (region TEXT, amount INT);\nINSERT INTO sales VALUES ('North', 100), ('North', 50), ('South', 80);\n\nSELECT region, SUM(amount) AS total FROM sales GROUP BY region;\n\nSELECT region, amount,\n       SUM(amount) OVER (PARTITION BY region) AS region_total\nFROM sales ORDER BY region, amount DESC;",
+  "output": "╭────────┬───────╮\n│ region │ total │\n╞════════╪═══════╡\n│ North  │   150 │\n│ South  │    80 │\n╰────────┴───────╯\n\n╭────────┬────────┬──────────────╮\n│ region │ amount │ region_total │\n╞════════╪════════╪══════════════╡\n│ North  │    100 │          150 │\n│ North  │     50 │          150 │\n│ South  │     80 │           80 │\n╰────────┴────────┴──────────────╯"
+ },
+ "How do you create and change a table with CREATE TABLE and ALTER TABLE?": {
+  "code": "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO users (name) VALUES ('Asha');\n\nALTER TABLE users ADD COLUMN email TEXT;\nALTER TABLE users RENAME COLUMN name TO full_name;\nALTER TABLE users RENAME TO customers;\n\nSELECT * FROM customers;",
+  "output": "╭────┬───────────┬───────╮\n│ id │ full_name │ email │\n╞════╪═══════════╪═══════╡\n│  1 │ Asha      │       │\n╰────┴───────────┴───────╯"
+ },
+ "What is the difference between a primary key and a unique key?": {
+  "code": "CREATE TABLE users (\n  id INTEGER PRIMARY KEY,\n  email TEXT UNIQUE\n);\nINSERT INTO users VALUES (1, 'asha@x.com'), (2, NULL), (3, NULL);\nINSERT INTO users VALUES (4, 'asha@x.com');\nSELECT * FROM users;",
+  "output": "Error near line 6: UNIQUE constraint failed: users.email\n╭────┬────────────╮\n│ id │   email    │\n╞════╪════════════╡\n│  1 │ asha@x.com │\n│  2 │            │\n│  3 │            │\n╰────┴────────────╯"
+ },
+ "What are candidate, composite, surrogate and natural keys?": {
+  "code": "CREATE TABLE users (\n  id INTEGER PRIMARY KEY,         -- surrogate key\n  email TEXT UNIQUE NOT NULL      -- natural, candidate key\n);\nCREATE TABLE enrollments (\n  student_id INT, course_id INT, grade TEXT,\n  PRIMARY KEY (student_id, course_id)   -- composite key\n);\nINSERT INTO enrollments VALUES (1, 101, 'A'), (1, 102, 'B');\nINSERT INTO enrollments VALUES (1, 101, 'C');",
+  "output": "Error near line 10: UNIQUE constraint failed: enrollments.student_id, enrollments.course_id"
+ },
+ "What is the difference between a clustered and a non-clustered index?": {
+  "code": "CREATE TABLE emp (id INTEGER PRIMARY KEY, email TEXT, name TEXT);\nCREATE INDEX idx_email ON emp(email);\n\n-- clustered: the table itself is stored in id order\nEXPLAIN QUERY PLAN SELECT * FROM emp WHERE id = 5;\n\n-- non-clustered: search idx_email, then jump to the row\nEXPLAIN QUERY PLAN SELECT * FROM emp WHERE email = 'asha@x.com';",
+  "output": "QUERY PLAN\n`--SEARCH emp USING INTEGER PRIMARY KEY (rowid=?)\n\nQUERY PLAN\n`--SEARCH emp USING INDEX idx_email (email=?)"
+ },
+ "What is an ER diagram, and what are one-to-one, one-to-many and many-to-many relationships?": {
+  "code": "CREATE TABLE students (id INT PRIMARY KEY, name TEXT);\nCREATE TABLE courses (id INT PRIMARY KEY, title TEXT);\n-- many-to-many: a junction table with two foreign keys\nCREATE TABLE enrollments (student_id INT REFERENCES students(id),\n                          course_id INT REFERENCES courses(id));\nINSERT INTO students VALUES (1, 'Asha'), (2, 'Ravi');\nINSERT INTO courses VALUES (1, 'SQL'), (2, 'Git');\nINSERT INTO enrollments VALUES (1, 1), (1, 2), (2, 1);\n\nSELECT s.name, c.title FROM enrollments e\nJOIN students s ON s.id = e.student_id JOIN courses c ON c.id = e.course_id;",
+  "output": "╭──────┬───────╮\n│ name │ title │\n╞══════╪═══════╡\n│ Asha │ SQL   │\n│ Asha │ Git   │\n│ Ravi │ SQL   │\n╰──────┴───────╯"
+ }
+}

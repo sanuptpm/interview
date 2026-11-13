@@ -12,6 +12,10 @@
   "level": "Basics"
  },
  {
+  "title": "What does hash() do, and why must dictionary keys be hashable?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is the difference between list, tuple, set and dict?",
   "level": "Basics"
  },
@@ -20,7 +24,23 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between append(), extend() and insert()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between remove(), pop() and del?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between clear() and assigning an empty list?",
+  "level": "Basics"
+ },
+ {
   "title": "What other list methods do you use often?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do count() and index() work on lists, tuples and strings?",
   "level": "Basics"
  },
  {
@@ -32,11 +52,27 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between remove() and discard() in a set?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do issubset(), issuperset() and isdisjoint() do?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you add, update and remove items in a dictionary?",
   "level": "Basics"
  },
  {
+  "title": "What is the difference between pop() and popitem() in a dictionary?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you loop over a dictionary?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do keys(), values() and items() return?",
   "level": "Basics"
  },
  {
@@ -48,7 +84,23 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between find(), index() and rfind() in strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between split(), rsplit(), splitlines() and partition()?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does join() work, and why is it better than + in a loop?",
+  "level": "Basics"
+ },
+ {
   "title": "What are f-strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between f-strings, str.format() and % formatting?",
   "level": "Basics"
  },
  {
@@ -57,6 +109,14 @@
  },
  {
   "title": "How do if/elif/else and loops work in Python?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between pass, continue and break?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the conditional (ternary) expression in Python?",
   "level": "Basics"
  },
  {
@@ -88,6 +148,10 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between type() and isinstance()?",
+  "level": "Basics"
+ },
+ {
   "title": "How do print() and input() work?",
   "level": "Basics"
  },
@@ -96,7 +160,35 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between strip(), lstrip() and rstrip()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between upper(), lower(), title(), capitalize() and swapcase()?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do startswith() and endswith() work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do isdigit(), isalpha(), isalnum() and isspace() check?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do center(), ljust(), rjust() and zfill() pad strings?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does replace() work?",
+  "level": "Basics"
+ },
+ {
   "title": "How does list slicing with a step work, and how do you reverse a list?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between sort() and sorted(), and reverse() and reversed()?",
   "level": "Basics"
  },
  {
@@ -112,16 +204,44 @@
   "level": "Basics"
  },
  {
+  "title": "What do divmod() and pow() do?",
+  "level": "Basics"
+ },
+ {
+  "title": "Why is 0.1 + 0.2 not equal to 0.3, and how do you compare floats?",
+  "level": "Basics"
+ },
+ {
   "title": "What is the else clause on for and while loops?",
   "level": "Basics"
+ },
+ {
+  "title": "How does match/case (structural pattern matching) work?",
+  "level": "Intermediate"
  },
  {
   "title": "Which built-in functions do you use most often?",
   "level": "Basics"
  },
  {
+  "title": "How do any() and all() work?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do sum(), min() and max() work with key and default?",
+  "level": "Basics"
+ },
+ {
+  "title": "What do chr(), ord(), bin() and hex() do?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you merge dictionaries, and when do you use get, setdefault or defaultdict?",
   "level": "Basics"
+ },
+ {
+  "title": "What does dict.fromkeys() do, and what is its pitfall?",
+  "level": "Intermediate"
  },
  {
   "title": "What is the difference between set and frozenset?",
@@ -184,6 +304,14 @@
   "level": "Intermediate"
  },
  {
+  "title": "What do dir(), vars(), globals() and locals() return?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between eval() and exec(), and why are they risky?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How does exception handling work (try/except/else/finally) and how do you create a custom exception?",
   "level": "Intermediate"
  },
@@ -197,6 +325,14 @@
  },
  {
   "title": "What are modules and what does if __name__ == \"__main__\" mean?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between a module and a package?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between the os and sys modules?",
   "level": "Intermediate"
  },
  {
@@ -220,6 +356,14 @@
   "level": "Intermediate"
  },
  {
+  "title": "Which functions from the math module do you use most?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you use the random module, and why set a seed?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you use regular expressions with the re module?",
   "level": "Intermediate"
  },
@@ -229,6 +373,10 @@
  },
  {
   "title": "How do you raise exceptions, and what does 'raise from' do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the assert statement do, and when should you not use it?",
   "level": "Intermediate"
  },
  {
@@ -292,12 +440,20 @@
   "level": "Advanced"
  },
  {
+  "title": "Why use functools.wraps when writing a decorator?",
+  "level": "Advanced"
+ },
+ {
   "title": "What is a generator, and what is the difference between yield and return?",
   "level": "Advanced"
  },
  {
   "title": "What is an iterator, and how is it different from an iterable?",
   "level": "Advanced"
+ },
+ {
+  "title": "How do iter() and next() work?",
+  "level": "Intermediate"
  },
  {
   "title": "What is a closure?",
@@ -330,6 +486,10 @@
  {
   "title": "What is the difference between class attributes and instance attributes?",
   "level": "Advanced"
+ },
+ {
+  "title": "What do getattr(), setattr() and hasattr() do?",
+  "level": "Intermediate"
  },
  {
   "title": "How does multiple inheritance work, and what is the MRO?",

@@ -807,4 +807,391 @@ user.orders?.[5]?.id ?? 'no order'`,
     code: "const square = (n) => n * n\nsquare(4) > 10 ? 'big' : 'small'",
     result: square(4) > 10 ? 'big' : 'small',
   },
+  {
+    title: "What is the difference between indexOf() and lastIndexOf()?",
+    note: "indexOf searches from the start and returns the first position of a value, while lastIndexOf searches from the end and returns the last position. Both return -1 when the value isn't there, and both work on strings too. I combine them to check if a value appears only once: indexOf(x) === lastIndexOf(x).",
+    code: "const nums = [1, 2, 3, 2, 1]\nnums.indexOf(2)  // first 2 is at index 1\nnums.lastIndexOf(2)  // last 2 is at index 3\nnums.indexOf(9)  // not found\n'banana'.lastIndexOf('a')  // works on strings too",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const nums = [1, 2, 3, 2, 1]
+      out.push(snap(nums.indexOf(2)))
+      out.push(snap(nums.lastIndexOf(2)))
+      out.push(snap(nums.indexOf(9)))
+      out.push(snap('banana'.lastIndexOf('a')))
+      return out
+    })(),
+  },
+  {
+    title: "What do push(), pop(), shift() and unshift() return?",
+    note: "push and unshift add items to the end or the start and return the new length. pop and shift remove one item from the end or the start and return that removed item. All four change the original array, so in React state I use spread or slice instead.",
+    code: "const arr = ['b', 'c']\narr.push('d')  // new length\narr.unshift('a')  // new length\narr.pop()  // removed item\narr.shift()  // removed item\narr  // back to the start",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const arr = ['b', 'c']
+      out.push(snap(arr.push('d')))
+      out.push(snap(arr.unshift('a')))
+      out.push(snap(arr.pop()))
+      out.push(snap(arr.shift()))
+      out.push(snap(arr))
+      return out
+    })(),
+  },
+  {
+    title: "What does reverse() do?",
+    note: "reverse() reverses the array in place, so it changes the original and also returns it. If I need to keep the original, I use toReversed() or [...arr].reverse(). Strings don't have reverse(), so I split, reverse and join.",
+    code: "const arr = [1, 2, 3]\n[...arr].reverse()  // copy reversed, original kept\narr  // unchanged\narr.reverse()  // reverses the original\n'hello'.split('').reverse().join('')  // reverse a string",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const arr = [1, 2, 3]
+      out.push(snap([...arr].reverse()))
+      out.push(snap(arr))
+      out.push(snap(arr.reverse()))
+      out.push(snap('hello'.split('').reverse().join('')))
+      return out
+    })(),
+  },
+  {
+    title: "What does reduceRight() do?",
+    note: "reduceRight works like reduce, but it goes through the array from the last item to the first. I rarely need it, but it's handy when order matters, like composing functions right to left.",
+    code: "['a', 'b', 'c'].reduce((acc, x) => acc + x, '')  // left to right\n['a', 'b', 'c'].reduceRight((acc, x) => acc + x, '')  // right to left",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap(['a', 'b', 'c'].reduce((acc, x) => acc + x, '')))
+      out.push(snap(['a', 'b', 'c'].reduceRight((acc, x) => acc + x, '')))
+      return out
+    })(),
+  },
+  {
+    title: "How do you check if a value is an array?",
+    note: "I use Array.isArray(value), which returns true only for real arrays. typeof doesn't help, because it returns 'object' for arrays, objects and null.",
+    code: "Array.isArray([1, 2])  // true\nArray.isArray('abc')  // false\nArray.isArray({ length: 2 })  // false: array-like, not an array\ntypeof [1, 2]  // 'object', so typeof can't tell",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap(Array.isArray([1, 2])))
+      out.push(snap(Array.isArray('abc')))
+      out.push(snap(Array.isArray({ length: 2 })))
+      out.push(snap(typeof [1, 2]))
+      return out
+    })(),
+  },
+  {
+    title: "How does the length property of an array work?",
+    note: "length is always one more than the highest index, so arr[arr.length - 1] is the last item. It's also writable: setting a smaller length cuts the array, and arr.length = 0 empties it in place.",
+    code: "const arr = [10, 20, 30, 40]\narr.length\narr[arr.length - 1]  // last item\narr.length = 2   // cut the array\narr\narr.length = 0   // empty it\narr",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const arr = [10, 20, 30, 40]
+      out.push(snap(arr.length))
+      out.push(snap(arr[arr.length - 1]))
+      arr.length = 2
+      out.push(snap(arr))
+      arr.length = 0
+      out.push(snap(arr))
+      return out
+    })(),
+  },
+  {
+    title: "What are Array.of(), toSpliced() and copyWithin()?",
+    note: "Array.of builds an array from its arguments, which avoids the Array(7) trap where one number means a length. toSpliced is the non-mutating version of splice and returns a new array. copyWithin copies part of an array over another part of the same array; I almost never use it, but it's good to recognise.",
+    code: "Array(3)  // 3 empty slots, not [3]\nArray.of(3)\n[1, 2, 3, 4].toSpliced(1, 2)  // original unchanged\n[1, 2, 3, 4, 5].copyWithin(0, 3)  // copy index 3.. to index 0",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap(Array(3)))
+      out.push(snap(Array.of(3)))
+      out.push(snap([1, 2, 3, 4].toSpliced(1, 2)))
+      out.push(snap([1, 2, 3, 4, 5].copyWithin(0, 3)))
+      return out
+    })(),
+  },
+  {
+    title: "How do you get a character from a string (charAt, [], at, charCodeAt)?",
+    note: "I read a character with str[i] or charAt(i), and use at(-1) for the last character. charCodeAt gives the character's number code, and String.fromCharCode turns codes back into text. Strings are immutable, so these only read characters, they never change them.",
+    code: "const s = 'hello'\ns[0]\ns.charAt(1)\ns.at(-1)  // last character\ns.charCodeAt(0)  // code of 'h'\nString.fromCharCode(72, 105)",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const s = 'hello'
+      out.push(snap(s[0]))
+      out.push(snap(s.charAt(1)))
+      out.push(snap(s.at(-1)))
+      out.push(snap(s.charCodeAt(0)))
+      out.push(snap(String.fromCharCode(72, 105)))
+      return out
+    })(),
+  },
+  {
+    title: "How do you change case and trim spaces in a string?",
+    note: "toUpperCase and toLowerCase change the case, and trim removes spaces from both ends, with trimStart and trimEnd for one side. They all return a new string. I trim and lowercase user input before comparing, like emails.",
+    code: "const s = '  Hello World  '\ns.trim()\ns.trimStart()\ns.trimEnd()\ns.trim().toUpperCase()\ns.trim().toLowerCase()",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const s = '  Hello World  '
+      out.push(snap(s.trim()))
+      out.push(snap(s.trimStart()))
+      out.push(snap(s.trimEnd()))
+      out.push(snap(s.trim().toUpperCase()))
+      out.push(snap(s.trim().toLowerCase()))
+      return out
+    })(),
+  },
+  {
+    title: "What do padStart(), padEnd() and repeat() do?",
+    note: "padStart and padEnd add characters to the start or end until the string reaches a length, which I use for things like zero-padded numbers or aligned text. repeat returns the string repeated a number of times.",
+    code: "'5'.padStart(3, '0')  // zero-pad\n'7'.padStart(2, '0') + ':' + '5'.padStart(2, '0')  // time format\n'abc'.padEnd(6, '.')\n'ab'.repeat(3)",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap('5'.padStart(3, '0')))
+      out.push(snap('7'.padStart(2, '0') + ':' + '5'.padStart(2, '0')))
+      out.push(snap('abc'.padEnd(6, '.')))
+      out.push(snap('ab'.repeat(3)))
+      return out
+    })(),
+  },
+  {
+    title: "What is the difference between replace() and replaceAll()?",
+    note: "replace with a string changes only the first match, while replaceAll changes every match. Before replaceAll existed I used a regex with the g flag. Both return a new string and leave the original as it is.",
+    code: "const s = 'a-b-c'\ns.replace('-', '+')  // first match only\ns.replaceAll('-', '+')  // every match\ns.replace(/-/g, '+')  // regex with g flag\ns  // original unchanged",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const s = 'a-b-c'
+      out.push(snap(s.replace('-', '+')))
+      out.push(snap(s.replaceAll('-', '+')))
+      out.push(snap(s.replace(/-/g, '+')))
+      out.push(snap(s))
+      return out
+    })(),
+  },
+  {
+    title: "What is the difference between slice(), substring() and substr() for strings?",
+    note: "slice(start, end) and substring(start, end) both cut out part of a string, but slice accepts negative indexes that count from the end, while substring treats negatives as 0. substr(start, length) uses a length instead of an end and is deprecated, so I use slice in new code.",
+    code: "const s = 'JavaScript'\ns.slice(0, 4)\ns.substring(0, 4)  // same here\ns.slice(-6)  // negative counts from the end\ns.substring(-6)  // negative becomes 0\ns.substr(4, 3)  // start + length (deprecated)",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const s = 'JavaScript'
+      out.push(snap(s.slice(0, 4)))
+      out.push(snap(s.substring(0, 4)))
+      out.push(snap(s.slice(-6)))
+      out.push(snap(s.substring(-6)))
+      out.push(snap(s.substr(4, 3)))
+      return out
+    })(),
+  },
+  {
+    title: "What do match() and matchAll() do?",
+    note: "match with a normal regex returns the first match and its groups, and with the g flag it returns all matched strings. matchAll returns an iterator of every match with its groups, which I use when I need the captured parts of each match. Both return null or an empty result when nothing matches.",
+    code: "const s = 'a1 b22 c333'\ns.match(/\\d+/g)  // all numbers\ns.match(/x/)  // no match\n[...s.matchAll(/(\\w)(\\d+)/g)].map((m) => m[1] + ':' + m[2])  // groups of each match",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const s = 'a1 b22 c333'
+      out.push(snap(s.match(/\d+/g)))
+      out.push(snap(s.match(/x/)))
+      out.push(snap([...s.matchAll(/(\w)(\d+)/g)].map((m) => m[1] + ':' + m[2])))
+      return out
+    })(),
+  },
+  {
+    title: "How do you compare strings with localeCompare()?",
+    note: "localeCompare returns a negative number, 0 or a positive number, which is exactly what sort needs. It sorts letters correctly for a language, including accents, which the default sort gets wrong. I use arr.sort((a, b) => a.localeCompare(b)) for names.",
+    code: "'a'.localeCompare('b')  // a comes first\n'b'.localeCompare('a')\n'a'.localeCompare('a')  // equal\n['zoo', '\u00c9clair', 'apple'].sort()  // default: by character code\n['zoo', '\u00c9clair', 'apple'].sort((a, b) => a.localeCompare(b, 'en'))  // alphabetical",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap('a'.localeCompare('b')))
+      out.push(snap('b'.localeCompare('a')))
+      out.push(snap('a'.localeCompare('a')))
+      out.push(snap(['zoo', 'Éclair', 'apple'].sort()))
+      out.push(snap(['zoo', 'Éclair', 'apple'].sort((a, b) => a.localeCompare(b, 'en'))))
+      return out
+    })(),
+  },
+  {
+    title: "What does Object.fromEntries() do?",
+    note: "Object.fromEntries turns a list of [key, value] pairs, or a Map, into an object. It's the opposite of Object.entries, so I use the two together to transform an object: entries, then map, then fromEntries.",
+    code: "Object.fromEntries([['a', 1], ['b', 2]])\nconst prices = { apple: 50, mango: 80 }\nObject.fromEntries(Object.entries(prices).map(([k, v]) => [k, v * 2]))  // double every price",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap(Object.fromEntries([['a', 1], ['b', 2]])))
+      const prices = { apple: 50, mango: 80 }
+      out.push(snap(Object.fromEntries(Object.entries(prices).map(([k, v]) => [k, v * 2]))))
+      return out
+    })(),
+  },
+  {
+    title: "What is the difference between Object.freeze() and Object.seal()?",
+    note: "freeze makes an object fully read-only: no adding, removing or changing properties. seal blocks adding and removing properties, but existing ones can still be changed. Both are shallow, so nested objects stay editable; I check with Object.isFrozen and Object.isSealed.",
+    code: "const sealed = Object.seal({ x: 1 })\nconst frozen = Object.freeze({ x: 1 })\nReflect.set(sealed, 'x', 2)  // change: allowed\nReflect.set(sealed, 'y', 1)  // add: blocked\nReflect.set(frozen, 'x', 2)  // change: blocked\n[Object.isSealed(sealed), Object.isFrozen(frozen)]",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const sealed = Object.seal({ x: 1 })
+      const frozen = Object.freeze({ x: 1 })
+      out.push(snap(Reflect.set(sealed, 'x', 2)))
+      out.push(snap(Reflect.set(sealed, 'y', 1)))
+      out.push(snap(Reflect.set(frozen, 'x', 2)))
+      out.push(snap([Object.isSealed(sealed), Object.isFrozen(frozen)]))
+      return out
+    })(),
+  },
+  {
+    title: "How do you check if an object has a property?",
+    note: "The in operator checks the object and its prototype chain, so it also finds inherited things like toString. Object.hasOwn(obj, key), the modern version of hasOwnProperty, checks only the object's own properties. I use Object.hasOwn in most code, and avoid obj.key !== undefined because a property can exist with the value undefined.",
+    code: "const user = { name: 'Anu', age: undefined }\n'name' in user\n'toString' in user  // inherited, still true\nObject.hasOwn(user, 'toString')  // own properties only\nuser.hasOwnProperty('name')  // older way\nObject.hasOwn(user, 'age')  // exists even though it's undefined",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const user = { name: 'Anu', age: undefined }
+      out.push(snap('name' in user))
+      out.push(snap('toString' in user))
+      out.push(snap(Object.hasOwn(user, 'toString')))
+      out.push(snap(user.hasOwnProperty('name')))
+      out.push(snap(Object.hasOwn(user, 'age')))
+      return out
+    })(),
+  },
+  {
+    title: "What do Object.create() and Object.getPrototypeOf() do?",
+    note: "Object.create(proto) makes a new empty object whose prototype is proto, so it inherits proto's methods without copying them. Object.getPrototypeOf returns an object's prototype. This is the prototype chain that classes use under the hood.",
+    code: "const animal = { speak() { return 'some sound' } }\nconst dog = Object.create(animal)\ndog.speak()  // inherited\nObject.hasOwn(dog, 'speak')  // not its own property\nObject.getPrototypeOf(dog) === animal",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const animal = { speak() { return 'some sound' } }
+      const dog = Object.create(animal)
+      out.push(snap(dog.speak()))
+      out.push(snap(Object.hasOwn(dog, 'speak')))
+      out.push(snap(Object.getPrototypeOf(dog) === animal))
+      return out
+    })(),
+  },
+  {
+    title: "What is Object.is() and how is it different from ===?",
+    note: "Object.is works like === except for two special cases: it treats NaN as equal to NaN, and it treats 0 and -0 as different. React uses Object.is to decide whether state changed.",
+    code: "const n = NaN\nn === n  // NaN is never === itself\nObject.is(n, n)\nconst negZero = -0\nnegZero === 0  // === treats -0 and 0 as equal\nObject.is(negZero, 0)\nObject.is('a', 'a')",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const n = NaN
+      out.push(snap(n === n))
+      out.push(snap(Object.is(n, n)))
+      const negZero = -0
+      out.push(snap(negZero === 0))
+      out.push(snap(Object.is(negZero, 0)))
+      out.push(snap(Object.is('a', 'a')))
+      return out
+    })(),
+  },
+  {
+    title: "What is the difference between parseInt(), parseFloat() and Number()?",
+    note: "parseInt and parseFloat read a number from the start of a string and stop at the first invalid character, so '42px' gives 42. Number() converts the whole value and returns NaN if any part isn't a number. I always pass a radix to parseInt, like parseInt(value, 10), and use Number() when the input must be a clean number.",
+    code: "parseInt('42px', 10)  // stops at 'p'\nparseFloat('3.14abc')\nString(Number('42px'))  // NaN: whole string must be a number\nNumber('')  // empty string becomes 0\nparseInt('101', 2)  // binary to decimal",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap(parseInt('42px', 10)))
+      out.push(snap(parseFloat('3.14abc')))
+      out.push(snap(String(Number('42px'))))
+      out.push(snap(Number('')))
+      out.push(snap(parseInt('101', 2)))
+      return out
+    })(),
+  },
+  {
+    title: "What is the difference between toFixed() and toPrecision()?",
+    note: "toFixed(n) rounds to n digits after the decimal point, and toPrecision(n) rounds to n significant digits in total. Both return a string, so I wrap them in Number() if I need to keep calculating. I use toFixed(2) for prices.",
+    code: "(3.14159).toFixed(2)  // 2 decimals\n(3.14159).toPrecision(3)  // 3 digits total\n(0.1 + 0.2).toFixed(2)\n(1234.5).toPrecision(2)  // switches to exponent form\ntypeof (5).toFixed(1)  // always a string",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap((3.14159).toFixed(2)))
+      out.push(snap((3.14159).toPrecision(3)))
+      out.push(snap((0.1 + 0.2).toFixed(2)))
+      out.push(snap((1234.5).toPrecision(2)))
+      out.push(snap(typeof (5).toFixed(1)))
+      return out
+    })(),
+  },
+  {
+    title: "What do Number.isInteger(), Number.isFinite() and Number.isNaN() do?",
+    note: "Number.isInteger checks for whole numbers, Number.isFinite rejects Infinity and NaN, and Number.isNaN checks for the actual NaN value. Unlike the old global isNaN and isFinite, these don't convert strings first, so they don't give surprising results for input like '5'.",
+    code: "Number.isInteger(5)\nNumber.isInteger(5.5)\nNumber.isFinite(1 / 0)  // Infinity\n[Number.isFinite('5'), isFinite('5')]  // global one converts '5' first\n[Number.isNaN('abc'), isNaN('abc')]  // global one converts 'abc' first",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap(Number.isInteger(5)))
+      out.push(snap(Number.isInteger(5.5)))
+      out.push(snap(Number.isFinite(1 / 0)))
+      out.push(snap([Number.isFinite('5'), isFinite('5')]))
+      out.push(snap([Number.isNaN('abc'), isNaN('abc')]))
+      return out
+    })(),
+  },
+  {
+    title: "How does toString() convert numbers to other bases?",
+    note: "number.toString(radix) converts a number to text in another base, like 2 for binary or 16 for hex, and parseInt(text, radix) converts it back. Without a radix, toString gives the normal decimal text, and arrays join their items with commas.",
+    code: "(255).toString(16)  // hex\n(5).toString(2)  // binary\nparseInt('ff', 16)  // hex back to number\n(123).toString()\n[1, 2, 3].toString()",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap((255).toString(16)))
+      out.push(snap((5).toString(2)))
+      out.push(snap(parseInt('ff', 16)))
+      out.push(snap((123).toString()))
+      out.push(snap([1, 2, 3].toString()))
+      return out
+    })(),
+  },
+  {
+    title: "What is the difference between Math.round(), Math.floor(), Math.ceil() and Math.trunc()?",
+    note: "round goes to the nearest whole number, floor always goes down, ceil always goes up, and trunc just removes the decimals. The difference shows with negative numbers: floor(-4.7) is -5 but trunc(-4.7) is -4. I use floor for things like page numbers and ceil for the total number of pages.",
+    code: "[Math.round(4.7), Math.floor(4.7), Math.ceil(4.7), Math.trunc(4.7)]\n[Math.round(-4.7), Math.floor(-4.7), Math.ceil(-4.7), Math.trunc(-4.7)]  // negatives differ\nMath.ceil(23 / 10)  // pages needed for 23 items",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap([Math.round(4.7), Math.floor(4.7), Math.ceil(4.7), Math.trunc(4.7)]))
+      out.push(snap([Math.round(-4.7), Math.floor(-4.7), Math.ceil(-4.7), Math.trunc(-4.7)]))
+      out.push(snap(Math.ceil(23 / 10)))
+      return out
+    })(),
+  },
+  {
+    title: "How do you get a random number in a range?",
+    note: "Math.random() returns a decimal from 0 up to, but not including, 1. To get a whole number between min and max, I multiply by the size of the range, floor it and add min. For anything security-related, like tokens, I use crypto.getRandomValues instead.",
+    code: "const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min\nconst dice = randomInt(1, 6)\ndice >= 1 && dice <= 6  // always in range",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+      const dice = randomInt(1, 6)
+      out.push(snap(dice >= 1 && dice <= 6))
+      return out[0]
+    })(),
+  },
+  {
+    title: "What do Math.pow(), Math.sqrt(), Math.abs() and Math.sign() do?",
+    note: "Math.pow(a, b) raises a to a power, which I usually write as a ** b. Math.sqrt gives the square root, Math.abs removes the sign, and Math.sign returns -1, 0 or 1. Math.max and Math.min take separate numbers, so I spread an array into them.",
+    code: "[Math.pow(2, 3), 2 ** 3]\nMath.sqrt(16)\nMath.abs(-7)\n[Math.sign(-3), Math.sign(0), Math.sign(5)]\nMath.max(...[1, 5, 3])",
+    result: (() => {
+      const out = []
+      const snap = (v) => (typeof v === 'object' && v !== null ? structuredClone(v) : v)
+      out.push(snap([Math.pow(2, 3), 2 ** 3]))
+      out.push(snap(Math.sqrt(16)))
+      out.push(snap(Math.abs(-7)))
+      out.push(snap([Math.sign(-3), Math.sign(0), Math.sign(5)]))
+      out.push(snap(Math.max(...[1, 5, 3])))
+      return out
+    })(),
+  },
 ]

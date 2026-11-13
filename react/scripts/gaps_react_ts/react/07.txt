@@ -1,0 +1,21 @@
+How do you close a dropdown when the user clicks outside? (useOnClickOutside)
+@@
+  {
+    q: 'What is useDebugValue?',
+    level: 'Advanced',
+    a: 'useDebugValue adds a label to a custom hook in the Components tab of React DevTools, so I can see its current value without adding console logs. It does nothing for users and only makes sense in custom hooks that are shared, like in a library. If the label is expensive to build, I pass a format function as the second argument so it only runs when DevTools is open.',
+    code: `function useOnlineStatus() {
+  const [online, setOnline] = useState(navigator.onLine) // listeners call setOnline
+  useDebugValue(online ? 'Online' : 'Offline') // label in DevTools
+  return online
+}
+
+function StatusBar() {
+  const online = useOnlineStatus()
+  return <p>{online ? 'Online' : 'Offline'}</p>
+}`,
+    output: `React DevTools > Components > StatusBar
+  hooks
+    OnlineStatus: "Online"
+    State: true`,
+  },

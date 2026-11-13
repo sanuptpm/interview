@@ -1,6 +1,7 @@
 // Syntax highlighting for the read-only example code blocks (highlight.js).
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
 import python from 'highlight.js/lib/languages/python'
 import sql from 'highlight.js/lib/languages/sql'
 import css from 'highlight.js/lib/languages/css'
@@ -13,6 +14,7 @@ import './codeTheme.css'
 
 // Only the languages used on the site are registered, to keep the bundle small.
 hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('typescript', typescript)
 hljs.registerLanguage('python', python)
 hljs.registerLanguage('sql', sql)
 hljs.registerLanguage('css', css)

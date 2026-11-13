@@ -1,0 +1,21 @@
+useLayoutEffect vs useEffect?
+@@
+  {
+    q: 'What is useInsertionEffect?',
+    level: 'Advanced',
+    a: 'useInsertionEffect runs before useLayoutEffect, so a CSS-in-JS library can inject its style tags before any layout effect measures the DOM. It is meant for library authors: inside it I cannot update state, and refs are not attached yet. In app code I use useEffect, or useLayoutEffect when I need to measure before paint.',
+    code: `// Inside a CSS-in-JS library
+function useCss(rule) {
+  useInsertionEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = rule
+    document.head.appendChild(style)
+    return () => style.remove()
+  }, [rule])
+}`,
+    output: `Order after each render:
+useInsertionEffect  -> inject <style> tags
+useLayoutEffect     -> measure the DOM (styles already there)
+(browser paints)
+useEffect           -> fetch, subscriptions, logging`,
+  },

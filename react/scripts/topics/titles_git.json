@@ -24,6 +24,10 @@
   "level": "Basics"
  },
  {
+  "title": "What does git commit -a do?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you view history with git log?",
   "level": "Basics"
  },
@@ -49,6 +53,10 @@
  },
  {
   "title": "What do git push, git pull and git fetch do?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does git push -u (set upstream) do?",
   "level": "Basics"
  },
  {
@@ -148,6 +156,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "How do you search code with git grep?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What does git show do?",
   "level": "Intermediate"
  },
@@ -173,6 +185,14 @@
  },
  {
   "title": "What does a release workflow with tags look like?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do git shortlog and git describe do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does git archive do?",
   "level": "Intermediate"
  },
  {

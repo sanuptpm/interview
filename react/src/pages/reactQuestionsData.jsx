@@ -6,8 +6,11 @@
 /* oxlint-disable react/only-export-components */
 
 import {
+  Children,
+  cloneElement,
   Component,
   createContext,
+  isValidElement,
   memo,
   startTransition,
   Suspense,
@@ -24,8 +27,9 @@ import {
   useReducer,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync, useFormStatus } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { configureStore, createSlice } from '@reduxjs/toolkit'
 import { ApiProvider, createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
@@ -1908,6 +1912,129 @@ function MutationDemo() {
   )
 }
 
+/* ---------------------- Coverage additions ---------------------- */
+
+function DrillPage({ user }) {
+  return <DrillHeader user={user} />
+}
+
+function DrillHeader({ user }) {
+  return <DrillAvatar user={user} />
+}
+
+function DrillAvatar({ user }) {
+  return <p>Hi, {user}</p>
+}
+
+function PropDrillingDemo() {
+  const [user, setUser] = useState('Anu')
+  return (
+    <div className="space-y-2">
+      <input className={inputCls} value={user} onChange={(e) => setUser(e.target.value)} />
+      <DrillPage user={user} />
+    </div>
+  )
+}
+
+function DefaultValueDemo() {
+  const nameRef = useRef(null)
+  const termsRef = useRef(null)
+  const [summary, setSummary] = useState('')
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-3">
+        <input className={inputCls} ref={nameRef} defaultValue="Anu" />
+        <label className="flex items-center gap-1">
+          <input ref={termsRef} type="checkbox" defaultChecked /> Accept terms
+        </label>
+        <button className={btn} onClick={() => setSummary(nameRef.current.value + ' / ' + termsRef.current.checked)}>
+          Read
+        </button>
+      </div>
+      <p>{summary}</p>
+    </div>
+  )
+}
+
+function RefCallbackDemo() {
+  const [height, setHeight] = useState(0)
+  const measureRef = useCallback((node) => {
+    if (node) setHeight(Math.round(node.getBoundingClientRect().height))
+  }, [])
+  return (
+    <div className="space-y-2">
+      <p ref={measureRef} className="rounded bg-slate-100 p-3">
+        Measure me
+      </p>
+      <p>Height: {height}px</p>
+    </div>
+  )
+}
+
+function subscribeResize(onChange) {
+  window.addEventListener('resize', onChange)
+  return () => window.removeEventListener('resize', onChange)
+}
+
+function SyncExternalStoreDemo() {
+  const width = useSyncExternalStore(subscribeResize, () => window.innerWidth, () => 0)
+  return <p>Window width: {width}px (resize the window)</p>
+}
+
+function FlushSyncDemo() {
+  const [items, setItems] = useState([1, 2, 3])
+  const listRef = useRef(null)
+  const add = () => {
+    flushSync(() => setItems((s) => [...s, s.length + 1]))
+    listRef.current.scrollTop = listRef.current.scrollHeight
+  }
+  return (
+    <div className="space-y-2">
+      <ul ref={listRef} className="rounded border border-slate-200 px-3" style={{ height: 80, overflow: 'auto' }}>
+        {items.map((n) => (
+          <li key={n}>Item {n}</li>
+        ))}
+      </ul>
+      <button className={btn} onClick={add}>
+        Add item
+      </button>
+    </div>
+  )
+}
+
+function Steps({ children }) {
+  const items = Children.toArray(children).filter(isValidElement)
+  return items.map((child, i) => cloneElement(child, { children: 'Step ' + (i + 1) + ': ' + child.props.children }))
+}
+
+function ChildrenApiDemo() {
+  return (
+    <Steps>
+      <p>Add to cart</p>
+      plain text is skipped
+      <p>Pay</p>
+    </Steps>
+  )
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button className={btn} disabled={pending}>
+      {pending ? 'Saving...' : 'Save'}
+    </button>
+  )
+}
+
+function FormStatusDemo() {
+  return (
+    <form action={() => wait(1000)} className="flex flex-wrap gap-2">
+      <input className={inputCls} name="title" defaultValue="My note" />
+      <SubmitButton />
+    </form>
+  )
+}
+
 export const questions = [
   // ---------- Basics ----------
   {
@@ -2071,6 +2198,20 @@ const inputRef = useRef(null)
     output: <ControlledDemo />,
   },
   {
+    q: 'What are defaultValue and defaultChecked?',
+    level: 'Basics',
+    a: 'defaultValue and defaultChecked set only the starting value of an uncontrolled input; after that the DOM owns the value and I read it with a ref or from FormData. If I set value without an onChange, React makes the input read-only and warns me, so for a simple prefilled field I use defaultValue instead. They work on select and textarea too.',
+    code: `const nameRef = useRef(null)
+const termsRef = useRef(null)
+const [summary, setSummary] = useState('')
+
+<input ref={nameRef} defaultValue="Anu" />
+<label><input ref={termsRef} type="checkbox" defaultChecked /> Accept terms</label>
+<button onClick={() => setSummary(nameRef.current.value + ' / ' + termsRef.current.checked)}>Read</button>
+<p>{summary}</p>`,
+    output: <DefaultValueDemo />,
+  },
+  {
     q: 'How do you handle forms?',
     level: 'Basics',
     a: 'I keep each field in state as a controlled input and handle the onSubmit event on the form. Inside the handler I call e.preventDefault() so the browser does not reload the page. Then I validate, send the data, and reset the fields if needed.',
@@ -2099,6 +2240,21 @@ const [count, setCount] = useState(0)
 <CountButton onAdd={() => setCount(count + 1)} />
 <CountLabel count={count} />`,
     output: <LiftingStateDemo />,
+  },
+  {
+    q: 'What is prop drilling and how do you avoid it?',
+    level: 'Basics',
+    a: 'Prop drilling is when I pass a prop through several components that do not use it, only so a deeply nested child can read it. It works, but every middle component has to change when the data changes. First I try composition, passing the finished child element down as children; for data that many parts need, like the user or theme, I use Context or a store.',
+    code: `function App() {
+  const [user, setUser] = useState('Anu')
+  return <><input value={user} onChange={(e) => setUser(e.target.value)} /><Page user={user} /></>
+}
+
+// Page and Header never use user, they only pass it down
+function Page({ user }) { return <Header user={user} /> }
+function Header({ user }) { return <Avatar user={user} /> }
+function Avatar({ user }) { return <p>Hi, {user}</p> }`,
+    output: <PropDrillingDemo />,
   },
   {
     q: 'What is the children prop?',
@@ -2643,6 +2799,21 @@ const [shown, setShown] = useState(0)
     output: <RefDemo />,
   },
   {
+    q: 'What is a ref callback?',
+    level: 'Intermediate',
+    a: 'Instead of a ref object, I can pass a function to the ref prop. React calls it with the DOM node when the element is added, and with null when it is removed (in React 19 it can also return a cleanup function). I use it to measure an element as soon as it appears or to keep refs for every item in a list; I wrap it in useCallback so React does not call it again on every render.',
+    code: `const [height, setHeight] = useState(0)
+
+// React calls this with the DOM node after it is added
+const measureRef = useCallback((node) => {
+  if (node) setHeight(Math.round(node.getBoundingClientRect().height))
+}, [])
+
+<p ref={measureRef}>Measure me</p>
+<p>Height: {height}px</p>`,
+    output: <RefCallbackDemo />,
+  },
+  {
     q: 'What is useMemo?',
     level: 'Intermediate',
     a: 'useMemo caches the result of a calculation and only recalculates it when its dependencies change. I use it for expensive work like filtering big lists or heavy math, so unrelated re-renders stay fast. I do not wrap everything in useMemo; I add it when I see a real performance problem.',
@@ -2822,6 +2993,24 @@ useEffect(() => {
     output: <StaleClosureDemo />,
   },
   {
+    q: 'What is useEffectEvent?',
+    level: 'Advanced',
+    a: 'useEffectEvent (stable in React 19.2) wraps a function that an effect calls, so it always sees the latest props and state without being a dependency. That lets me keep the effect reacting only to what should restart it: below, changing roomId reconnects, but changing theme does not. I only call these functions from inside effects, never during render.',
+    code: `function Room({ roomId, theme }) {
+  const onConnected = useEffectEvent(() => {
+    console.log('Connected to ' + roomId + ' (' + theme + ')') // latest theme
+  })
+
+  useEffect(() => {
+    const id = setTimeout(onConnected, 500) // pretend to connect
+    return () => clearTimeout(id)
+  }, [roomId]) // theme is not a dependency
+}`,
+    output: `roomId 'general', theme 'light'  -> Connected to general (light)
+theme changes to 'dark'          -> nothing (no reconnect)
+roomId changes to 'travel'       -> Connected to travel (dark)`,
+  },
+  {
     q: 'useLayoutEffect vs useEffect?',
     level: 'Intermediate',
     a: 'useEffect runs after the browser has painted the screen, so it does not block the UI, and it is right for most side effects. useLayoutEffect runs after React updates the DOM but before the browser paints, so I use it when I need to measure an element and adjust the layout without a visible flicker, like positioning a tooltip. Because it blocks painting, I use it only when I actually see that flicker.',
@@ -2844,6 +3033,25 @@ useEffect(() => {
 
 With useEffect instead, the user may briefly see
 the tooltip in the wrong place (a flicker).`,
+  },
+  {
+    q: 'What is useInsertionEffect?',
+    level: 'Advanced',
+    a: 'useInsertionEffect runs before useLayoutEffect, so a CSS-in-JS library can inject its style tags before any layout effect measures the DOM. It is meant for library authors: inside it I cannot update state, and refs are not attached yet. In app code I use useEffect, or useLayoutEffect when I need to measure before paint.',
+    code: `// Inside a CSS-in-JS library
+function useCss(rule) {
+  useInsertionEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = rule
+    document.head.appendChild(style)
+    return () => style.remove()
+  }, [rule])
+}`,
+    output: `Order after each render:
+useInsertionEffect  -> inject <style> tags
+useLayoutEffect     -> measure the DOM (styles already there)
+(browser paints)
+useEffect           -> fetch, subscriptions, logging`,
   },
   {
     q: 'What is useId?',
@@ -2878,6 +3086,21 @@ const deferredQuery = useDeferredValue(query) // lags behind while busy
 <input value={query} onChange={(e) => setQuery(e.target.value)} />
 <SlowList query={deferredQuery} />`,
     output: <DeferredDemo />,
+  },
+  {
+    q: 'What is startTransition, and how is it different from useTransition?',
+    level: 'Advanced',
+    a: 'Both mark a state update as non-urgent, so React can interrupt it to keep typing and clicks responsive. useTransition is a hook, so it only works inside a component, and it also gives me an isPending flag for a spinner. startTransition is a plain function I can import and call anywhere, like in a router or a store, but it has no pending flag.',
+    code: `import { startTransition, useTransition } from 'react'
+
+// Inside a component: also gives isPending
+const [isPending, startTx] = useTransition()
+const selectTab = (tab) => startTx(() => setTab(tab))
+
+// Outside components (a router, a store): no isPending
+startTransition(() => store.setFilter('done'))`,
+    output: `useTransition()    -> [isPending, startTransition], hook, inside components
+startTransition()  -> same low-priority update, no pending flag, works anywhere`,
   },
   {
     q: 'How do you pass a ref to a child? forwardRef vs ref as a prop (React 19)',
@@ -2971,6 +3194,25 @@ useOnClickOutside(ref, () => setOpen(false))
   {open && <p>Profile · Logout</p>}
 </div>`,
     output: <ClickOutsideDemo />,
+  },
+  {
+    q: 'What is useDebugValue?',
+    level: 'Advanced',
+    a: 'useDebugValue adds a label to a custom hook in the Components tab of React DevTools, so I can see its current value without adding console logs. It does nothing for users and only makes sense in custom hooks that are shared, like in a library. If the label is expensive to build, I pass a format function as the second argument so it only runs when DevTools is open.',
+    code: `function useOnlineStatus() {
+  const [online, setOnline] = useState(navigator.onLine) // listeners call setOnline
+  useDebugValue(online ? 'Online' : 'Offline') // label in DevTools
+  return online
+}
+
+function StatusBar() {
+  const online = useOnlineStatus()
+  return <p>{online ? 'Online' : 'Offline'}</p>
+}`,
+    output: `React DevTools > Components > StatusBar
+  hooks
+    OnlineStatus: "Online"
+    State: true`,
   },
   {
     q: 'How do you build a textarea with a character counter?',
@@ -3224,6 +3466,40 @@ const [count, setCount] = useState(0)
     output: <ReactMemoDemo />,
   },
   {
+    q: 'React.memo vs useMemo: what is the difference?',
+    level: 'Intermediate',
+    a: 'memo wraps a component and skips re-rendering it when its props are the same. useMemo is a hook inside a component that caches a calculated value until its dependencies change. They often work together: I use useMemo or useCallback to keep an object or function prop stable, so the memo child really can skip rendering.',
+    code: `// memo: wraps a COMPONENT, skips its re-render if props are equal
+const Row = memo(function Row({ name }) {
+  return <li>{name}</li>
+})
+
+// useMemo: caches a VALUE inside a component
+const sorted = useMemo(() => [...names].sort(), [names])
+
+<ul>{sorted.map((n) => <Row key={n} name={n} />)}</ul>`,
+    output: `memo(Component)    -> skips re-rendering the child when its props are equal
+useMemo(fn, deps)  -> recomputes the value only when deps change`,
+  },
+  {
+    q: 'What is a pure component? PureComponent vs React.memo',
+    level: 'Intermediate',
+    a: 'A pure component renders the same output for the same props and state and has no side effects during render. In class components, extending PureComponent adds a shallow comparison of props and state, so render is skipped when nothing changed. For function components I get the same effect with memo; I only reach for either when profiling shows wasted renders.',
+    code: `import { PureComponent, memo } from 'react'
+
+// Class: skips render() when props and state are shallowly equal
+class Price extends PureComponent {
+  render() {
+    return <p>{this.props.value}</p>
+  }
+}
+
+// Function component: memo does the same job
+const PriceFn = memo(({ value }) => <p>{value}</p>)`,
+    output: `Parent re-renders, value still 10  -> render skipped
+Parent passes value 12             -> render runs`,
+  },
+  {
     q: 'How do lifecycle methods map to hooks?',
     level: 'Advanced',
     a: 'With hooks I think in terms of effects rather than lifecycle methods. useEffect with [] works like componentDidMount, an effect with dependencies works like componentDidUpdate for those values, and the cleanup function works like componentWillUnmount. This keeps related setup and cleanup code together in one place.',
@@ -3363,6 +3639,23 @@ const handleClick = () => {
   // two updates -> only ONE re-render (also inside timeouts and promises)
 }`,
     output: <BatchingDemo />,
+  },
+  {
+    q: 'What is flushSync?',
+    level: 'Advanced',
+    a: 'flushSync from react-dom forces React to apply a state update and update the DOM right away, instead of batching it for later. I need it when the very next line reads the DOM, like scrolling to an item I just added. It is slow if overused, so I keep it for these rare cases and never call it during render.',
+    code: `import { flushSync } from 'react-dom'
+
+const [items, setItems] = useState([1, 2, 3])
+const listRef = useRef(null)
+const add = () => {
+  flushSync(() => setItems((s) => [...s, s.length + 1])) // DOM updated now
+  listRef.current.scrollTop = listRef.current.scrollHeight // sees the new item
+}
+
+<ul ref={listRef} style={{ height: 80, overflow: 'auto' }}>{items.map((n) => <li key={n}>Item {n}</li>)}</ul>
+<button onClick={add}>Add item</button>`,
+    output: <FlushSyncDemo />,
   },
   {
     q: 'What is reconciliation and how does the key prop affect it?',
@@ -3533,6 +3826,23 @@ const [count, formAction, isPending] = useActionState(addToCart, 0)
     output: <ActionStateDemo />,
   },
   {
+    q: 'What is useFormStatus?',
+    level: 'Advanced',
+    a: 'useFormStatus from react-dom tells a component whether the parent form is currently submitting, with pending, data and method. It only works in a component rendered inside the <form>, not in the component that renders the form. I use it for a reusable SubmitButton that disables itself and shows "Saving..." without passing any props.',
+    code: `import { useFormStatus } from 'react-dom'
+
+function SubmitButton() { // must be rendered inside a <form>
+  const { pending } = useFormStatus()
+  return <button disabled={pending}>{pending ? 'Saving...' : 'Save'}</button>
+}
+
+<form action={() => wait(1000)}>
+  <input name="title" defaultValue="My note" />
+  <SubmitButton />
+</form>`,
+    output: <FormStatusDemo />,
+  },
+  {
     q: 'What is useOptimistic?',
     level: 'Advanced',
     a: 'useOptimistic lets me show the expected result immediately while the real request is still running, like showing a sent message or a liked heart right away. I give it the real state and an update function, and call addOptimistic inside an action. When the action finishes, React drops the optimistic value and shows the real state, so if the request fails the UI goes back automatically.',
@@ -3602,6 +3912,24 @@ function Panel({ id, children }) {
     output: <CompoundDemo />,
   },
   {
+    q: 'What do Children, cloneElement and isValidElement do?',
+    level: 'Advanced',
+    a: 'They let a component inspect and change the children it receives. Children.toArray or Children.map walk over the children, isValidElement tells me whether a child is a real element and not text, and cloneElement copies an element with extra props. They break easily when children are wrapped in other components, so in new code I prefer passing data as props, context or render props.',
+    code: `import { Children, cloneElement, isValidElement } from 'react'
+
+function Steps({ children }) {
+  const items = Children.toArray(children).filter(isValidElement)
+  return items.map((child, i) => cloneElement(child, { children: 'Step ' + (i + 1) + ': ' + child.props.children }))
+}
+
+<Steps>
+  <p>Add to cart</p>
+  plain text is skipped
+  <p>Pay</p>
+</Steps>`,
+    output: <ChildrenApiDemo />,
+  },
+  {
     q: 'What is the render props pattern?',
     level: 'Advanced',
     a: 'A render prop is a prop whose value is a function that returns JSX. The component handles the logic, like tracking the mouse, and calls that function with its data, so the parent decides what to render. Custom hooks have replaced most render props today, but I still see the pattern in libraries, for example in form and list components.',
@@ -3638,6 +3966,23 @@ Context                 -> theme, auth user, language (rarely changes)
 Redux Toolkit           -> big app, many devs, complex updates, DevTools
 Zustand                 -> shared state with minimal boilerplate
 TanStack Query          -> server data: caching, refetch, loading/error`,
+  },
+  {
+    q: 'What is useSyncExternalStore?',
+    level: 'Advanced',
+    a: 'useSyncExternalStore subscribes a component to data that lives outside React, like a browser API or a store library. I give it a subscribe function and a getSnapshot function, plus an optional server snapshot for SSR, and React re-renders when the value changes. Libraries like Redux and Zustand use it under the hood; getSnapshot must return the same value when nothing changed, or it renders forever.',
+    code: `import { useSyncExternalStore } from 'react'
+
+function subscribe(onChange) {
+  window.addEventListener('resize', onChange)
+  return () => window.removeEventListener('resize', onChange)
+}
+
+function WindowWidth() {
+  const width = useSyncExternalStore(subscribe, () => window.innerWidth, () => 0)
+  return <p>Window width: {width}px (resize the window)</p>
+}`,
+    output: <SyncExternalStoreDemo />,
   },
   {
     q: 'What is Redux and what are store, actions and reducers?',
@@ -4060,6 +4405,23 @@ const sorted = useMemo(() => sortBig(items), [items])
   [x] React Compiler can auto-memoize in React 19 apps`,
   },
   {
+    q: 'How do you find slow components with React DevTools and the Profiler?',
+    level: 'Intermediate',
+    a: 'In the browser I use the React DevTools extension: the Components tab shows props, state and hooks, and the Profiler tab records an interaction and shows which components rendered, how long they took and why. I also turn on "Highlight updates when components render" to spot extra renders. In code, the <Profiler> component calls onRender with timings, which helps me measure one part of the tree before and after a fix.',
+    code: `import { Profiler } from 'react'
+
+function onRender(id, phase, actualDuration) {
+  console.log(id, phase, actualDuration.toFixed(1) + 'ms')
+}
+
+<Profiler id="ProductList" onRender={onRender}>
+  <ProductList />
+</Profiler>`,
+    output: `ProductList mount 12.4ms
+ProductList update 3.1ms
+(timings vary from run to run)`,
+  },
+  {
     q: 'How do you test React components with React Testing Library?',
     level: 'Advanced',
     a: 'React Testing Library tests components the way a user uses them: I render the component, find elements by role, label or text, and fire events with user-event. I avoid testing internal state or implementation details, so refactoring does not break my tests. I run the tests with Vitest or Jest, and for async UI I use findBy queries, which wait for the element to appear.',
@@ -4141,6 +4503,20 @@ SSG    fastest (CDN)  good    at build time      blogs, docs, marketing
 ISR    fast           good    rebuilt on a timer Next.js revalidate
 
 Hydration: HTML is visible first, then React makes it interactive.`,
+  },
+  {
+    q: 'What do createRoot and hydrateRoot do?',
+    level: 'Intermediate',
+    a: 'createRoot is how a client-side app starts: it takes an empty DOM node, and render builds the whole UI inside it. hydrateRoot is for server-rendered HTML: it reuses the markup that is already there and only attaches event handlers and state. If the client renders something different from the server, I get a hydration mismatch, so I keep things like dates and Math.random out of the first render.',
+    code: `import { createRoot, hydrateRoot } from 'react-dom/client'
+
+// Client-side app (Vite): the div starts empty
+createRoot(document.getElementById('root')).render(<App />)
+
+// Server-rendered HTML (SSR): reuse the existing markup
+hydrateRoot(document.getElementById('root'), <App />)`,
+    output: `createRoot   -> builds the DOM from scratch in the browser
+hydrateRoot  -> keeps the server HTML, attaches events and state`,
   },
   {
     q: 'Next.js vs Vite: when would you choose each?',

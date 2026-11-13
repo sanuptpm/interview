@@ -1,0 +1,16 @@
+Controlled vs uncontrolled inputs?
+@@
+  {
+    q: 'What are defaultValue and defaultChecked?',
+    level: 'Basics',
+    a: 'defaultValue and defaultChecked set only the starting value of an uncontrolled input; after that the DOM owns the value and I read it with a ref or from FormData. If I set value without an onChange, React makes the input read-only and warns me, so for a simple prefilled field I use defaultValue instead. They work on select and textarea too.',
+    code: `const nameRef = useRef(null)
+const termsRef = useRef(null)
+const [summary, setSummary] = useState('')
+
+<input ref={nameRef} defaultValue="Anu" />
+<label><input ref={termsRef} type="checkbox" defaultChecked /> Accept terms</label>
+<button onClick={() => setSummary(nameRef.current.value + ' / ' + termsRef.current.checked)}>Read</button>
+<p>{summary}</p>`,
+    output: <DefaultValueDemo />,
+  },

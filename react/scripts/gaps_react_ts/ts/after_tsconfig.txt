@@ -1,0 +1,68 @@
+What are the basics of tsconfig.json (strict, target, module)?
+@@
+  {
+    q: 'What does noImplicitAny do?',
+    level: 'Basics',
+    kind: 'error',
+    a: "noImplicitAny reports an error whenever TypeScript can't work out a type and would silently fall back to any. Without it, an unannotated parameter is any and every typo on it slips through. It's part of strict, and when I migrate a JavaScript project I turn it on early because it shows exactly where types are missing.",
+    code: `function greet(name) {            // name would silently be any
+  return "Hi " + name.toUpperCase()
+}
+
+function greetOk(name: string) {  // fixed with an annotation
+  return "Hi " + name.toUpperCase()
+}
+
+[1, 2].map((n) => n * 2)          // fine: n is inferred from the array`,
+  },
+  {
+    q: 'What does esModuleInterop do?',
+    level: 'Intermediate',
+    kind: 'prints',
+    a: "esModuleInterop lets me use a normal default import, like import express from \"express\", for an old CommonJS module that sets module.exports. Without it I had to write import * as express, which breaks when the export is a function. Since TypeScript 6 it can't be turned off any more (esModuleInterop: false is an error in 7.0), so I just delete the setting from old configs.",
+    code: `// file: greet.cjs
+module.exports = (name) => "Hi " + name
+// file: greet.d.cts
+declare function greet(name: string): string
+export = greet
+// file: main.ts
+import greet from "./greet.cjs"   // default import of CommonJS
+console.log(greet("Ann"))`,
+  },
+  {
+    q: 'What does skipLibCheck do?',
+    level: 'Intermediate',
+    kind: 'error',
+    project: true,
+    a: "skipLibCheck tells tsc not to type-check .d.ts files, so it only checks my own .ts code. It makes builds faster and avoids errors from two libraries whose type definitions clash, which is why most templates set it to true. The trade-off is that a mistake in my own .d.ts files is also skipped, like the typo below that only shows up with skipLibCheck off.",
+    code: `// file: tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": false,
+    "noEmit": true
+  }
+}
+// file: legacy.d.ts
+declare function oldApi(): Promis<string>   // typo in a .d.ts
+// file: main.ts
+oldApi()`,
+  },
+  {
+    q: 'How do you set up path aliases with paths (and why not baseUrl)?',
+    level: 'Intermediate',
+    kind: 'error',
+    project: true,
+    a: "paths maps an alias like @/* to a folder, so I can import \"@/utils/date\" instead of \"../../../utils/date\". In TypeScript 7 baseUrl is removed, so I write the paths relative to tsconfig.json, like \"./src/*\". tsc doesn't rewrite the imports, so I always add the same alias in my bundler too, for example resolve.alias in Vite.",
+    code: `// file: tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  }
+}
+// file: main.ts
+export {}`,
+  },

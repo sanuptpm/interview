@@ -47,6 +47,13 @@ export const questions = [
     output: "Amazon Elastic Compute Cloud - Compute\t6.4213\nAmazon Simple Storage Service\t0.2841\nAWS Lambda\t0",
   },
   {
+    q: "What are AWS Budgets, Cost Explorer and Trusted Advisor?",
+    level: 'Basics',
+    a: "Cost Explorer shows where my money went, with charts I can group by service, account or tag, plus a forecast for the month. AWS Budgets alerts me, or can even take an action, when actual or forecast spend crosses a limit I set, so I hear about a problem on day three instead of at the end of the month. Trusted Advisor checks my account against best practices for cost, security, fault tolerance and service limits, like idle load balancers or wide-open security groups. The first thing I do in a new account is create a budget with an email alert.",
+    code: "aws budgets create-budget --account-id 123456789012 \\\n    --budget '{\"BudgetName\": \"monthly-100\", \"BudgetLimit\": {\"Amount\": \"100\", \"Unit\": \"USD\"}, \"TimeUnit\": \"MONTHLY\", \"BudgetType\": \"COST\"}' \\\n    --notifications-with-subscribers '[{\"Notification\": {\"NotificationType\": \"FORECASTED\", \"ComparisonOperator\": \"GREATER_THAN\", \"Threshold\": 80},\n      \"Subscribers\": [{\"SubscriptionType\": \"EMAIL\", \"Address\": \"dev@example.com\"}]}]'\n\n# This month's cost per service\naws ce get-cost-and-usage --time-period Start=2026-11-01,End=2026-11-13 \\\n    --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE \\\n    --query 'ResultsByTime[0].Groups[].[Keys[0], Metrics.UnblendedCost.Amount]' --output text",
+    output: "AWS Lambda\t0.42\nAmazon Elastic Compute Cloud - Compute\t31.87\nAmazon Relational Database Service\t18.40\nAmazon Simple Storage Service\t2.16",
+  },
+  {
     q: "What is IAM? Explain users, groups, roles and policies.",
     level: 'Basics',
     a: "IAM controls who can do what in an AWS account. A user is a person or app with long-term credentials, a group is a set of users that share permissions, a role is an identity with temporary credentials that a service or person assumes, and a policy is the JSON document that allows or denies actions. I attach policies to groups instead of individual users, so onboarding someone is just adding them to the right group.",
@@ -94,6 +101,13 @@ export const questions = [
     a: "Storage classes trade price for access speed: Standard for hot data, Standard-IA and One Zone-IA for data read less than once a month, Intelligent-Tiering when I don't know the pattern, and Glacier classes for archives. Lifecycle rules move or delete objects automatically based on age. For logs I usually go Standard, then IA after 30 days, Glacier after 90, and delete after a year.",
     code: "# lifecycle.json:\n#   {\"Rules\": [{\"ID\": \"logs-tiering\", \"Status\": \"Enabled\", \"Filter\": {\"Prefix\": \"logs/\"},\n#     \"Transitions\": [{\"Days\": 30, \"StorageClass\": \"STANDARD_IA\"},\n#                     {\"Days\": 90, \"StorageClass\": \"GLACIER\"}],\n#     \"Expiration\": {\"Days\": 365}}]}\n\naws s3api put-bucket-lifecycle-configuration --bucket example-app-logs \\\n    --lifecycle-configuration file://lifecycle.json\naws s3api get-bucket-lifecycle-configuration --bucket example-app-logs \\\n    --query 'Rules[0].Transitions'",
     output: "[\n    {\n        \"Days\": 30,\n        \"StorageClass\": \"STANDARD_IA\"\n    },\n    {\n        \"Days\": 90,\n        \"StorageClass\": \"GLACIER\"\n    }\n]",
+  },
+  {
+    q: "What is S3 Glacier, and how do you restore an archived object?",
+    level: 'Intermediate',
+    a: "S3 Glacier is the archive side of S3, with three storage classes: Glacier Instant Retrieval (milliseconds, for data read a few times a year), Glacier Flexible Retrieval (minutes to hours) and Glacier Deep Archive (the cheapest, up to 48 hours). Objects in Flexible Retrieval or Deep Archive can't be downloaded directly: I first call restore-object, which makes a temporary readable copy for the number of days I ask for. There are retrieval fees and minimum storage periods, so it only suits data I rarely need, like old logs or compliance backups. I usually move data there with a lifecycle rule rather than uploading to it directly.",
+    code: "aws s3api restore-object --bucket example-app-logs --key logs/2025/01/app.log.gz \\\n    --restore-request '{\"Days\": 7, \"GlacierJobParameters\": {\"Tier\": \"Standard\"}}'\n\n# Check progress: ongoing-request=\"true\" until the copy is ready\naws s3api head-object --bucket example-app-logs --key logs/2025/01/app.log.gz \\\n    --query '{Class:StorageClass,Restore:Restore}'",
+    output: "{\n    \"Class\": \"GLACIER\",\n    \"Restore\": \"ongoing-request=\\\"true\\\"\"\n}\n\n# a few hours later\n{\n    \"Class\": \"GLACIER\",\n    \"Restore\": \"ongoing-request=\\\"false\\\", expiry-date=\\\"Fri, 20 Nov 2026 00:00:00 GMT\\\"\"\n}",
   },
   {
     q: "What is S3 versioning?",
@@ -208,6 +222,13 @@ export const questions = [
     output: "get_product(7, db)   # 1st call: cache miss -> reads RDS, stores product:7\nget_product(7, db)   # 2nd call: cache hit  -> served from Redis, no RDS query",
   },
   {
+    q: "What is Amazon Redshift, and how is it different from RDS?",
+    level: 'Intermediate',
+    a: "Redshift is AWS's data warehouse: a columnar database that spreads queries across many nodes, built for analytics over huge tables, like orders per region per month. RDS is for the app's day-to-day work (OLTP), reading and writing single rows quickly, and it gets slow on those big scans. I load data into Redshift from S3 with COPY, or query files in S3 directly with Redshift Spectrum, and Redshift Serverless saves me from sizing a cluster. I never point the live app at Redshift; it's for dashboards and reports.",
+    code: "aws redshift-data execute-statement --workgroup-name analytics --database dev \\\n    --sql \"SELECT region, COUNT(*) FROM orders GROUP BY region ORDER BY 2 DESC\" \\\n    --query 'Id'\n\naws redshift-data get-statement-result --id 5b2c6f1e-8a3d-4e7b-9c0f-1d2e3f4a5b6c \\\n    --query 'Records[].[[0].stringValue, [1].longValue]' --output text",
+    output: "\"5b2c6f1e-8a3d-4e7b-9c0f-1d2e3f4a5b6c\"\n\nus-east\t1284530\neu-west\t903112\nap-south\t611874",
+  },
+  {
     q: "What is AWS Lambda and what can trigger it?",
     level: 'Intermediate',
     a: "Lambda runs my function code without servers: I upload code, AWS runs it on demand and I pay per request and per millisecond. It can be triggered by API Gateway, S3 uploads, SQS, SNS, EventBridge schedules, DynamoDB Streams and more. I keep handlers small and idempotent, because event sources like S3 and SQS can deliver the same event more than once.",
@@ -236,6 +257,13 @@ export const questions = [
     output: "Response: {\"batchItemFailures\": [{\"itemIdentifier\": \"2e1424d4-f796-459a-8184-9c92662be6da\"}]}",
   },
   {
+    q: "What is the difference between SQS Standard and FIFO queues, and what is a dead-letter queue?",
+    level: 'Intermediate',
+    a: "A Standard queue has almost unlimited throughput but only best-effort ordering and at-least-once delivery, so a message can arrive twice and my consumer has to be idempotent. A FIFO queue, whose name ends in .fifo, keeps strict order within a message group and drops duplicates sent within 5 minutes, but it has lower throughput. A dead-letter queue catches messages that failed maxReceiveCount times, so one bad message doesn't retry forever or block the rest. I put a CloudWatch alarm on the DLQ's message count so failures don't go unnoticed.",
+    code: "aws sqs create-queue --queue-name orders-dlq.fifo --attributes FifoQueue=true\naws sqs create-queue --queue-name orders.fifo --attributes '{\"FifoQueue\": \"true\",\n  \"ContentBasedDeduplication\": \"true\",\n  \"RedrivePolicy\": \"{\\\"deadLetterTargetArn\\\":\\\"arn:aws:sqs:us-east-1:123456789012:orders-dlq.fifo\\\",\\\"maxReceiveCount\\\":\\\"3\\\"}\"}'\n\naws sqs send-message --queue-url https://sqs.us-east-1.amazonaws.com/123456789012/orders.fifo \\\n    --message-body '{\"orderId\": 42}' --message-group-id customer-7",
+    output: "{\n    \"QueueUrl\": \"https://sqs.us-east-1.amazonaws.com/123456789012/orders-dlq.fifo\"\n}\n{\n    \"QueueUrl\": \"https://sqs.us-east-1.amazonaws.com/123456789012/orders.fifo\"\n}\n{\n    \"MD5OfMessageBody\": \"654fc194a6077496f7f45fa26024c821\",\n    \"MessageId\": \"6e8b0d7d-bb9b-4c9b-9197-4d861a8146e5\",\n    \"SequenceNumber\": \"18889012345678901234\"\n}",
+  },
+  {
     q: "What is CloudWatch? Explain metrics, logs and alarms.",
     level: 'Intermediate',
     a: "CloudWatch is AWS's monitoring service. Metrics are numbers over time like CPUUtilization or Lambda Errors, Logs collect output from Lambda, ECS and agents, and Alarms watch a metric and fire actions like an SNS email or an Auto Scaling policy when a threshold is crossed. I always set log group retention, because the default is never expire, and I use Logs Insights to search errors quickly.",
@@ -248,6 +276,13 @@ export const questions = [
     a: "CloudTrail records API calls made in my account: who did what, when, from which IP, through the console, CLI or SDK. It's my audit log for security investigations and compliance, for example finding out who deleted a bucket. The 90-day event history is on by default, but I create an organization trail that writes to a locked-down S3 bucket in a separate logging account so logs are kept long-term and can't be tampered with.",
     code: "# Who deleted a bucket recently?\naws cloudtrail lookup-events \\\n    --lookup-attributes AttributeKey=EventName,AttributeValue=DeleteBucket \\\n    --max-results 1 \\\n    --query 'Events[].{Time:EventTime,User:Username,Event:EventName,Source:EventSource,Resource:Resources[0].ResourceName}'",
     output: "[\n    {\n        \"Time\": \"2026-11-11T17:42:09+00:00\",\n        \"User\": \"dev-sam\",\n        \"Event\": \"DeleteBucket\",\n        \"Source\": \"s3.amazonaws.com\",\n        \"Resource\": \"example-old-logs\"\n    }\n]",
+  },
+  {
+    q: "What is AWS Config, and how is it different from CloudTrail?",
+    level: 'Intermediate',
+    a: "CloudTrail answers 'who did what': it logs every API call. AWS Config answers 'what does this resource look like now and before, and is it compliant': it records the configuration history of my resources and checks them against rules, like 'S3 buckets must not be public' or 'EBS volumes must be encrypted'. Config can also fix things automatically with a remediation action. I use them together: Config flags a bucket that became public, and CloudTrail tells me who changed it.",
+    code: "aws configservice put-config-rule --config-rule '{\n  \"ConfigRuleName\": \"s3-public-read-prohibited\",\n  \"Source\": {\"Owner\": \"AWS\", \"SourceIdentifier\": \"S3_BUCKET_PUBLIC_READ_PROHIBITED\"}}'\n\naws configservice get-compliance-details-by-config-rule \\\n    --config-rule-name s3-public-read-prohibited --compliance-types NON_COMPLIANT \\\n    --query 'EvaluationResults[].EvaluationResultIdentifier.EvaluationResultQualifier.ResourceId'",
+    output: "[\n    \"example-old-website\"\n]",
   },
   {
     q: "What is the difference between Secrets Manager and Parameter Store?",
@@ -313,6 +348,13 @@ export const questions = [
     output: "\"vpce-0a1b2c3d4e5f60001\"\n\n\"vpce-0f9e8d7c6b5a40002\"",
   },
   {
+    q: "What is the difference between VPC peering and Transit Gateway?",
+    level: 'Intermediate',
+    a: "VPC peering is a direct private link between two VPCs, even across accounts or Regions, but it isn't transitive: if A peers with B and B with C, A still can't reach C. With many VPCs that turns into a mesh of connections and route entries. Transit Gateway is a central hub that each VPC or VPN attaches to once, with its own route tables, so it scales to hundreds of VPCs, but it costs per attachment and per GB. Neither works with overlapping CIDRs, so I plan IP ranges early, and I use peering for two or three VPCs and Transit Gateway beyond that.",
+    code: "# Peer two VPCs, accept it, then add a route on each side\naws ec2 create-vpc-peering-connection --vpc-id vpc-0a1b2c3d4e5f60001 \\\n    --peer-vpc-id vpc-0a1b2c3d4e5f60002 --query 'VpcPeeringConnection.VpcPeeringConnectionId'\naws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-0f1e2d3c4b5a69788 \\\n    --query 'VpcPeeringConnection.Status.Code'\naws ec2 create-route --route-table-id rtb-0aa11bb22cc33dd44 \\\n    --destination-cidr-block 10.1.0.0/16 --vpc-peering-connection-id pcx-0f1e2d3c4b5a69788",
+    output: "\"pcx-0f1e2d3c4b5a69788\"\n\"provisioning\"\n{\n    \"Return\": true\n}",
+  },
+  {
     q: "Bastion host vs SSM Session Manager: how do you access private instances?",
     level: 'Intermediate',
     a: "A bastion is a public EC2 instance I SSH through to reach private ones, which means managing SSH keys, opening port 22 and patching one more server. With Session Manager, the SSM Agent on the instance connects out to AWS, so I get a shell with no inbound ports, no keys and no public IP, controlled by IAM and logged to CloudTrail and optionally S3 or CloudWatch. It also does port forwarding, so I reach a private RDS database from my laptop the same way; I just need the AmazonSSMManagedInstanceCore policy on the instance role and a route or VPC endpoints to SSM.",
@@ -362,6 +404,13 @@ export const questions = [
     output: "{\n    \"Id\": \"orders-db-dr\",\n    \"Status\": \"creating\"\n}",
   },
   {
+    q: "What is AWS Backup?",
+    level: 'Intermediate',
+    a: "AWS Backup is one central place to schedule, keep and restore backups for EBS, RDS, DynamoDB, EFS, S3 and more, instead of setting up snapshots in each service separately. I create a backup plan with rules, like daily at 3 AM kept for 35 days, and assign resources by tag, so anything tagged backup=daily is covered automatically. It can copy backups to another Region or account for disaster recovery, and Vault Lock makes them immutable against ransomware. A backup only counts once I've tested a restore, so I run restore tests regularly.",
+    code: "aws backup create-backup-plan --backup-plan '{\"BackupPlanName\": \"daily-35d\",\n  \"Rules\": [{\"RuleName\": \"daily\", \"TargetBackupVaultName\": \"Default\",\n    \"ScheduleExpression\": \"cron(0 3 * * ? *)\", \"Lifecycle\": {\"DeleteAfterDays\": 35}}]}'\n\naws backup create-backup-selection --backup-plan-id 8f2c1a3e-5b7d-4c9e-a1f3-2b4d6e8f0a1c \\\n    --backup-selection '{\"SelectionName\": \"tagged-daily\",\n  \"IamRoleArn\": \"arn:aws:iam::123456789012:role/service-role/AWSBackupDefaultServiceRole\",\n  \"ListOfTags\": [{\"ConditionType\": \"STRINGEQUALS\", \"ConditionKey\": \"backup\", \"ConditionValue\": \"daily\"}]}'",
+    output: "{\n    \"BackupPlanId\": \"8f2c1a3e-5b7d-4c9e-a1f3-2b4d6e8f0a1c\",\n    \"BackupPlanArn\": \"arn:aws:backup:us-east-1:123456789012:backup-plan:8f2c1a3e-5b7d-4c9e-a1f3-2b4d6e8f0a1c\",\n    \"CreationDate\": \"2026-11-13T09:20:11.482000+00:00\",\n    \"VersionId\": \"ZTQ5NzFhNjMtYjA1Yi00MjQ2LWE2NjYtYzE5YjU3OGM0YTk2\"\n}\n{\n    \"SelectionId\": \"b3d5f7a9-1c3e-4b5d-8f7a-9c1e3b5d7f9a\",\n    \"BackupPlanId\": \"8f2c1a3e-5b7d-4c9e-a1f3-2b4d6e8f0a1c\",\n    \"CreationDate\": \"2026-11-13T09:20:14.903000+00:00\"\n}",
+  },
+  {
     q: "What is the difference between vertical and horizontal scaling?",
     level: 'Advanced',
     a: "Vertical scaling (scale up) means a bigger machine, like going from t3.medium to m7i.xlarge; it's simple but has a ceiling and usually needs a restart. Horizontal scaling (scale out) means adding more machines behind a load balancer, which has no real ceiling and also improves availability. I design apps to be stateless so they can scale horizontally with an Auto Scaling group, and I mostly scale databases vertically or with read replicas.",
@@ -388,6 +437,13 @@ export const questions = [
     a: "On AWS I can use CodePipeline with CodeBuild, or GitHub Actions, which many teams already use. With GitHub Actions I never store AWS access keys as secrets; I add GitHub as an OIDC identity provider in IAM and create a deploy role whose trust policy only allows my repo and main branch. The workflow then gets short-lived credentials for each run, builds, tests and deploys.",
     code: "# .github/workflows/deploy.yml\non: { push: { branches: [main] } }\npermissions: { id-token: write, contents: read }   # id-token: OIDC, no stored keys\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: aws-actions/configure-aws-credentials@v4\n        with: { role-to-assume: \"arn:aws:iam::123456789012:role/github-deploy\", aws-region: us-east-1 }\n      - run: npm ci && npm run build && aws s3 sync dist s3://example-react-site --delete",
     output: "Run aws-actions/configure-aws-credentials@v4\n  Assuming role with OIDC\n  Authenticated as assumedRoleId AROAEXAMPLEROLEID:GitHubActions\nRun npm ci && npm run build && aws s3 sync dist s3://example-react-site --delete\n  ✓ built in 1.84s\n  upload: dist/index.html to s3://example-react-site/index.html\n  upload: dist/assets/index-BX3k9aQ1.js to s3://example-react-site/assets/index-BX3k9aQ1.js",
+  },
+  {
+    q: "What are CodeBuild and CodeDeploy, and what do buildspec.yml and appspec.yml do?",
+    level: 'Intermediate',
+    a: "CodeBuild is a managed build service: it runs my install, test and build steps in a fresh container, following buildspec.yml, and I pay per build minute. CodeDeploy rolls a new version out to EC2, Lambda or ECS, and appspec.yml tells it which files go where and which hooks to run, like stopping the old app and starting the new one. CodePipeline chains them together: source, then CodeBuild, then CodeDeploy. I keep both files in the repo next to the code, so the build and deploy steps are reviewed and versioned like everything else.",
+    code: "# buildspec.yml (CodeBuild)\nversion: 0.2\nphases:\n  install:\n    commands: [\"pip install -r requirements.txt\"]\n  build:\n    commands: [\"pytest -q\", \"zip -r app.zip app/\"]\nartifacts:\n  files: [app.zip, appspec.yml]",
+    output: "[Container] 2026/11/13 09:14:02.511 Running command pip install -r requirements.txt\n[Container] 2026/11/13 09:14:19.204 Phase complete: INSTALL State: SUCCEEDED\n[Container] 2026/11/13 09:14:19.388 Running command pytest -q\n........                                                                 [100%]\n8 passed in 1.42s\n[Container] 2026/11/13 09:14:21.906 Running command zip -r app.zip app/\n[Container] 2026/11/13 09:14:22.117 Phase complete: BUILD State: SUCCEEDED\n[Container] 2026/11/13 09:14:22.530 Phase complete: UPLOAD_ARTIFACTS State: SUCCEEDED",
   },
   {
     q: "How do you deploy a React (Vite) app on AWS?",

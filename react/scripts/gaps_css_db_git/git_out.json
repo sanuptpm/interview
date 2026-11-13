@@ -1,0 +1,26 @@
+{
+ "SANITY: reproduce the existing git init example hash": {
+  "code": "mkdir app && cd app\ngit init\necho \"# App\" > README.md\ngit add . && git commit -m \"Initial commit\"",
+  "output": "$ mkdir app && cd app\n\n$ git init\nInitialized empty Git repository in /home/dev/app/.git/\n\n$ echo \"# App\" > README.md\n\n$ git add . && git commit -m \"Initial commit\"\n[main (root-commit) 69098c6] Initial commit\n 1 file changed, 1 insertion(+)\n create mode 100644 README.md"
+ },
+ "What does git commit -a do?": {
+  "code": "echo \"v2\" > app.txt          # tracked file, changed\necho \"notes\" > notes.txt     # new, untracked file\ngit commit -a -m \"Update app\"\ngit status --short",
+  "output": "$ echo \"v2\" > app.txt\n\n$ echo \"notes\" > notes.txt\n\n$ git commit -a -m \"Update app\"\n[main d22a932] Update app\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\n$ git status --short\n?? notes.txt"
+ },
+ "What does git push -u (set upstream) do?": {
+  "code": "git push -u origin feature\ngit branch -vv\n# From now on plain push/pull know where to go\ngit push",
+  "output": "$ git push -u origin feature\nTo /home/dev/origin.git\n * [new branch]      feature -> feature\nbranch 'feature' set up to track 'origin/feature'.\n\n$ git branch -vv\n* feature 28d6374 [origin/feature] Add feature\n  main    f856f38 [origin/main] Initial commit\n\n$ git push\nEverything up-to-date"
+ },
+ "How do you search code with git grep?": {
+  "code": "git grep -n \"TODO\"           # tracked files, with line numbers\ngit grep -c \"TODO\"           # count per file\ngit grep \"TODO\" v1.0         # search an old version",
+  "output": "$ git grep -n \"TODO\"\nauth.py:2:    # TODO: add rate limit\npay.py:3:# TODO: refunds\n\n$ git grep -c \"TODO\"\nauth.py:1\npay.py:1\n\n$ git grep \"TODO\" v1.0\nv1.0:auth.py:    # TODO: add rate limit"
+ },
+ "What do git shortlog and git describe do?": {
+  "code": "git shortlog v1.0..HEAD       # commits grouped by author\ngit shortlog -sn HEAD         # just the counts\ngit describe                  # nearest tag + commits since",
+  "output": "$ git shortlog v1.0..HEAD\nAsha (2):\n      Add search\n      Add filters\n\nRavi (1):\n      Fix cart total\n\n$ git shortlog -sn HEAD\n     2\tAsha\n     1\tDev\n     1\tRavi\n\n$ git describe\nv1.0-3-g3ab421d"
+ },
+ "What does git archive do?": {
+  "code": "git archive --prefix=app/ -o app-v1.0.tar v1.0\ntar -tf app-v1.0.tar\ngit archive -o app-v1.0.zip v1.0   # format comes from the extension\nls app-v1.0.*",
+  "output": "$ git archive --prefix=app/ -o app-v1.0.tar v1.0\n\n$ tar -tf app-v1.0.tar\napp/\napp/.gitignore\napp/README.md\napp/main.py\n\n$ git archive -o app-v1.0.zip v1.0\n\n$ ls app-v1.0.*\napp-v1.0.tar\napp-v1.0.zip"
+ }
+}

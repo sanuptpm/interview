@@ -2,7 +2,7 @@
 // Usage: node scripts/topics/pagecheck.mjs http://localhost:4179/interview
 import { spawn } from 'node:child_process'
 const base = process.argv[2]
-const pages = ['css-questions', 'javascript', 'react-questions', 'python-questions', 'ai-ml-questions', 'fastapi-questions', 'database-questions', 'git-questions', 'docker-questions', 'aws-questions', 'bubble-sort']
+const pages = ['index', 'css-questions', 'javascript', 'typescript-questions', 'react-questions', 'python-questions', 'ai-ml-questions', 'fastapi-questions', 'database-questions', 'git-questions', 'docker-questions', 'aws-questions', 'bubble-sort']
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--disable-gpu', '--remote-debugging-port=9337', '--user-data-dir=/tmp/cdp-pagecheck', 'about:blank'], { stdio: 'ignore' })
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let t; for (let i = 0; i < 40; i++) { try { t = await (await fetch('http://localhost:9337/json')).json(); break } catch { await sleep(250) } }

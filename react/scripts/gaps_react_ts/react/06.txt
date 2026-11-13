@@ -1,0 +1,17 @@
+What are useTransition and useDeferredValue?
+@@
+  {
+    q: 'What is startTransition, and how is it different from useTransition?',
+    level: 'Advanced',
+    a: 'Both mark a state update as non-urgent, so React can interrupt it to keep typing and clicks responsive. useTransition is a hook, so it only works inside a component, and it also gives me an isPending flag for a spinner. startTransition is a plain function I can import and call anywhere, like in a router or a store, but it has no pending flag.',
+    code: `import { startTransition, useTransition } from 'react'
+
+// Inside a component: also gives isPending
+const [isPending, startTx] = useTransition()
+const selectTab = (tab) => startTx(() => setTab(tab))
+
+// Outside components (a router, a store): no isPending
+startTransition(() => store.setFilter('done'))`,
+    output: `useTransition()    -> [isPending, startTransition], hook, inside components
+startTransition()  -> same low-priority update, no pending flag, works anywhere`,
+  },

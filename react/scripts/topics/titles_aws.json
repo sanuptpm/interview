@@ -24,6 +24,10 @@
   "level": "Basics"
  },
  {
+  "title": "What are AWS Budgets, Cost Explorer and Trusted Advisor?",
+  "level": "Basics"
+ },
+ {
   "title": "What is IAM? Explain users, groups, roles and policies.",
   "level": "Basics"
  },
@@ -50,6 +54,10 @@
  {
   "title": "What are S3 storage classes and lifecycle rules?",
   "level": "Basics"
+ },
+ {
+  "title": "What is S3 Glacier, and how do you restore an archived object?",
+  "level": "Intermediate"
  },
  {
   "title": "What is S3 versioning?",
@@ -116,6 +124,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is Amazon Redshift, and how is it different from RDS?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is AWS Lambda and what can trigger it?",
   "level": "Intermediate"
  },
@@ -132,11 +144,19 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between SQS Standard and FIFO queues, and what is a dead-letter queue?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is CloudWatch? Explain metrics, logs and alarms.",
   "level": "Intermediate"
  },
  {
   "title": "What is CloudTrail?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is AWS Config, and how is it different from CloudTrail?",
   "level": "Intermediate"
  },
  {
@@ -176,6 +196,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between VPC peering and Transit Gateway?",
+  "level": "Intermediate"
+ },
+ {
   "title": "Bastion host vs SSM Session Manager: how do you access private instances?",
   "level": "Intermediate"
  },
@@ -204,6 +228,10 @@
   "level": "Advanced"
  },
  {
+  "title": "What is AWS Backup?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is the difference between vertical and horizontal scaling?",
   "level": "Advanced"
  },
@@ -218,6 +246,10 @@
  {
   "title": "How do you set up CI/CD on AWS? (CodePipeline or GitHub Actions with OIDC)",
   "level": "Advanced"
+ },
+ {
+  "title": "What are CodeBuild and CodeDeploy, and what do buildspec.yml and appspec.yml do?",
+  "level": "Intermediate"
  },
  {
   "title": "How do you deploy a React (Vite) app on AWS?",

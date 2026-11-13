@@ -16,6 +16,14 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between a primary key and a unique key?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are candidate, composite, surrogate and natural keys?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is a foreign key?",
   "level": "Basics"
  },
@@ -33,6 +41,10 @@
  },
  {
   "title": "How do WHERE, ORDER BY and LIMIT work in a SELECT?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you paginate results with LIMIT and OFFSET?",
   "level": "Basics"
  },
  {
@@ -60,6 +72,14 @@
   "level": "Basics"
  },
  {
+  "title": "What do COALESCE, IFNULL and NULLIF do?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you convert data types with CAST?",
+  "level": "Basics"
+ },
+ {
   "title": "Why is NULL = NULL not true? Explain three-valued logic.",
   "level": "Basics"
  },
@@ -72,11 +92,19 @@
   "level": "Basics"
  },
  {
+  "title": "Which math functions do you use in SQL (ROUND, ABS, CEIL, FLOOR, MOD)?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you work with dates in SQL?",
   "level": "Basics"
  },
  {
   "title": "What is the difference between DDL, DML, DCL and TCL?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create and change a table with CREATE TABLE and ALTER TABLE?",
   "level": "Basics"
  },
  {
@@ -144,11 +172,19 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between INTERSECT and EXCEPT?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is a subquery and a correlated subquery?",
   "level": "Intermediate"
  },
  {
   "title": "What does EXISTS do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What do ANY and ALL do with a subquery?",
   "level": "Intermediate"
  },
  {
@@ -172,6 +208,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between a clustered and a non-clustered index?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you query JSON data stored in a column?",
   "level": "Intermediate"
  },
@@ -182,6 +222,10 @@
  {
   "title": "What is denormalization and when would you use it?",
   "level": "Intermediate"
+ },
+ {
+  "title": "What is an ER diagram, and what are one-to-one, one-to-many and many-to-many relationships?",
+  "level": "Basics"
  },
  {
   "title": "What is a transaction and what does ACID mean?",
@@ -212,8 +256,16 @@
   "level": "Advanced"
  },
  {
+  "title": "What is the difference between GROUP BY and a window function like SUM() OVER?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you use LAG and LEAD?",
   "level": "Advanced"
+ },
+ {
+  "title": "What do FIRST_VALUE and LAST_VALUE do?",
+  "level": "Intermediate"
  },
  {
   "title": "What is a window frame (ROWS BETWEEN), and how do you compute a moving average?",

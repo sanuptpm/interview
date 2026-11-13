@@ -1,0 +1,15 @@
+What is a custom type guard (x is Type)?
+@@
+  {
+    q: 'What is an assertion function (asserts x is Type)?',
+    level: 'Intermediate',
+    kind: 'prints',
+    a: "An assertion function either throws or returns normally, and its return type asserts x is Type tells TypeScript the value is that type after the call. It's like a type guard, but I don't need an if around it, so it reads like a plain check at the top of a function. I use it for things like assertIsDefined(user) when a missing value should really be an error.",
+    code: `function assertString(x: unknown): asserts x is string {
+  if (typeof x !== "string") throw new Error("Not a string")
+}
+
+const input: unknown = "hello"
+assertString(input)
+console.log(input.toUpperCase())   // narrowed to string after the call`,
+  },

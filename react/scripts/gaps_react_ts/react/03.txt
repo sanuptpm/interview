@@ -1,0 +1,17 @@
+What is useRef used for?
+@@
+  {
+    q: 'What is a ref callback?',
+    level: 'Intermediate',
+    a: 'Instead of a ref object, I can pass a function to the ref prop. React calls it with the DOM node when the element is added, and with null when it is removed (in React 19 it can also return a cleanup function). I use it to measure an element as soon as it appears or to keep refs for every item in a list; I wrap it in useCallback so React does not call it again on every render.',
+    code: `const [height, setHeight] = useState(0)
+
+// React calls this with the DOM node after it is added
+const measureRef = useCallback((node) => {
+  if (node) setHeight(Math.round(node.getBoundingClientRect().height))
+}, [])
+
+<p ref={measureRef}>Measure me</p>
+<p>Height: {height}px</p>`,
+    output: <RefCallbackDemo />,
+  },

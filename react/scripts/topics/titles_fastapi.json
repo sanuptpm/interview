@@ -24,6 +24,10 @@
   "level": "Basics"
  },
  {
+  "title": "How do you add a summary and description to an endpoint in the docs?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you hide an endpoint from the docs or mark it as deprecated?",
   "level": "Basics"
  },
@@ -64,8 +68,16 @@
   "level": "Basics"
  },
  {
+  "title": "What does Body() do, and what does embed=True mean?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do Optional fields and default values work in a Pydantic model?",
   "level": "Basics"
+ },
+ {
+  "title": "What do model_dump() and model_dump_json() do?",
+  "level": "Intermediate"
  },
  {
   "title": "What is response_model and why use it?",
@@ -109,6 +121,10 @@
  },
  {
   "title": "What is the Annotated style for parameters, and why is it recommended?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you validate path and query parameters with Path() and Query()?",
   "level": "Intermediate"
  },
  {
@@ -244,6 +260,10 @@
   "level": "Advanced"
  },
  {
+  "title": "What is the difference between OAuth2PasswordBearer and HTTPBearer?",
+  "level": "Advanced"
+ },
+ {
   "title": "How does a refresh token flow work?",
   "level": "Advanced"
  },
@@ -261,6 +281,10 @@
  },
  {
   "title": "How do you connect FastAPI to a database?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is SQLModel and how is it different from using SQLAlchemy with Pydantic?",
   "level": "Advanced"
  },
  {
@@ -328,6 +352,10 @@
   "level": "Advanced"
  },
  {
+  "title": "How do you cache expensive results on the server, for example with Redis?",
+  "level": "Advanced"
+ },
+ {
   "title": "How do you make a POST request idempotent?",
   "level": "Advanced"
  },
@@ -341,6 +369,10 @@
  },
  {
   "title": "How do you make a FastAPI app faster?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you run FastAPI with multiple workers, and Uvicorn vs Gunicorn?",
   "level": "Advanced"
  }
 ]

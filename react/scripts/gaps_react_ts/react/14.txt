@@ -1,0 +1,16 @@
+CSR vs SSR vs SSG: what is hydration?
+@@
+  {
+    q: 'What do createRoot and hydrateRoot do?',
+    level: 'Intermediate',
+    a: 'createRoot is how a client-side app starts: it takes an empty DOM node, and render builds the whole UI inside it. hydrateRoot is for server-rendered HTML: it reuses the markup that is already there and only attaches event handlers and state. If the client renders something different from the server, I get a hydration mismatch, so I keep things like dates and Math.random out of the first render.',
+    code: `import { createRoot, hydrateRoot } from 'react-dom/client'
+
+// Client-side app (Vite): the div starts empty
+createRoot(document.getElementById('root')).render(<App />)
+
+// Server-rendered HTML (SSR): reuse the existing markup
+hydrateRoot(document.getElementById('root'), <App />)`,
+    output: `createRoot   -> builds the DOM from scratch in the browser
+hydrateRoot  -> keeps the server HTML, attaches events and state`,
+  },

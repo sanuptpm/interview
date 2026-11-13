@@ -425,6 +425,16 @@ const unique = [...new Set(nums)]
 console.log(unique)`,
   },
   {
+    q: 'Find the elements that appear only once in an array?',
+    level: 'Coding round',
+    a: "I keep a number only if its first position and last position are the same: a.indexOf(num) === a.lastIndexOf(num) is true only when the number appears exactly once. This is short and readable, but indexOf and lastIndexOf each scan the array, so it's O(n²). For large arrays I count each value with a Map first and then keep the ones with a count of 1, which is O(n).",
+    code: `let a = [1, 2, 3, 4, 3, 2, 4]
+
+let result = a.filter((num) => a.indexOf(num) === a.lastIndexOf(num))
+
+console.log(result) // [1]`,
+  },
+  {
     q: 'What is type coercion? Guess the output.',
     level: 'Intermediate',
     a: "Type coercion is JavaScript automatically converting a value from one type to another. With the plus operator, if either side is a string, it joins them as text. Other math operators like minus and multiply convert both sides to numbers. That's why I prefer explicit conversion with Number() or String().",

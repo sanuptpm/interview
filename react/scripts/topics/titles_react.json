@@ -44,11 +44,19 @@
   "level": "Basics"
  },
  {
+  "title": "What are defaultValue and defaultChecked?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you handle forms?",
   "level": "Basics"
  },
  {
   "title": "What is lifting state up?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is prop drilling and how do you avoid it?",
   "level": "Basics"
  },
  {
@@ -160,6 +168,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is a ref callback?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is useMemo?",
   "level": "Intermediate"
  },
@@ -200,8 +212,16 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is useEffectEvent?",
+  "level": "Advanced"
+ },
+ {
   "title": "useLayoutEffect vs useEffect?",
   "level": "Intermediate"
+ },
+ {
+  "title": "What is useInsertionEffect?",
+  "level": "Advanced"
  },
  {
   "title": "What is useId?",
@@ -210,6 +230,10 @@
  {
   "title": "What are useTransition and useDeferredValue?",
   "level": "Intermediate"
+ },
+ {
+  "title": "What is startTransition, and how is it different from useTransition?",
+  "level": "Advanced"
  },
  {
   "title": "How do you pass a ref to a child? forwardRef vs ref as a prop (React 19)",
@@ -230,6 +254,10 @@
  {
   "title": "How do you close a dropdown when the user clicks outside? (useOnClickOutside)",
   "level": "Intermediate"
+ },
+ {
+  "title": "What is useDebugValue?",
+  "level": "Advanced"
  },
  {
   "title": "How do you build a textarea with a character counter?",
@@ -288,6 +316,14 @@
   "level": "Advanced"
  },
  {
+  "title": "React.memo vs useMemo: what is the difference?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a pure component? PureComponent vs React.memo",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do lifecycle methods map to hooks?",
   "level": "Advanced"
  },
@@ -313,6 +349,10 @@
  },
  {
   "title": "What is batching in React?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is flushSync?",
   "level": "Advanced"
  },
  {
@@ -348,6 +388,10 @@
   "level": "Advanced"
  },
  {
+  "title": "What is useFormStatus?",
+  "level": "Advanced"
+ },
+ {
   "title": "What is useOptimistic?",
   "level": "Advanced"
  },
@@ -360,11 +404,19 @@
   "level": "Advanced"
  },
  {
+  "title": "What do Children, cloneElement and isValidElement do?",
+  "level": "Advanced"
+ },
+ {
   "title": "What is the render props pattern?",
   "level": "Advanced"
  },
  {
   "title": "Context vs Redux vs Zustand: how do you choose state management?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is useSyncExternalStore?",
   "level": "Advanced"
  },
  {
@@ -448,6 +500,10 @@
   "level": "Advanced"
  },
  {
+  "title": "How do you find slow components with React DevTools and the Profiler?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you test React components with React Testing Library?",
   "level": "Advanced"
  },
@@ -462,6 +518,10 @@
  {
   "title": "CSR vs SSR vs SSG: what is hydration?",
   "level": "Advanced"
+ },
+ {
+  "title": "What do createRoot and hydrateRoot do?",
+  "level": "Intermediate"
  },
  {
   "title": "Next.js vs Vite: when would you choose each?",

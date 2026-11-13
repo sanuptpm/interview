@@ -1,0 +1,15 @@
+What are template literal types?
+@@
+  {
+    q: 'What are Uppercase, Lowercase, Capitalize and Uncapitalize?',
+    level: 'Advanced',
+    kind: 'error',
+    a: "They are built-in string types that change the case of a string literal type: Uppercase, Lowercase, Capitalize (first letter) and Uncapitalize. I mostly combine them with template literal types, for example to turn \"click\" into an \"onClick\" handler name. They work on unions too, so each member is converted.",
+    code: `type EventName = "click" | "focus"
+
+type Handler = \`on\${Capitalize<EventName>}\`   // "onClick" | "onFocus"
+type Loud = Uppercase<EventName>              // "CLICK" | "FOCUS"
+
+const h: Handler = "onClick"
+const bad: Handler = "onclick"`,
+  },

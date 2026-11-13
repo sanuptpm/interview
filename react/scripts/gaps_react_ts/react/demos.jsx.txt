@@ -1,0 +1,123 @@
+/* ---------------------- Coverage additions ---------------------- */
+
+function DrillPage({ user }) {
+  return <DrillHeader user={user} />
+}
+
+function DrillHeader({ user }) {
+  return <DrillAvatar user={user} />
+}
+
+function DrillAvatar({ user }) {
+  return <p>Hi, {user}</p>
+}
+
+function PropDrillingDemo() {
+  const [user, setUser] = useState('Anu')
+  return (
+    <div className="space-y-2">
+      <input className={inputCls} value={user} onChange={(e) => setUser(e.target.value)} />
+      <DrillPage user={user} />
+    </div>
+  )
+}
+
+function DefaultValueDemo() {
+  const nameRef = useRef(null)
+  const termsRef = useRef(null)
+  const [summary, setSummary] = useState('')
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-3">
+        <input className={inputCls} ref={nameRef} defaultValue="Anu" />
+        <label className="flex items-center gap-1">
+          <input ref={termsRef} type="checkbox" defaultChecked /> Accept terms
+        </label>
+        <button className={btn} onClick={() => setSummary(nameRef.current.value + ' / ' + termsRef.current.checked)}>
+          Read
+        </button>
+      </div>
+      <p>{summary}</p>
+    </div>
+  )
+}
+
+function RefCallbackDemo() {
+  const [height, setHeight] = useState(0)
+  const measureRef = useCallback((node) => {
+    if (node) setHeight(Math.round(node.getBoundingClientRect().height))
+  }, [])
+  return (
+    <div className="space-y-2">
+      <p ref={measureRef} className="rounded bg-slate-100 p-3">
+        Measure me
+      </p>
+      <p>Height: {height}px</p>
+    </div>
+  )
+}
+
+function subscribeResize(onChange) {
+  window.addEventListener('resize', onChange)
+  return () => window.removeEventListener('resize', onChange)
+}
+
+function SyncExternalStoreDemo() {
+  const width = useSyncExternalStore(subscribeResize, () => window.innerWidth, () => 0)
+  return <p>Window width: {width}px (resize the window)</p>
+}
+
+function FlushSyncDemo() {
+  const [items, setItems] = useState([1, 2, 3])
+  const listRef = useRef(null)
+  const add = () => {
+    flushSync(() => setItems((s) => [...s, s.length + 1]))
+    listRef.current.scrollTop = listRef.current.scrollHeight
+  }
+  return (
+    <div className="space-y-2">
+      <ul ref={listRef} className="rounded border border-slate-200 px-3" style={{ height: 80, overflow: 'auto' }}>
+        {items.map((n) => (
+          <li key={n}>Item {n}</li>
+        ))}
+      </ul>
+      <button className={btn} onClick={add}>
+        Add item
+      </button>
+    </div>
+  )
+}
+
+function Steps({ children }) {
+  const items = Children.toArray(children).filter(isValidElement)
+  return items.map((child, i) => cloneElement(child, { children: 'Step ' + (i + 1) + ': ' + child.props.children }))
+}
+
+function ChildrenApiDemo() {
+  return (
+    <Steps>
+      <p>Add to cart</p>
+      plain text is skipped
+      <p>Pay</p>
+    </Steps>
+  )
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button className={btn} disabled={pending}>
+      {pending ? 'Saving...' : 'Save'}
+    </button>
+  )
+}
+
+function FormStatusDemo() {
+  return (
+    <form action={() => wait(1000)} className="flex flex-wrap gap-2">
+      <input className={inputCls} name="title" defaultValue="My note" />
+      <SubmitButton />
+    </form>
+  )
+}
+

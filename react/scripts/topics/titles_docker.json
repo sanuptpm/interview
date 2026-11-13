@@ -24,6 +24,10 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between docker rm and docker rmi?",
+  "level": "Basics"
+ },
+ {
   "title": "What do the common docker run flags -d, -p, --name, -e, --rm and -it do?",
   "level": "Basics"
  },
@@ -36,6 +40,14 @@
   "level": "Basics"
  },
  {
+  "title": "What is the difference between RUN and CMD?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does WORKDIR do, and why not use RUN cd?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you build an image with docker build -t?",
   "level": "Basics"
  },
@@ -44,11 +56,19 @@
   "level": "Basics"
  },
  {
+  "title": "How do you push an image to a registry with docker login, docker tag and docker push?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you filter and format the output of docker images and docker ps?",
   "level": "Basics"
  },
  {
   "title": "What states can a container be in, and how do you move between them?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between docker stop, docker kill and docker restart?",
   "level": "Basics"
  },
  {
@@ -64,7 +84,19 @@
   "level": "Basics"
  },
  {
+  "title": "What does docker commit do, and why use a Dockerfile instead?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between docker save/load and docker export/import?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is the difference between CMD and ENTRYPOINT?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between the exec form and the shell form?",
   "level": "Intermediate"
  },
  {
@@ -76,12 +108,20 @@
   "level": "Intermediate"
  },
  {
+  "title": "What does the LABEL instruction do?",
+  "level": "Basics"
+ },
+ {
   "title": "What are layers and how does the build cache work?",
   "level": "Intermediate"
  },
  {
   "title": "What is a .dockerignore file?",
   "level": "Intermediate"
+ },
+ {
+  "title": "What do the STOPSIGNAL, SHELL and ONBUILD instructions do?",
+  "level": "Advanced"
  },
  {
   "title": "What is a multi-stage build? Show a React app built with Node and served by Nginx.",
@@ -100,6 +140,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "How do you manage volumes with docker volume create, ls, inspect and rm?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you persist database data in Docker?",
   "level": "Intermediate"
  },
@@ -108,8 +152,16 @@
   "level": "Intermediate"
  },
  {
+  "title": "How do you create and manage networks with docker network create, connect and inspect?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How does port mapping work?",
   "level": "Intermediate"
+ },
+ {
+  "title": "Does EXPOSE publish a port? What is the difference between EXPOSE and -p?",
+  "level": "Basics"
  },
  {
   "title": "How do you handle environment variables and secrets?",
@@ -153,6 +205,10 @@
  },
  {
   "title": "What is the difference between named and anonymous volumes, and how do you back up a volume?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the VOLUME instruction do in a Dockerfile?",
   "level": "Intermediate"
  },
  {

@@ -204,6 +204,25 @@ On branch main
 nothing to commit, working tree clean`,
   },
   {
+    q: "What does git commit -a do?",
+    level: 'Basics',
+    a: "git commit -a stages every change to files Git already tracks and commits them in one step, so I can skip git add. It does not pick up new, untracked files, which is why notes.txt is still untracked here. I use git commit -am for quick fixes, but git add -p when I want to review exactly what goes in.",
+    code: `echo "v2" > app.txt          # tracked file, changed
+echo "notes" > notes.txt     # new, untracked file
+git commit -a -m "Update app"
+git status --short`,
+    output: `$ echo "v2" > app.txt
+
+$ echo "notes" > notes.txt
+
+$ git commit -a -m "Update app"
+[main d22a932] Update app
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ git status --short
+?? notes.txt`,
+  },
+  {
     q: "How do you view history with git log?",
     level: 'Basics',
     a: "git log lists commits newest first. I mostly use --oneline for a compact view, --graph --all to see how branches split and merge, and -n or --format to limit and shape the output. 'git log --oneline --graph --all' is the alias I use most for checking where branches are.",
@@ -410,6 +429,26 @@ Fast-forward
 $ git log --oneline
 43dfaa1 Add feature
 f856f38 Initial commit`,
+  },
+  {
+    q: "What does git push -u (set upstream) do?",
+    level: 'Basics',
+    a: "git push -u origin feature pushes the branch and also sets origin/feature as its upstream, the branch it tracks. After that a plain git push or git pull knows where to go, and git status shows how far ahead or behind I am. I use -u the first time I push a new branch, and git branch -vv shows what each branch tracks.",
+    code: `git push -u origin feature
+git branch -vv
+# From now on plain push/pull know where to go
+git push`,
+    output: `$ git push -u origin feature
+To /home/dev/origin.git
+ * [new branch]      feature -> feature
+branch 'feature' set up to track 'origin/feature'.
+
+$ git branch -vv
+* feature 28d6374 [origin/feature] Add feature
+  main    f856f38 [origin/main] Initial commit
+
+$ git push
+Everything up-to-date`,
   },
   {
     q: "What is the difference between git fetch and git pull?",
@@ -1188,6 +1227,24 @@ f5aa72a Rename setting
 75427fa Add retry setting`,
   },
   {
+    q: "How do you search code with git grep?",
+    level: 'Intermediate',
+    a: "git grep searches the text of the files Git tracks, so it skips node_modules and other ignored folders and is very fast. -n adds line numbers and -c counts matches per file. I can also pass a tag or commit to search an old version without checking it out.",
+    code: `git grep -n "TODO"           # tracked files, with line numbers
+git grep -c "TODO"           # count per file
+git grep "TODO" v1.0         # search an old version`,
+    output: `$ git grep -n "TODO"
+auth.py:2:    # TODO: add rate limit
+pay.py:3:# TODO: refunds
+
+$ git grep -c "TODO"
+auth.py:1
+pay.py:1
+
+$ git grep "TODO" v1.0
+v1.0:auth.py:    # TODO: add rate limit`,
+  },
+  {
     q: "What does git show do?",
     level: 'Intermediate',
     a: "git show displays an object; for a commit it shows the metadata and the full diff. I use git show <hash> to review a single commit, --stat for just the changed files, and git show <ref>:<path> to print a file as it was in an older commit without checking it out.",
@@ -1429,6 +1486,51 @@ $ git ls-remote --tags origin
 4b4ae9be9c41c15a6cce39038e4f7c369abd1590	refs/tags/v1.0.0^{}
 1d1a8c81925f93fb22dbac43e7f29f7f1f2656da	refs/tags/v1.1.0
 ef1036e33bf20830375845c284603fa057e6d195	refs/tags/v1.1.0^{}`,
+  },
+  {
+    q: "What do git shortlog and git describe do?",
+    level: 'Intermediate',
+    a: "git shortlog groups commits by author, which I use for release notes, and git shortlog -sn gives a quick count of commits per person. git describe names the current commit from the nearest annotated tag: v1.0-3-g3ab421d means 3 commits after v1.0, at commit 3ab421d. I put the git describe output into build version strings so I can always tell which commit a build came from.",
+    code: `git shortlog v1.0..HEAD       # commits grouped by author
+git shortlog -sn HEAD         # just the counts
+git describe                  # nearest tag + commits since`,
+    output: `$ git shortlog v1.0..HEAD
+Asha (2):
+      Add search
+      Add filters
+
+Ravi (1):
+      Fix cart total
+
+$ git shortlog -sn HEAD
+     2	Asha
+     1	Dev
+     1	Ravi
+
+$ git describe
+v1.0-3-g3ab421d`,
+  },
+  {
+    q: "What does git archive do?",
+    level: 'Intermediate',
+    a: "git archive exports a snapshot of a commit or tag as a tar or zip file, with only the tracked files and no .git folder. Ignored files like node_modules are left out automatically, so it's a clean way to ship source code. I add --prefix=app/ so everything unpacks into one folder.",
+    code: `git archive --prefix=app/ -o app-v1.0.tar v1.0
+tar -tf app-v1.0.tar
+git archive -o app-v1.0.zip v1.0   # format comes from the extension
+ls app-v1.0.*`,
+    output: `$ git archive --prefix=app/ -o app-v1.0.tar v1.0
+
+$ tar -tf app-v1.0.tar
+app/
+app/.gitignore
+app/README.md
+app/main.py
+
+$ git archive -o app-v1.0.zip v1.0
+
+$ ls app-v1.0.*
+app-v1.0.tar
+app-v1.0.zip`,
   },
   {
     q: "What is git reflog and how do you recover a deleted branch or commit?",

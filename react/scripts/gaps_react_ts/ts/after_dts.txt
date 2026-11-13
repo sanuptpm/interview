@@ -1,0 +1,32 @@
+What are declaration files (.d.ts) and @types?
+@@
+  {
+    q: 'What does the declare keyword do?',
+    level: 'Intermediate',
+    kind: 'error',
+    a: "declare tells TypeScript that something already exists at runtime, without emitting any JavaScript for it. I use declare const for globals added by a script tag, and declare global to add properties to window. It's what .d.ts files are made of, and since TypeScript just trusts it, I keep these declarations accurate.",
+    code: `declare const API_URL: string            // set by a <script> tag
+declare function track(event: string): void
+
+declare global {
+  interface Window { appVersion: string }
+}
+
+track(API_URL)
+window.appVersion = 42`,
+  },
+  {
+    q: 'What is a namespace, and do you still use it?',
+    level: 'Intermediate',
+    kind: 'prints',
+    run: 'tsc',
+    a: "A namespace groups related code under one name, like Geometry.area, and compiles to a plain object. It came from the days before ES modules; today each file is a module, so I use import and export instead. I only meet namespaces in older code and in .d.ts files for global libraries, and Node's type stripping can't run them because they emit real code.",
+    code: `namespace Geometry {
+  export const PI = 3.14
+  export function area(r: number) {
+    return PI * r * r
+  }
+}
+
+console.log(Geometry.area(2))`,
+  },

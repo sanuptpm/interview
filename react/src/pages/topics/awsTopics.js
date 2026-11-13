@@ -39,6 +39,7 @@ export default [
     questions: [
       'What is S3? Explain buckets and objects.',
       'What are S3 storage classes and lifecycle rules?',
+      'What is S3 Glacier, and how do you restore an archived object?',
       'What is S3 versioning?',
       'What is a presigned URL?',
       'What is an S3 bucket policy?',
@@ -52,6 +53,7 @@ export default [
       'What are route tables, an Internet Gateway and a NAT Gateway?',
       'What is a security group, and how is it different from a NACL?',
       'What are VPC endpoints and when do you need them?',
+      'What is the difference between VPC peering and Transit Gateway?',
       'What is Route 53 and what routing policies does it support?',
       'What is CloudFront?',
     ],
@@ -73,6 +75,7 @@ export default [
       'What are DynamoDB Streams and how do you use them?',
       'What is the difference between RDS Multi-AZ and read replicas?',
       'What is ElastiCache and how do you use it?',
+      'What is Amazon Redshift, and how is it different from RDS?',
     ],
   },
   {
@@ -91,6 +94,7 @@ export default [
     topic: 'Messaging & streaming',
     questions: [
       'What is the difference between SQS, SNS and EventBridge?',
+      'What is the difference between SQS Standard and FIFO queues, and what is a dead-letter queue?',
       'When would you use Kinesis Data Streams instead of SQS?',
     ],
   },
@@ -99,6 +103,7 @@ export default [
     questions: [
       'What is CloudWatch? Explain metrics, logs and alarms.',
       'What is CloudTrail?',
+      'What is AWS Config, and how is it different from CloudTrail?',
       'How do you trace requests across services with AWS X-Ray?',
     ],
   },
@@ -116,6 +121,7 @@ export default [
       'How would you build an S3 upload -> Lambda -> DynamoDB pipeline?',
       'How do you design for high availability and fault tolerance?',
       'What are the disaster recovery strategies on AWS?',
+      'What is AWS Backup?',
       'What are the pillars of the AWS Well-Architected Framework?',
       'Design question: how would you build an image-processing pipeline on AWS?',
       'Design question: how would you build a URL shortener on AWS?',
@@ -126,6 +132,7 @@ export default [
     questions: [
       'What is infrastructure as code? CloudFormation vs Terraform vs CDK?',
       'How do you set up CI/CD on AWS? (CodePipeline or GitHub Actions with OIDC)',
+      'What are CodeBuild and CodeDeploy, and what do buildspec.yml and appspec.yml do?',
       'How do you deploy a React (Vite) app on AWS?',
       'How do you deploy a FastAPI app on AWS?',
       'How do you do blue/green and canary deployments on AWS?',
@@ -136,6 +143,7 @@ export default [
     questions: [
       'What are the EC2 pricing models: On-Demand, Reserved, Spot and Savings Plans?',
       'What is the AWS Free Tier and how do you avoid surprise bills?',
+      'What are AWS Budgets, Cost Explorer and Trusted Advisor?',
       'How do you optimize costs on AWS?',
     ],
   },

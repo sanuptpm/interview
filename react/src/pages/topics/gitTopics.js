@@ -18,6 +18,7 @@ export default [
     questions: [
       'What are the three areas in Git (working directory, staging area, repository)?',
       'What do git add, git commit and git status do?',
+      'What does git commit -a do?',
       'What is .gitignore and how does it work?',
       'How do you rename, move or delete files with git mv and git rm?',
       'How do you stop tracking a file that is already committed?',
@@ -34,6 +35,7 @@ export default [
       'What does git show do?',
       'What does git blame do?',
       'How do you search the commit history?',
+      'How do you search code with git grep?',
       'How do you see a file\'s history across renames (git log --follow)?',
     ],
   },
@@ -50,6 +52,7 @@ export default [
     questions: [
       'What is a remote in Git?',
       'What do git push, git pull and git fetch do?',
+      'What does git push -u (set upstream) do?',
       'What is the difference between git fetch and git pull?',
       'What are origin and upstream?',
       'How do you list, rename and remove remotes, and check tracking branches?',
@@ -91,6 +94,8 @@ export default [
       'How do you cherry-pick a range of commits?',
       'What are tags and what is the difference between lightweight and annotated tags?',
       'What does a release workflow with tags look like?',
+      'What do git shortlog and git describe do?',
+      'What does git archive do?',
     ],
   },
   {

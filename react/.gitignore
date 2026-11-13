@@ -26,3 +26,6 @@ dist-ssr
 # Local Python environment for regenerating example outputs
 scripts/.venv
 scripts/**/work
+
+# TypeScript compiler used only to generate/check the TypeScript question outputs
+scripts/ts_questions/node_modules

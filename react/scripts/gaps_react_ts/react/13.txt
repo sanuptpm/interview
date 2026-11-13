@@ -1,0 +1,19 @@
+What are Actions and useActionState in React 19?
+@@
+  {
+    q: 'What is useFormStatus?',
+    level: 'Advanced',
+    a: 'useFormStatus from react-dom tells a component whether the parent form is currently submitting, with pending, data and method. It only works in a component rendered inside the <form>, not in the component that renders the form. I use it for a reusable SubmitButton that disables itself and shows "Saving..." without passing any props.',
+    code: `import { useFormStatus } from 'react-dom'
+
+function SubmitButton() { // must be rendered inside a <form>
+  const { pending } = useFormStatus()
+  return <button disabled={pending}>{pending ? 'Saving...' : 'Save'}</button>
+}
+
+<form action={() => wait(1000)}>
+  <input name="title" defaultValue="My note" />
+  <SubmitButton />
+</form>`,
+    output: <FormStatusDemo />,
+  },

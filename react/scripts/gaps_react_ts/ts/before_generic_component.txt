@@ -1,0 +1,19 @@
+How do you type a custom hook?
+@@
+  {
+    q: 'How do you reuse props with ComponentProps?',
+    level: 'Advanced',
+    kind: 'error',
+    tsx: true,
+    a: "ComponentProps<\"button\"> gives me every prop a native button accepts, and ComponentProps<typeof MyComponent> gives the props of my own component. I use it for wrapper components: I add my own props and spread the rest onto the element, so onClick, disabled and aria-* all keep working without retyping them.",
+    code: `import type { ComponentProps } from "react"
+
+type ButtonProps = ComponentProps<"button"> & { variant: "primary" | "ghost" }
+
+function Button({ variant, ...rest }: ButtonProps) {
+  return <button className={variant} {...rest} />
+}
+
+const ok = <Button variant="primary" onClick={() => {}} disabled />
+const bad = <Button variant="danger" />`,
+  },

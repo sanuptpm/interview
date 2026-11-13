@@ -1,0 +1,19 @@
+How do you optimize performance in a React app?
+@@
+  {
+    q: 'How do you find slow components with React DevTools and the Profiler?',
+    level: 'Intermediate',
+    a: 'In the browser I use the React DevTools extension: the Components tab shows props, state and hooks, and the Profiler tab records an interaction and shows which components rendered, how long they took and why. I also turn on "Highlight updates when components render" to spot extra renders. In code, the <Profiler> component calls onRender with timings, which helps me measure one part of the tree before and after a fix.',
+    code: `import { Profiler } from 'react'
+
+function onRender(id, phase, actualDuration) {
+  console.log(id, phase, actualDuration.toFixed(1) + 'ms')
+}
+
+<Profiler id="ProductList" onRender={onRender}>
+  <ProductList />
+</Profiler>`,
+    output: `ProductList mount 12.4ms
+ProductList update 3.1ms
+(timings vary from run to run)`,
+  },

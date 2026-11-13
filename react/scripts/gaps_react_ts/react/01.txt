@@ -1,0 +1,17 @@
+What is lifting state up?
+@@
+  {
+    q: 'What is prop drilling and how do you avoid it?',
+    level: 'Basics',
+    a: 'Prop drilling is when I pass a prop through several components that do not use it, only so a deeply nested child can read it. It works, but every middle component has to change when the data changes. First I try composition, passing the finished child element down as children; for data that many parts need, like the user or theme, I use Context or a store.',
+    code: `function App() {
+  const [user, setUser] = useState('Anu')
+  return <><input value={user} onChange={(e) => setUser(e.target.value)} /><Page user={user} /></>
+}
+
+// Page and Header never use user, they only pass it down
+function Page({ user }) { return <Header user={user} /> }
+function Header({ user }) { return <Avatar user={user} /> }
+function Avatar({ user }) { return <p>Hi, {user}</p> }`,
+    output: <PropDrillingDemo />,
+  },

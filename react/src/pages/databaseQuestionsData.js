@@ -86,6 +86,42 @@ SELECT * FROM users;`,
 ╰────┴─────────╯`,
   },
   {
+    q: "What is the difference between a primary key and a unique key?",
+    level: 'Basics',
+    a: "Both stop duplicate values, but a table has only one primary key and it can never be NULL, while I can have many UNIQUE constraints and they allow NULLs (in most databases, several of them). The primary key is the row's identity that foreign keys point to; a unique key is a business rule, like one account per email. Here the second NULL email is fine, but the duplicate email is rejected.",
+    code: `CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  email TEXT UNIQUE
+);
+INSERT INTO users VALUES (1, 'asha@x.com'), (2, NULL), (3, NULL);
+INSERT INTO users VALUES (4, 'asha@x.com');
+SELECT * FROM users;`,
+    output: `Error near line 6: UNIQUE constraint failed: users.email
+╭────┬────────────╮
+│ id │   email    │
+╞════╪════════════╡
+│  1 │ asha@x.com │
+│  2 │            │
+│  3 │            │
+╰────┴────────────╯`,
+  },
+  {
+    q: "What are candidate, composite, surrogate and natural keys?",
+    level: 'Intermediate',
+    a: "A candidate key is any column, or set of columns, that could uniquely identify a row, and the one I pick becomes the primary key. A composite key uses more than one column, like (student_id, course_id) in a join table. A natural key comes from real data, like an email, while a surrogate key is an artificial id with no meaning; I usually use a surrogate id as the primary key and keep the natural key UNIQUE, because real-world values like emails can change.",
+    code: `CREATE TABLE users (
+  id INTEGER PRIMARY KEY,         -- surrogate key
+  email TEXT UNIQUE NOT NULL      -- natural, candidate key
+);
+CREATE TABLE enrollments (
+  student_id INT, course_id INT, grade TEXT,
+  PRIMARY KEY (student_id, course_id)   -- composite key
+);
+INSERT INTO enrollments VALUES (1, 101, 'A'), (1, 102, 'B');
+INSERT INTO enrollments VALUES (1, 101, 'C');`,
+    output: `Error near line 10: UNIQUE constraint failed: enrollments.student_id, enrollments.course_id`,
+  },
+  {
     q: "What is a foreign key?",
     level: 'Basics',
     a: "A foreign key is a column that points to the primary key of another table, which is how I link related data, like an order to its customer. The database then refuses rows that point to something that doesn't exist, which protects referential integrity. Note that in SQLite I have to turn it on with PRAGMA foreign_keys = ON; PostgreSQL and MySQL (InnoDB) enforce it by default.",
@@ -183,6 +219,22 @@ LIMIT 2;`,
 │ Meera │  90000 │
 │ Asha  │  70000 │
 ╰───────┴────────╯`,
+  },
+  {
+    q: "How do you paginate results with LIMIT and OFFSET?",
+    level: 'Basics',
+    a: "LIMIT sets how many rows to return and OFFSET how many to skip first, so page n is OFFSET (n - 1) * page_size. I always add ORDER BY, because without it the database can return rows in any order and pages may repeat or miss rows. For deep pages OFFSET gets slow because the skipped rows are still read, so on big tables I use keyset pagination: WHERE id > last_seen_id ORDER BY id LIMIT 20.",
+    code: `CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT);
+INSERT INTO products (name) VALUES ('Pen'), ('Book'), ('Bag'), ('Cup'), ('Lamp');
+
+-- page 2 with 2 rows per page: OFFSET = (page - 1) * 2
+SELECT id, name FROM products ORDER BY id LIMIT 2 OFFSET 2;`,
+    output: `╭────┬──────╮
+│ id │ name │
+╞════╪══════╡
+│  3 │ Bag  │
+│  4 │ Cup  │
+╰────┴──────╯`,
   },
   {
     q: "In what order does SQL actually run the clauses of a SELECT?",
@@ -354,6 +406,42 @@ FROM emp;`,
 ╰───────┴───────┴──────────╯`,
   },
   {
+    q: "What do COALESCE, IFNULL and NULLIF do?",
+    level: 'Basics',
+    a: "COALESCE returns the first non-NULL value from its list, and IFNULL (ISNULL in SQL Server) is the two-argument version. NULLIF does the opposite: it returns NULL when both values are equal, which turns empty strings or zeros into NULL. My favorite trick is total / NULLIF(count, 0), which gives NULL instead of a divide-by-zero error.",
+    code: `CREATE TABLE users (name TEXT, nickname TEXT, phone TEXT);
+INSERT INTO users VALUES ('Asha', NULL, '555-0101'),
+                         ('Ravi', 'Rav', ''), ('Meera', NULL, NULL);
+
+SELECT name,
+       COALESCE(nickname, name) AS display_name,
+       IFNULL(phone, 'none') AS phone,
+       NULLIF(phone, '') AS empty_as_null
+FROM users;`,
+    output: `╭───────┬──────────────┬──────────┬───────────────╮
+│ name  │ display_name │  phone   │ empty_as_null │
+╞═══════╪══════════════╪══════════╪═══════════════╡
+│ Asha  │ Asha         │ 555-0101 │ 555-0101      │
+│ Ravi  │ Rav          │          │               │
+│ Meera │ Meera        │ none     │               │
+╰───────┴──────────────┴──────────┴───────────────╯`,
+  },
+  {
+    q: "How do you convert data types with CAST?",
+    level: 'Basics',
+    a: "CAST(value AS type) converts a value to another type, like text to a number or a number to text. The classic trap is integer division: 7 / 2 gives 3, so I cast one side to REAL or DECIMAL to get 3.5. Casting a decimal to an integer just cuts off the fraction, so I use ROUND first if I want proper rounding.",
+    code: `SELECT CAST('42' AS INTEGER) + 8 AS num,
+       7 / 2 AS int_division,
+       CAST(7 AS REAL) / 2 AS real_division,
+       CAST(3.99 AS INTEGER) AS truncated,
+       CAST(2026 AS TEXT) || '-01' AS text_value;`,
+    output: `╭─────┬──────────────┬───────────────┬───────────┬────────────╮
+│ num │ int_division │ real_division │ truncated │ text_value │
+╞═════╪══════════════╪═══════════════╪═══════════╪════════════╡
+│  50 │            3 │           3.5 │         3 │ 2026-01    │
+╰─────┴──────────────┴───────────────┴───────────┴────────────╯`,
+  },
+  {
     q: "Why is NULL = NULL not true? Explain three-valued logic.",
     level: 'Basics',
     a: "SQL comparisons have three results: true, false and unknown, and any comparison with NULL is unknown, because NULL means 'we don't know the value'. So NULL = NULL is NULL, not true, and WHERE only keeps rows where the condition is true, which silently drops NULL rows from both = and <> filters. I use IS NULL, or IS / IS NOT DISTINCT FROM when I want NULLs to compare as equal, and remember that NULL OR true is still true.",
@@ -423,6 +511,21 @@ FROM users;`,
 ╰────────────┴────────────────────┴─────┴──────────┴────────╯`,
   },
   {
+    q: "Which math functions do you use in SQL (ROUND, ABS, CEIL, FLOOR, MOD)?",
+    level: 'Basics',
+    a: "ROUND(x, 2) rounds to 2 decimal places, ABS removes the sign, CEIL rounds up and FLOOR rounds down, and % (or MOD() in other databases) gives the remainder. I use CEIL for page counts, like CEIL(total / 10.0), and % 2 to find even or odd ids. In SQLite CEIL and FLOOR return a REAL, so I cast them to INTEGER when I need a whole number.",
+    code: `SELECT ROUND(19.456, 2) AS rounded,
+       ABS(-15) AS absolute,
+       CAST(CEIL(4.1) AS INTEGER) AS ceil,
+       CAST(FLOOR(4.9) AS INTEGER) AS floor,
+       17 % 5 AS remainder;`,
+    output: `╭─────────┬──────────┬──────┬───────┬───────────╮
+│ rounded │ absolute │ ceil │ floor │ remainder │
+╞═════════╪══════════╪══════╪═══════╪═══════════╡
+│   19.46 │       15 │    5 │     4 │         2 │
+╰─────────┴──────────┴──────┴───────┴───────────╯`,
+  },
+  {
     q: "How do you work with dates in SQL?",
     level: 'Basics',
     a: "I store dates in a sortable ISO format (YYYY-MM-DD) or a real DATE/TIMESTAMP type, and use date functions instead of string tricks. In SQLite that's date() with modifiers like '+1 month' or 'start of month', strftime to pull out the year or month, and julianday to get the days between two dates; PostgreSQL has INTERVAL, DATE_TRUNC and AGE. I use fixed dates in examples and tests, because CURRENT_DATE changes every day.",
@@ -468,6 +571,24 @@ DML   Work with data     SELECT, INSERT, UPDATE, DELETE
 DCL   Control access     GRANT, REVOKE
 TCL   Transactions       BEGIN, COMMIT, ROLLBACK,
                          SAVEPOINT`,
+  },
+  {
+    q: "How do you create and change a table with CREATE TABLE and ALTER TABLE?",
+    level: 'Basics',
+    a: "CREATE TABLE defines the table with its columns, types and constraints. ALTER TABLE changes it later: adding a column, renaming a column or renaming the table, and most databases can also drop columns or change types. In real projects I never run ALTER by hand on production; I put every change in a migration file (Alembic, Flyway or Prisma) so all environments stay in sync.",
+    code: `CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO users (name) VALUES ('Asha');
+
+ALTER TABLE users ADD COLUMN email TEXT;
+ALTER TABLE users RENAME COLUMN name TO full_name;
+ALTER TABLE users RENAME TO customers;
+
+SELECT * FROM customers;`,
+    output: `╭────┬───────────┬───────╮
+│ id │ full_name │ email │
+╞════╪═══════════╪═══════╡
+│  1 │ Asha      │       │
+╰────┴───────────┴───────╯`,
   },
   {
     q: "What is the difference between DELETE, TRUNCATE and DROP?",
@@ -823,6 +944,31 @@ SELECT customer FROM online UNION ALL SELECT customer FROM store;`,
 ╰──────────╯`,
   },
   {
+    q: "What is the difference between INTERSECT and EXCEPT?",
+    level: 'Intermediate',
+    a: "INTERSECT returns only the rows that appear in both queries, and EXCEPT returns the rows from the first query that are not in the second (Oracle calls it MINUS). Like UNION, both remove duplicates and need the same number of columns. I use EXCEPT for quick data checks, like finding customers who exist in one system but not the other.",
+    code: `CREATE TABLE online (customer TEXT);
+CREATE TABLE store (customer TEXT);
+INSERT INTO online VALUES ('Asha'), ('Ravi'), ('John');
+INSERT INTO store VALUES ('Ravi'), ('Meera'), ('John');
+
+SELECT customer FROM online INTERSECT SELECT customer FROM store;
+
+SELECT customer FROM online EXCEPT SELECT customer FROM store;`,
+    output: `╭──────────╮
+│ customer │
+╞══════════╡
+│ John     │
+│ Ravi     │
+╰──────────╯
+
+╭──────────╮
+│ customer │
+╞══════════╡
+│ Asha     │
+╰──────────╯`,
+  },
+  {
     q: "What is a subquery and a correlated subquery?",
     level: 'Intermediate',
     a: "A subquery is a query inside another query; a normal one runs once and its result is used by the outer query. A correlated subquery refers to columns of the outer query, so logically it runs once per outer row, like comparing each employee to their own department's average. Correlated subqueries can be slow on big tables, so I often rewrite them with a JOIN or a window function.",
@@ -875,6 +1021,33 @@ WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);`,
 ╞═══════════╡
 │ Ravi      │
 ╰───────────╯`,
+  },
+  {
+    q: "What do ANY and ALL do with a subquery?",
+    level: 'Intermediate',
+    a: "salary > ALL (subquery) is true when the value beats every row the subquery returns, and salary > ANY (subquery) when it beats at least one; = ANY is the same as IN. SQLite doesn't support ANY and ALL, so here I use the rewrite that works everywhere: > ALL is > MAX(...) and > ANY is > MIN(...). I often prefer the MAX/MIN form anyway because it reads more clearly in code reviews.",
+    code: `CREATE TABLE emp (name TEXT, dept TEXT, salary INT);
+INSERT INTO emp VALUES ('Asha', 'IT', 70000), ('Ravi', 'IT', 50000),
+                       ('Meera', 'HR', 60000), ('John', 'HR', 40000);
+
+-- salary > ALL (SELECT salary ... 'HR') is the same as > MAX
+SELECT name FROM emp WHERE salary > (SELECT MAX(salary) FROM emp WHERE dept = 'HR');
+
+-- salary > ANY (SELECT salary ... 'HR') is the same as > MIN
+SELECT name FROM emp WHERE salary > (SELECT MIN(salary) FROM emp WHERE dept = 'HR');`,
+    output: `╭──────╮
+│ name │
+╞══════╡
+│ Asha │
+╰──────╯
+
+╭───────╮
+│ name  │
+╞═══════╡
+│ Asha  │
+│ Ravi  │
+│ Meera │
+╰───────╯`,
   },
   {
     q: "How does CASE WHEN work?",
@@ -982,6 +1155,24 @@ QUERY PLAN
 \`--SCAN emp`,
   },
   {
+    q: "What is the difference between a clustered and a non-clustered index?",
+    level: 'Intermediate',
+    a: "A clustered index decides the physical order of the rows, so the table itself is the index and there can only be one; in SQL Server and MySQL InnoDB it's usually the primary key. A non-clustered index is a separate structure that stores the key plus a pointer to the row, so a lookup searches the index and then jumps to the row. In SQLite the rowid table works like the clustered index, and every CREATE INDEX is non-clustered, as the query plan shows.",
+    code: `CREATE TABLE emp (id INTEGER PRIMARY KEY, email TEXT, name TEXT);
+CREATE INDEX idx_email ON emp(email);
+
+-- clustered: the table itself is stored in id order
+EXPLAIN QUERY PLAN SELECT * FROM emp WHERE id = 5;
+
+-- non-clustered: search idx_email, then jump to the row
+EXPLAIN QUERY PLAN SELECT * FROM emp WHERE email = 'asha@x.com';`,
+    output: `QUERY PLAN
+\`--SEARCH emp USING INTEGER PRIMARY KEY (rowid=?)
+
+QUERY PLAN
+\`--SEARCH emp USING INDEX idx_email (email=?)`,
+  },
+  {
     q: "How do you query JSON data stored in a column?",
     level: 'Intermediate',
     a: "PostgreSQL has a real JSONB type, and SQLite and MySQL store JSON as text with functions to read it. In SQLite I use json_extract(col, '$.path') or the ->> operator to get a value, and json_each to turn a JSON array into rows I can join or count. JSON is handy for flexible attributes, but anything I filter on often I move into a real column or index the expression, because scanning JSON in every row is slow.",
@@ -1057,6 +1248,29 @@ SELECT total FROM orders WHERE id = 1;`,
 ╞═══════╡
 │   250 │
 ╰───────╯`,
+  },
+  {
+    q: "What is an ER diagram, and what are one-to-one, one-to-many and many-to-many relationships?",
+    level: 'Basics',
+    a: "An ER (entity-relationship) diagram shows the tables as boxes and draws the relationships between them, and I sketch one before writing any CREATE TABLE. One-to-one is a foreign key with a UNIQUE constraint, like user and profile; one-to-many puts the foreign key on the 'many' side, like orders.user_id. Many-to-many, like students and courses, needs a junction table holding both foreign keys.",
+    code: `CREATE TABLE students (id INT PRIMARY KEY, name TEXT);
+CREATE TABLE courses (id INT PRIMARY KEY, title TEXT);
+-- many-to-many: a junction table with two foreign keys
+CREATE TABLE enrollments (student_id INT REFERENCES students(id),
+                          course_id INT REFERENCES courses(id));
+INSERT INTO students VALUES (1, 'Asha'), (2, 'Ravi');
+INSERT INTO courses VALUES (1, 'SQL'), (2, 'Git');
+INSERT INTO enrollments VALUES (1, 1), (1, 2), (2, 1);
+
+SELECT s.name, c.title FROM enrollments e
+JOIN students s ON s.id = e.student_id JOIN courses c ON c.id = e.course_id;`,
+    output: `╭──────┬───────╮
+│ name │ title │
+╞══════╪═══════╡
+│ Asha │ SQL   │
+│ Asha │ Git   │
+│ Ravi │ SQL   │
+╰──────┴───────╯`,
   },
   {
     q: "What is a transaction and what does ACID mean?",
@@ -1206,6 +1420,33 @@ FROM emp;`,
 ╰───────┴────────┴─────────┴─────┴───────────╯`,
   },
   {
+    q: "What is the difference between GROUP BY and a window function like SUM() OVER?",
+    level: 'Intermediate',
+    a: "GROUP BY collapses each group into one row, so I lose the detail rows. A window function like SUM(amount) OVER (PARTITION BY region) computes the same total but keeps every row and adds the total as a new column. I use it when I need detail and totals together, like each sale's share of its region's total, without a self-join.",
+    code: `CREATE TABLE sales (region TEXT, amount INT);
+INSERT INTO sales VALUES ('North', 100), ('North', 50), ('South', 80);
+
+SELECT region, SUM(amount) AS total FROM sales GROUP BY region;
+
+SELECT region, amount,
+       SUM(amount) OVER (PARTITION BY region) AS region_total
+FROM sales ORDER BY region, amount DESC;`,
+    output: `╭────────┬───────╮
+│ region │ total │
+╞════════╪═══════╡
+│ North  │   150 │
+│ South  │    80 │
+╰────────┴───────╯
+
+╭────────┬────────┬──────────────╮
+│ region │ amount │ region_total │
+╞════════╪════════╪══════════════╡
+│ North  │    100 │          150 │
+│ North  │     50 │          150 │
+│ South  │     80 │           80 │
+╰────────┴────────┴──────────────╯`,
+  },
+  {
     q: "How do you use LAG and LEAD?",
     level: 'Advanced',
     a: "LAG reads a value from a previous row and LEAD from a following row, within the window's order. I use them for things like day-over-day change or finding gaps, without a self join. The first row has no previous row, so LAG returns NULL there unless I pass a default.",
@@ -1226,6 +1467,28 @@ FROM sales;`,
 │ Wed │    120 │      150 │    -30 │      200 │
 │ Thu │    200 │      120 │     80 │          │
 ╰─────┴────────┴──────────┴────────┴──────────╯`,
+  },
+  {
+    q: "What do FIRST_VALUE and LAST_VALUE do?",
+    level: 'Intermediate',
+    a: "FIRST_VALUE returns the value from the first row of the window and LAST_VALUE from the last row, so I can show the top earner of each department on every row. The trap is LAST_VALUE: the default frame stops at the current row, so it just returns the current row's value. I add ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING, or flip the ORDER BY and use FIRST_VALUE instead.",
+    code: `CREATE TABLE emp (name TEXT, dept TEXT, salary INT);
+INSERT INTO emp VALUES ('Asha', 'IT', 70000), ('Ravi', 'IT', 50000),
+                       ('Meera', 'HR', 60000), ('John', 'HR', 40000);
+
+SELECT name, dept, salary,
+  FIRST_VALUE(name) OVER (PARTITION BY dept ORDER BY salary DESC) AS top_paid,
+  LAST_VALUE(name) OVER (PARTITION BY dept ORDER BY salary DESC
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS lowest_paid
+FROM emp ORDER BY dept, salary DESC;`,
+    output: `╭───────┬──────┬────────┬──────────┬─────────────╮
+│ name  │ dept │ salary │ top_paid │ lowest_paid │
+╞═══════╪══════╪════════╪══════════╪═════════════╡
+│ Meera │ HR   │  60000 │ Meera    │ John        │
+│ John  │ HR   │  40000 │ Meera    │ John        │
+│ Asha  │ IT   │  70000 │ Asha     │ Ravi        │
+│ Ravi  │ IT   │  50000 │ Asha     │ Ravi        │
+╰───────┴──────┴────────┴──────────┴─────────────╯`,
   },
   {
     q: "What is a window frame (ROWS BETWEEN), and how do you compute a moving average?",

@@ -3,6 +3,7 @@ import { slug } from '../lib/levels.js'
 import cssTopics from './topics/cssTopics.js'
 import jsBasicsTopics from './topics/jsBasicsTopics.js'
 import javascriptTopics from './topics/javascriptTopics.js'
+import typescriptTopics from './topics/typescriptTopics.js'
 import reactTopics from './topics/reactTopics.js'
 import pythonTopics from './topics/pythonTopics.js'
 import aiMlTopics from './topics/aiMlTopics.js'
@@ -24,6 +25,7 @@ const pages = [
       { label: 'Interview questions', prefix: 'q-', topics: javascriptTopics },
     ],
   },
+  { title: 'TypeScript', path: '/typescript-questions', lists: [{ prefix: '', topics: typescriptTopics }] },
   { title: 'React', path: '/react-questions', lists: [{ prefix: '', topics: reactTopics }] },
   { title: 'Python', path: '/python-questions', lists: [{ prefix: '', topics: pythonTopics }] },
   { title: 'AI/ML', path: '/ai-ml-questions', lists: [{ prefix: '', topics: aiMlTopics }] },

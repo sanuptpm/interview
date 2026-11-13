@@ -1,0 +1,19 @@
+What is batching in React?
+@@
+  {
+    q: 'What is flushSync?',
+    level: 'Advanced',
+    a: 'flushSync from react-dom forces React to apply a state update and update the DOM right away, instead of batching it for later. I need it when the very next line reads the DOM, like scrolling to an item I just added. It is slow if overused, so I keep it for these rare cases and never call it during render.',
+    code: `import { flushSync } from 'react-dom'
+
+const [items, setItems] = useState([1, 2, 3])
+const listRef = useRef(null)
+const add = () => {
+  flushSync(() => setItems((s) => [...s, s.length + 1])) // DOM updated now
+  listRef.current.scrollTop = listRef.current.scrollHeight // sees the new item
+}
+
+<ul ref={listRef} style={{ height: 80, overflow: 'auto' }}>{items.map((n) => <li key={n}>Item {n}</li>)}</ul>
+<button onClick={add}>Add item</button>`,
+    output: <FlushSyncDemo />,
+  },

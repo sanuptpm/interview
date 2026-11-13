@@ -1,0 +1,36 @@
+What is React.memo?
+@@
+  {
+    q: 'React.memo vs useMemo: what is the difference?',
+    level: 'Intermediate',
+    a: 'memo wraps a component and skips re-rendering it when its props are the same. useMemo is a hook inside a component that caches a calculated value until its dependencies change. They often work together: I use useMemo or useCallback to keep an object or function prop stable, so the memo child really can skip rendering.',
+    code: `// memo: wraps a COMPONENT, skips its re-render if props are equal
+const Row = memo(function Row({ name }) {
+  return <li>{name}</li>
+})
+
+// useMemo: caches a VALUE inside a component
+const sorted = useMemo(() => [...names].sort(), [names])
+
+<ul>{sorted.map((n) => <Row key={n} name={n} />)}</ul>`,
+    output: `memo(Component)    -> skips re-rendering the child when its props are equal
+useMemo(fn, deps)  -> recomputes the value only when deps change`,
+  },
+  {
+    q: 'What is a pure component? PureComponent vs React.memo',
+    level: 'Intermediate',
+    a: 'A pure component renders the same output for the same props and state and has no side effects during render. In class components, extending PureComponent adds a shallow comparison of props and state, so render is skipped when nothing changed. For function components I get the same effect with memo; I only reach for either when profiling shows wasted renders.',
+    code: `import { PureComponent, memo } from 'react'
+
+// Class: skips render() when props and state are shallowly equal
+class Price extends PureComponent {
+  render() {
+    return <p>{this.props.value}</p>
+  }
+}
+
+// Function component: memo does the same job
+const PriceFn = memo(({ value }) => <p>{value}</p>)`,
+    output: `Parent re-renders, value still 10  -> render skipped
+Parent passes value 12             -> render runs`,
+  },
