@@ -3597,7 +3597,7 @@ store.dispatch({ type: 'add' })`,
   {
     q: 'What is Redux Toolkit and why use it instead of plain Redux?',
     level: 'Basics',
-    a: 'Redux Toolkit is the official, recommended way to write Redux today. I use it because createSlice generates the reducer and the action creators in one place, so there are no separate action type constants or long switch statements. It uses Immer, so I can write simple "mutating" code safely, and configureStore sets up Redux DevTools and the thunk middleware for me.',
+    a: "Redux Toolkit is the official, recommended way to write Redux logic, and I use it to manage global client state that many components share: the logged-in user, roles and permissions, a shopping cart, app settings, theme preferences and shared UI state. createSlice gives me the reducer and action creators in one place, so there are no action type constants or long switch statements. It uses Immer, so I can write simple \"mutating\" code safely, and configureStore sets up DevTools and thunks for me.",
     code: `import { configureStore, createSlice } from '@reduxjs/toolkit'
 
 // Plain Redux: action type, action creator, reducer, manual copies
@@ -3640,7 +3640,7 @@ function Counter() {
     output: <ReduxCounterDemo />,
   },
   {
-    q: 'How does Redux Toolkit let you "mutate" state in reducers?',
+    q: 'Why can we directly mutate state inside Redux Toolkit reducers?',
     level: 'Intermediate',
     a: 'Redux Toolkit runs reducers through Immer. Immer gives me a draft copy of the state, records my changes like push or obj.done = true, and then builds a new immutable state for me. So the code looks like a mutation, but the old state is never changed. The one rule I follow is: either change the draft or return a new value, never both.',
     code: `import { configureStore, createSlice } from '@reduxjs/toolkit'
@@ -3661,7 +3661,7 @@ console.log(before, store.getState())`,
 // the old state is untouched; a new array was created`,
   },
   {
-    q: 'How do you handle async logic with createAsyncThunk?',
+    q: 'What is createAsyncThunk()?',
     level: 'Intermediate',
     a: 'createAsyncThunk takes an action name and an async function, and dispatches pending, fulfilled or rejected actions for me as the promise runs. I handle those three in extraReducers to set a status like loading, done or error, and store the data. For plain data fetching I now usually prefer RTK Query, and keep thunks for async logic that is not just a request.',
     code: `import { configureStore, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
@@ -3698,9 +3698,157 @@ Server state -> todos, users, orders from an API
                async, shared, can go stale -> needs caching and refetching`,
   },
   {
+    q: "Explain Redux Toolkit flow using createSlice.",
+    level: 'Intermediate',
+    a: "First, I create a slice with createSlice(), where I define the initial state and reducer functions, and Redux Toolkit generates the action creators and action types for me. Then I configure the store with configureStore() and register the slice reducers, and wrap the app in the Redux Provider so components can reach the store. Inside components I use useDispatch() to dispatch actions and useSelector() to read state. When an action is dispatched, the matching reducer runs and returns the updated state (Immer lets me write mutation-like code while the update stays immutable), and components whose selected values changed re-render.",
+    code: `// 1. createSlice: state + reducers (actions generated)
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { count: 0 },
+  reducers: { increment: (state) => { state.count += 1 } },
+})
+// 2. configureStore: register the slice reducer
+const store = configureStore({ reducer: { counter: counterSlice.reducer } })
+// 3. Provider: <Provider store={store}><App /></Provider>
+// 4. Component: dispatch an action, read the new state
+const dispatch = useDispatch()
+const count = useSelector((state) => state.counter.count)
+dispatch(counterSlice.actions.increment())`,
+    output: `createSlice -> configureStore -> Provider -> useDispatch
+  -> Reducer -> Store update -> useSelector -> Component re-render
+
+Full working app: Coding Programs -> Redux Toolkit Counter`,
+  },
+  {
+    q: "What is the purpose of configureStore()?",
+    level: 'Basics',
+    a: "configureStore creates the Redux store in one call. I pass it my slice reducers as an object, and it combines them, adds the thunk middleware for async logic, turns on development checks that catch accidental mutations, and connects Redux DevTools. Without it I'd have to wire all of that by hand with createStore, combineReducers and applyMiddleware.",
+    code: `import { configureStore, createSlice } from '@reduxjs/toolkit'
+
+const counter = createSlice({
+  name: 'counter',
+  initialState: { count: 0 },
+  reducers: { increment: (state) => { state.count += 1 } },
+})
+
+// One call: combines reducers, adds thunk + dev checks, enables DevTools
+const store = configureStore({ reducer: { counter: counter.reducer } })
+
+store.dispatch(counter.actions.increment())
+console.log(store.getState())`,
+    output: `{ counter: { count: 1 } }`,
+  },
+  {
+    q: "What is the difference between useSelector() and useDispatch()?",
+    level: 'Basics',
+    a: "useSelector reads data from the store: I pass a selector function, and the component re-renders only when that selected value changes. useDispatch gives me the dispatch function, which I call to send an action and update the store. So useSelector is for reading and useDispatch is for writing, and I usually use both in the same component.",
+    code: `import { useSelector, useDispatch } from 'react-redux'
+import { increment } from './counterSlice'
+
+function Counter() {
+  // READ: re-renders when state.counter.count changes
+  const count = useSelector((state) => state.counter.count)
+
+  // WRITE: send actions to the store
+  const dispatch = useDispatch()
+
+  return <button onClick={() => dispatch(increment())}>Count: {count}</button>
+}`,
+    output: `useSelector -> reads state (subscribes, re-renders when the value changes)
+useDispatch -> sends actions (dispatch(increment()) updates the store)`,
+  },
+  {
+    q: "What is the difference between createSlice() and createReducer()?",
+    level: 'Intermediate',
+    a: "Both use Immer, but createSlice does more: from one object it creates the reducer AND the action creators, with action types like 'counter/add'. createReducer only builds the reducer, so I have to create the actions separately with createAction. I use createSlice almost always, and createReducer only when a reducer must respond to actions defined elsewhere.",
+    code: `import { createSlice, createReducer, createAction } from '@reduxjs/toolkit'
+
+// createSlice: reducers + action creators in one place
+const counter = createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers: { add: (state, action) => state + action.payload },
+})
+console.log(counter.actions.add(5))                  // action is generated
+console.log(counter.reducer(0, counter.actions.add(5)))
+
+// createReducer: only the reducer, actions are created separately
+const add = createAction('counter/add')
+const reducer = createReducer(0, (builder) => builder.addCase(add, (state, action) => state + action.payload))
+console.log(reducer(0, add(5)))`,
+    output: `{ type: 'counter/add', payload: 5 }
+5
+5`,
+  },
+  {
+    q: "How do you manage API calls in Redux Toolkit?",
+    level: 'Intermediate',
+    a: "I have two options. For most CRUD APIs I use RTK Query: I define endpoints with createApi and get hooks with loading, error, caching and refetching built in. For one-off calls or custom logic I use createAsyncThunk and handle the pending, fulfilled and rejected actions in extraReducers to store the result in my slice.",
+    code: `// Option 1: RTK Query (loading, caching and refetch built in)
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  endpoints: (build) => ({ getUsers: build.query({ query: () => 'users' }) }),
+})
+const { data, isLoading } = api.useGetUsersQuery()
+
+// Option 2: createAsyncThunk (I store the result in a slice myself)
+const fetchUsers = createAsyncThunk('users/fetch', async () => {
+  const res = await fetch('/api/users')
+  return res.json()
+})`,
+    output: `RTK Query        -> most CRUD APIs: loading, error, caching, refetch built in
+createAsyncThunk -> one-off or custom logic: I handle pending / fulfilled /
+                    rejected in extraReducers myself`,
+  },
+  {
+    q: "What is middleware in Redux?",
+    level: 'Intermediate',
+    a: "Middleware is a function that sits between dispatching an action and the reducer, so it can see every action, log it, change it, delay it or start side effects. Its shape is store => next => action, and it calls next(action) to pass the action on. Redux Toolkit already adds the thunk middleware, and I add my own with getDefaultMiddleware().concat(...), for example a logger or RTK Query's api.middleware.",
+    code: `import { configureStore, createSlice } from '@reduxjs/toolkit'
+
+const counter = createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers: { increment: (n) => n + 1 },
+})
+
+// Middleware sits between dispatch and the reducer
+const logger = (store) => (next) => (action) => {
+  console.log('before:', store.getState(), 'action:', action.type)
+  const result = next(action) // pass the action on to the reducer
+  console.log('after: ', store.getState())
+  return result
+}
+
+const store = configureStore({
+  reducer: counter.reducer,
+  middleware: (getDefault) => getDefault().concat(logger),
+})
+store.dispatch(counter.actions.increment())`,
+    output: `before: 0 action: counter/increment
+after:  1`,
+  },
+  {
+    q: "How do you avoid unnecessary re-renders when using Redux?",
+    level: 'Advanced',
+    a: "A component re-renders when the value its selector returns changes, so I select only the small piece I need instead of the whole state. I avoid selectors that build a new object or array each time, because a new reference counts as a change; for derived data I use createSelector so the result is memoized, and for several values I pass shallowEqual. I also keep components that use useSelector small, and wrap expensive children in React.memo.",
+    code: `// 1. Select only what you need
+const name = useSelector((state) => state.user.name)
+
+// 2. Memoize derived data, so filter() doesn't create a new array each time
+const selectDone = createSelector([(s) => s.todos], (todos) => todos.filter((t) => t.done))
+const done = useSelector(selectDone)
+
+// 3. Pick several values with shallowEqual
+const { a, b } = useSelector((s) => ({ a: s.a, b: s.b }), shallowEqual)`,
+    output: `Selector returns a new object/array every time -> re-renders on EVERY action
+Select a small value / createSelector / shallowEqual -> re-renders only when
+the data the component uses actually changes`,
+  },
+  {
     q: 'What is RTK Query and how do you define an API with createApi?',
     level: 'Intermediate',
-    a: 'RTK Query is the data fetching and caching tool built into Redux Toolkit. I describe my endpoints once with createApi, and it generates hooks like useGetUserQuery that give me data, isLoading and error, with caching and request de-duplication built in. In a real app I use fetchBaseQuery with a baseUrl and add api.reducer and api.middleware to my store; here fakeBaseQuery with a queryFn fakes the server.',
+    a: "RTK Query is the API data-fetching and caching solution built into Redux Toolkit, so I use it for server state in a Redux app. Instead of managing loading, success and error state, caching, refetching and cache invalidation by hand, I describe my endpoints once with createApi and it generates hooks like useGetUserQuery that give me data, isLoading and error. In a real app I use fetchBaseQuery with a baseUrl and add api.reducer and api.middleware to the store; here fakeBaseQuery fakes the server.",
     code: `import { ApiProvider, createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
 
 const api = createApi({
@@ -3746,7 +3894,7 @@ function Todos() {
   {
     q: 'What is React Query (TanStack Query) and how does useQuery work?',
     level: 'Intermediate',
-    a: 'React Query is a library for server state: it fetches, caches and refetches data so I do not write useEffect plus loading and error state by hand. I wrap the app in a QueryClientProvider, then call useQuery with a queryKey, which is the cache key, and a queryFn that returns a promise. It gives me isPending, error and data, and every component using the same key shares one cached result.',
+    a: "TanStack Query, formerly React Query, is a standalone library for fetching, caching, synchronizing and updating server data, and it does not need Redux. I use it for things like fetching employee details or payroll records, search and filter screens, updating employee information, caching API responses and automatically refetching stale data. I wrap the app in a QueryClientProvider and call useQuery with a queryKey (the cache key) and a queryFn that returns a promise; it gives me isPending, error and data, shared by every component using the same key.",
     code: `import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 
 const fetchUser = () => wait(800).then(() => ({ name: 'Asha' })) // fake API
@@ -3802,9 +3950,9 @@ function Todos() {
 unused for 5 minutes   -> cache entry removed (gcTime)`,
   },
   {
-    q: 'React Query vs RTK Query vs Redux: when do you use which?',
+    q: 'What is the difference between Redux Toolkit, RTK Query and React Query?',
     level: 'Advanced',
-    a: 'I first split client state from server state. For server data I use React Query when the app has no Redux, and RTK Query when the app already uses Redux Toolkit, so everything lives in one store and one DevTools. I use plain Redux Toolkit slices only for shared client state, like a cart, filters or a multi-step form, and I avoid copying API data into slices by hand.',
+    a: "Redux Toolkit is for global client-side state, like authentication info, user permissions, theme preferences and shared UI state. RTK Query is part of Redux Toolkit and is built for API data fetching, caching, loading and error handling, and it plugs straight into the Redux store. React Query, now TanStack Query, gives the same server-state features, like fetching, caching, mutations and automatic refetching, but works without Redux. So I use React Query in apps without Redux, RTK Query when the app already uses Redux Toolkit, and Redux Toolkit slices only for shared client state.",
     code: `// Server data, no Redux in the app -> React Query
 const { data } = useQuery({ queryKey: ['todos'], queryFn: getTodos })
 
@@ -3813,10 +3961,15 @@ const { data } = api.useGetTodosQuery()
 
 // Shared client state (cart, filters) -> Redux Toolkit slice
 const items = useSelector((s) => s.cart.items)`,
-    output: `React Query -> server state, any app, tiny setup, great caching
-RTK Query   -> server state inside a Redux Toolkit app (one store, one DevTools)
-Redux (RTK) -> complex shared client state: cart, filters, wizard steps
-useState / Context -> local or rarely changing state (theme, user)`,
+    output: `Feature              Redux Toolkit        RTK Query          React Query
+-------------------  -------------------  -----------------  -----------------
+Main purpose         Global client state  API/server state   API/server state
+Fetch API            Manual or thunk      Built in           Built in
+Caching              Not automatic        Built in           Built in
+Loading/error        Usually manual       Built in           Built in
+Cache invalidation   Manual               Tag-based          Query-key based
+Requires Redux       Yes                  Yes (Redux store)  No
+Mutations            Reducers/thunks      Built in           Built in`,
   },
   {
     q: 'How do you optimize performance in a React app?',

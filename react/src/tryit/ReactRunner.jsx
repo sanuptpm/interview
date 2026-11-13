@@ -45,15 +45,20 @@ const TAILWIND_CDN = 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3/di
 // The snippet is turned into a runnable /App.js by snippetToApp.
 // tailwind: load Tailwind in the preview (for the coding programs, which use Tailwind classes).
 // height: editor/preview height in px.
-function ReactRunner({ code, tailwind = false, height = HEIGHT }) {
+// files: for multi-file programs, { '/App.js': '...', '/store.js': '...' } used as-is
+// (shown as tabs) instead of turning a single `code` snippet into App.js.
+function ReactRunner({ code = '', files: programFiles, tailwind = false, height = HEIGHT }) {
   const files = useMemo(
     () => ({
-      '/App.js': snippetToApp(code),
+      ...(programFiles || { '/App.js': snippetToApp(code) }),
       '/index.js': { code: reactPreviewIndex, hidden: true },
       '/styles.css': { code: reactPreviewCss, hidden: true },
     }),
-    [code]
+    [code, programFiles]
   )
+  // All visible source, used to detect which libraries to install
+  const allCode = programFiles ? Object.values(programFiles).join('\n') : code
+  const visibleFiles = programFiles ? Object.keys(programFiles) : ['/App.js']
 
   // contain: inline-size keeps long editor lines from widening the page on
   // phones (the card's grid would otherwise grow to fit them).
@@ -68,17 +73,17 @@ function ReactRunner({ code, tailwind = false, height = HEIGHT }) {
             react: '^19.0.0',
             'react-dom': '^19.0.0',
             // Extra libraries, only when the example imports them
-            ...(code.includes('react-hook-form') && { 'react-hook-form': '7.91.0' }),
-            ...(code.includes('@reduxjs/toolkit') && { '@reduxjs/toolkit': '2.13.0' }),
-            ...((code.includes('react-redux') || code.includes('@reduxjs/toolkit')) && {
+            ...(allCode.includes('react-hook-form') && { 'react-hook-form': '7.91.0' }),
+            ...(allCode.includes('@reduxjs/toolkit') && { '@reduxjs/toolkit': '2.13.0' }),
+            ...((allCode.includes('react-redux') || allCode.includes('@reduxjs/toolkit')) && {
               'react-redux': '9.3.1',
             }),
-            ...(code.includes('@tanstack/react-query') && { '@tanstack/react-query': '5.105.0' }),
+            ...(allCode.includes('@tanstack/react-query') && { '@tanstack/react-query': '5.105.0' }),
           },
         }}
         options={{
           activeFile: '/App.js',
-          visibleFiles: ['/App.js'],
+          visibleFiles,
           recompileMode: 'delayed',
           recompileDelay: 500,
           externalResources: tailwind ? [TAILWIND_CDN] : [],
@@ -88,7 +93,7 @@ function ReactRunner({ code, tailwind = false, height = HEIGHT }) {
         <SandpackLayout>
           <SandpackCodeEditor
             showLineNumbers
-            showTabs={false}
+            showTabs={visibleFiles.length > 1}
             style={{ height }}
           />
           {/* Preview on top, console.log output underneath. */}

@@ -7,12 +7,18 @@ import postSearchSource from './pages/PostSearch.jsx?raw'
 import bubbleSortSource from './pages/BubbleSort.jsx?raw'
 import stringReverseSource from './pages/StringReverse.jsx?raw'
 import palindromeSource from './pages/Palindrome.jsx?raw'
+import reduxCounterSource from './pages/ReduxCounter.jsx?raw'
+import reduxStoreSource from './pages/reduxCounter/store.js?raw'
+import reduxSliceSource from './pages/reduxCounter/counterSlice.js?raw'
+import reduxComponentSource from './pages/reduxCounter/Counter.jsx?raw'
 
 // Each page is loaded only when it is opened, to keep the first load small.
+const TopicsIndex = lazy(() => import('./pages/TopicsIndex.jsx'))
 const PostSearch = lazy(() => import('./pages/PostSearch.jsx'))
 const BubbleSort = lazy(() => import('./pages/BubbleSort.jsx'))
 const StringReverse = lazy(() => import('./pages/StringReverse.jsx'))
 const Palindrome = lazy(() => import('./pages/Palindrome.jsx'))
+const ReduxCounter = lazy(() => import('./pages/ReduxCounter.jsx'))
 const CssQuestions = lazy(() => import('./pages/CssQuestions.jsx'))
 const JavaScript = lazy(() => import('./pages/JavaScript.jsx'))
 const ReactQuestions = lazy(() => import('./pages/ReactQuestions.jsx'))
@@ -28,6 +34,7 @@ const AiMlQuestions = lazy(() => import('./pages/AiMlQuestions.jsx'))
 // group: 'questions' (interview Q&A) or 'program' (coding program with its code shown).
 // Import the file a second time with `?raw` to show its code beside the output.
 // Leave out `source` for question-and-answer pages: they show full width with no code pane.
+// Multi-file programs use `files: [{ name, code, sandpack }]` instead of `source`.
 const programs = [
   {
     path: '/post-search',
@@ -68,6 +75,22 @@ const programs = [
     description: 'Check whether words read the same forwards and backwards.',
     component: Palindrome,
     source: palindromeSource,
+  },
+  {
+    path: '/redux-counter',
+    group: 'program',
+    badge: 'Redux',
+    badgeColor: 'bg-violet-50 text-violet-700',
+    title: 'Redux Toolkit Counter',
+    description: 'Full Redux Toolkit flow: slice, store, Provider, useSelector and useDispatch.',
+    component: ReduxCounter,
+    // Multi-file program: shown in this order. `sandpack` is the file's path in the Try-it editor.
+    files: [
+      { name: 'reduxCounter/counterSlice.js', code: reduxSliceSource, sandpack: '/reduxCounter/counterSlice.js' },
+      { name: 'reduxCounter/store.js', code: reduxStoreSource, sandpack: '/reduxCounter/store.js' },
+      { name: 'reduxCounter/Counter.jsx', code: reduxComponentSource, sandpack: '/reduxCounter/Counter.js' },
+      { name: 'ReduxCounter.jsx (App)', code: reduxCounterSource, sandpack: '/App.js' },
+    ],
   },
   {
     path: '/css-questions',
@@ -213,6 +236,12 @@ function Home() {
           Interview questions with answers you can say out loud, plus working examples and their
           output. From the basics to advanced topics.
         </p>
+        <Link
+          to="/index"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        >
+          Open the Index: every topic and sub-topic →
+        </Link>
         <div className="mt-6 flex flex-wrap gap-2">
           {questionPages.map((page) => (
             <Link
@@ -267,9 +296,14 @@ function PaneLabel({ children }) {
   )
 }
 
-function ProgramPage({ title, source, Page }) {
+function ProgramPage({ title, source, files, Page }) {
   // "Try it" swaps the code + output view for a live editor of the same program
   const [editing, setEditing] = useState(false)
+  // A program is one `source` file or several `files` (shown in order)
+  const sources = files || (source ? [{ name: null, code: source }] : null)
+  const sandpackFiles = files
+    ? Object.fromEntries(files.map((file) => [file.sandpack, file.code]))
+    : undefined
 
   return (
     <div className="flex h-screen flex-col bg-white max-md:h-auto">
@@ -280,9 +314,15 @@ function ProgramPage({ title, source, Page }) {
         >
           ← Home
         </Link>
+        <Link
+          to="/index"
+          className="rounded-lg px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+        >
+          Index
+        </Link>
         <span className="text-slate-300">/</span>
         <h1 className="font-semibold">{title}</h1>
-        {source && (
+        {sources && (
           <div className="ml-auto">
             <TryItButton open={editing} onClick={() => setEditing(!editing)} />
           </div>
@@ -291,12 +331,12 @@ function ProgramPage({ title, source, Page }) {
 
       {editing && (
         <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
-          <TryIt kind="react" code={source} tailwind height={560} />
+          <TryIt kind="react" code={source} files={sandpackFiles} tailwind height={560} />
         </div>
       )}
 
-      <div className={`grid min-h-0 flex-1 ${source ? 'md:grid-cols-2' : ''} ${editing ? 'hidden' : ''}`}>
-        {source && (
+      <div className={`grid min-h-0 flex-1 ${sources ? 'md:grid-cols-2' : ''} ${editing ? 'hidden' : ''}`}>
+        {sources && (
           <section className="min-w-0 overflow-auto border-r border-slate-200 bg-white max-md:max-h-[70vh] max-md:border-r-0 max-md:border-b">
             <PaneLabel>
               <span className="flex gap-1.5">
@@ -306,12 +346,21 @@ function ProgramPage({ title, source, Page }) {
               </span>
               Program
             </PaneLabel>
-            <CodeView source={source} />
+            {sources.map((file) => (
+              <div key={file.name || 'main'}>
+                {file.name && (
+                  <p className="border-y border-slate-200 bg-slate-50 px-4 py-1.5 font-mono text-xs font-semibold text-slate-600">
+                    {file.name}
+                  </p>
+                )}
+                <CodeView source={file.code} />
+              </div>
+            ))}
           </section>
         )}
 
         <section className="min-w-0 overflow-auto bg-white max-md:min-h-[50vh]">
-          {source && (
+          {sources && (
             <PaneLabel>
               <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
               Output
@@ -330,11 +379,19 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      {programs.map(({ path, title, component, source }) => (
+      <Route
+        path="/index"
+        element={
+          <Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading...</p>}>
+            <TopicsIndex programs={programs.filter((p) => p.group === 'program')} />
+          </Suspense>
+        }
+      />
+      {programs.map(({ path, title, component, source, files }) => (
         <Route
           key={path}
           path={path}
-          element={<ProgramPage title={title} source={source} Page={component} />}
+          element={<ProgramPage title={title} source={source} files={files} Page={component} />}
         />
       ))}
     </Routes>

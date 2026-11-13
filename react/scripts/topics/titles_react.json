@@ -372,16 +372,44 @@
   "level": "Intermediate"
  },
  {
-  "title": "How does Redux Toolkit let you \"mutate\" state in reducers?",
+  "title": "Why can we directly mutate state inside Redux Toolkit reducers?",
   "level": "Intermediate"
  },
  {
-  "title": "How do you handle async logic with createAsyncThunk?",
+  "title": "What is createAsyncThunk()?",
   "level": "Intermediate"
  },
  {
   "title": "What is the difference between client state and server state?",
   "level": "Basics"
+ },
+ {
+  "title": "Explain Redux Toolkit flow using createSlice.",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the purpose of configureStore()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between useSelector() and useDispatch()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between createSlice() and createReducer()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you manage API calls in Redux Toolkit?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is middleware in Redux?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you avoid unnecessary re-renders when using Redux?",
+  "level": "Advanced"
  },
  {
   "title": "What is RTK Query and how do you define an API with createApi?",
@@ -404,7 +432,7 @@
   "level": "Advanced"
  },
  {
-  "title": "React Query vs RTK Query vs Redux: when do you use which?",
+  "title": "What is the difference between Redux Toolkit, RTK Query and React Query?",
   "level": "Advanced"
  },
  {
