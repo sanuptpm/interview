@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
-import { filterGroups, groupByLevel } from '../lib/levels.js'
+import { filterGroups, groupByLevel, keepItems } from '../lib/levels.js'
+import { clearPageHighlights, highlightId, useAllHighlights } from '../lib/highlights.js'
+import { Link } from 'react-router-dom'
 import SearchBox from './SearchBox.jsx'
+import AccountButton from './AccountButton.jsx'
 
 // Contents list: levels -> sub-topics -> questions, as jump links.
 function Contents({ groups, idPrefix, showLevels }) {
@@ -61,8 +64,15 @@ function Contents({ groups, idPrefix, showLevels }) {
 // (e.g. one search box for several sections), which hides the built-in box.
 function LevelSections({ questions, renderItem, idPrefix = '', topics = [], showLevels = true, query }) {
   const [ownQuery, setOwnQuery] = useState('')
+  const [onlyMarked, setOnlyMarked] = useState(false)
+  const highlights = useAllHighlights()
   const search = query ?? ownQuery
-  const groups = filterGroups(groupByLevel(questions, topics), search)
+  const isMarked = ({ title }) => Boolean(highlights[highlightId(title)])
+  const markedCount = questions.filter((item) => isMarked({ title: item.q ?? item.title })).length
+  const showMarkedOnly = onlyMarked && markedCount > 0
+
+  let groups = filterGroups(groupByLevel(questions, topics), search)
+  if (showMarkedOnly) groups = keepItems(groups, isMarked)
   const matches = groups.reduce((sum, group) => sum + group.count, 0)
 
   // Jump to #section when the page is opened from a link (e.g. the Index page)
@@ -86,6 +96,39 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
       <div className="min-w-0">
         {query === undefined && (
           <SearchBox value={ownQuery} onChange={setOwnQuery} matches={matches} total={questions.length} />
+        )}
+        {markedCount > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => setOnlyMarked(!onlyMarked)}
+              className={
+                'rounded-full border px-3 py-1 ' +
+                (showMarkedOnly
+                  ? 'border-yellow-400 bg-yellow-100 text-yellow-900'
+                  : 'border-slate-300 text-slate-600 hover:bg-slate-100')
+              }
+            >
+              <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-yellow-300" />
+              Highlighted only ({markedCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Remove all highlights on this page?')) {
+                  clearPageHighlights()
+                  setOnlyMarked(false)
+                }
+              }}
+              className="rounded-full px-2 py-1 text-xs text-slate-400 hover:text-rose-600"
+            >
+              Clear highlights
+            </button>
+            <Link to="/index#my-highlights" className="px-2 py-1 text-xs text-slate-400 hover:text-indigo-600">
+              Backup
+            </Link>
+            <AccountButton compact />
+          </div>
         )}
         {search && matches === 0 && (
           <p className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">

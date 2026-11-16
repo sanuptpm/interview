@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import CodeBlock from './CodeBlock.jsx'
+import HighlightText from './HighlightText.jsx'
 import LevelSections from './LevelSections.jsx'
 import TryIt from '../tryit/TryIt.jsx'
 import TryItButton from '../tryit/TryItButton.jsx'
@@ -23,7 +24,7 @@ export function QuestionCard({ number, q, a, code, output, tryKind, language, wr
         </div>
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
-        <p className="mt-1 text-sm leading-relaxed text-slate-700">{a}</p>
+        <HighlightText title={q} text={a} className="mt-1 text-sm leading-relaxed text-slate-700" />
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Example</p>
         <CodeBlock code={code} language={language} className="mt-1" />

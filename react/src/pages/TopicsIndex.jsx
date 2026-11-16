@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { slug } from '../lib/levels.js'
+import MyHighlights from '../components/MyHighlights.jsx'
 import cssTopics from './topics/cssTopics.js'
 import jsBasicsTopics from './topics/jsBasicsTopics.js'
 import javascriptTopics from './topics/javascriptTopics.js'
@@ -54,6 +55,8 @@ function TopicsIndex({ programs = [] }) {
         <p className="mt-2 text-slate-500">
           Every topic and sub-topic. Click one to jump straight to it.
         </p>
+
+        <MyHighlights pages={pages} />
 
         {/* Quick links to each topic below */}
         <div className="mt-6 flex flex-wrap gap-2">

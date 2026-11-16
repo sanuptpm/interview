@@ -3,6 +3,7 @@ import CodeBlock from '../components/CodeBlock.jsx'
 import { basics } from './jsBasicsData.js'
 import LevelSections from '../components/LevelSections.jsx'
 import SearchBox from '../components/SearchBox.jsx'
+import HighlightText from '../components/HighlightText.jsx'
 import { filterGroups, groupByLevel } from '../lib/levels.js'
 import topics from './topics/javascriptTopics.js'
 import basicsTopics from './topics/jsBasicsTopics.js'
@@ -2394,7 +2395,7 @@ console.log(mergeIntervals([[1, 3], [8, 10], [2, 6], [15, 18]]))`,
   },
 ]
 
-function Card({ title, note, code, output, isQuestion, autoLog, noTry }) {
+function Card({ title, hlTitle, note, code, output, isQuestion, autoLog, noTry }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -2407,7 +2408,7 @@ function Card({ title, note, code, output, isQuestion, autoLog, noTry }) {
         {isQuestion && (
           <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
         )}
-        <p className="mt-1 text-sm leading-relaxed text-slate-700">{note}</p>
+        <HighlightText title={hlTitle} text={note} className="mt-1 text-sm leading-relaxed text-slate-700" />
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Example</p>
         <CodeBlock code={code} language="javascript" className="mt-1" />
@@ -2482,6 +2483,7 @@ function JavaScript() {
             isQuestion
             autoLog
             title={'Q' + number + '. ' + ex.title}
+            hlTitle={ex.title}
             note={ex.note}
             code={ex.code}
             output={JSON.stringify(ex.result, null, 2)}
@@ -2505,6 +2507,7 @@ function JavaScript() {
                 key={item.q}
                 isQuestion
                 title={'Q' + number + '. ' + item.q}
+                hlTitle={item.q}
                 note={item.a}
                 code={item.code}
                 noTry={item.noTry}

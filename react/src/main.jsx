@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
+import { startCloud } from './lib/cloudSync.js'
+
+// Sign-in + highlight sync (does nothing until Firebase is configured, see .env.example)
+startCloud()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

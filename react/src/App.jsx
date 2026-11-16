@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
+import HighlightToolbar from './components/HighlightToolbar.jsx'
 import { highlightLines } from './lib/highlight.js'
 import TryIt from './tryit/TryIt.jsx'
 import TryItButton from './tryit/TryItButton.jsx'
@@ -417,6 +418,7 @@ function ProgramPage({ title, source, files, Page }) {
 
 function App() {
   return (
+    <>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route
@@ -435,6 +437,9 @@ function App() {
         />
       ))}
     </Routes>
+    {/* Select answer text on any question page to highlight it */}
+    <HighlightToolbar />
+    </>
   )
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import CodeBlock from '../components/CodeBlock.jsx'
 import LevelSections from '../components/LevelSections.jsx'
+import HighlightText from '../components/HighlightText.jsx'
 import topics from './topics/cssTopics.js'
 import TryIt from '../tryit/TryIt.jsx'
 import TryItButton from '../tryit/TryItButton.jsx'
@@ -1580,7 +1581,7 @@ function CssCard({ item, number }) {
           <TryItButton open={open} onClick={() => setOpen(!open)} />
         </div>
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
-        <p className="mt-1 text-sm leading-relaxed text-slate-700">{item.a}</p>
+        <HighlightText title={item.q} text={item.a} className="mt-1 text-sm leading-relaxed text-slate-700" />
 
         <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">HTML</p>
         <CodeBlock code={item.html} language="html" className="mt-1" />

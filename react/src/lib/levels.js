@@ -65,16 +65,18 @@ const textOf = (item) =>
 export function filterGroups(groups, query) {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean)
   if (!words.length) return groups
+  return keepItems(groups, (entry, sub) => {
+    const text = textOf(entry.item) + ' ' + (sub.topic || '').toLowerCase()
+    return words.every((word) => text.includes(word))
+  })
+}
+
+// Keep only the items where keep(entry, subGroup) is true; drop empty groups.
+export function keepItems(groups, keep) {
   return groups
     .map((group) => {
       const subGroups = group.subGroups
-        .map((sub) => ({
-          ...sub,
-          items: sub.items.filter(({ item }) => {
-            const text = textOf(item) + ' ' + (sub.topic || '').toLowerCase()
-            return words.every((word) => text.includes(word))
-          }),
-        }))
+        .map((sub) => ({ ...sub, items: sub.items.filter((entry) => keep(entry, sub)) }))
         .filter((sub) => sub.items.length > 0)
       const count = subGroups.reduce((sum, sub) => sum + sub.items.length, 0)
       return { ...group, subGroups, count }
