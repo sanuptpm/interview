@@ -381,22 +381,70 @@ function ControlledOptionsDemo() {
   )
 }
 
-function ColorPicker({ onSelect }) {
-  return ['red', 'blue'].map((c) => (
-    <button key={c} className={btnLight} onClick={() => onSelect(c)}>
-      {c}
-    </button>
-  ))
+function EmployeeChild({ sendData, sendEmployee }) {
+  const employee = { id: 1, name: 'John', salary: 50000 }
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 p-3">
+      <h3 className="font-semibold">Child Component</h3>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <button className={btn} onClick={() => sendData('Hello from Child Component!')}>
+          Send Data to Parent
+        </button>
+        <button className={btnLight} onClick={() => sendEmployee(employee)}>
+          Send Employee
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function ChildToParentDemo() {
-  const [color, setColor] = useState('none')
+  const [message, setMessage] = useState('')
+  const [employee, setEmployee] = useState(null)
+  const handleMessage = (data) => setMessage(data)
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
-        <ColorPicker onSelect={setColor} />
-      </div>
-      <p>Parent received: {color}</p>
+      <h2 className="font-bold">Parent Component</h2>
+      <p>Message from child: {message}</p>
+      <p>Employee from child: {employee ? employee.name + ' (salary ' + employee.salary + ')' : '-'}</p>
+      <EmployeeChild sendData={handleMessage} sendEmployee={setEmployee} />
+    </div>
+  )
+}
+
+const useNotificationStore = create((set) => ({
+  count: 0,
+  notify: () => set((state) => ({ count: state.count + 1 })),
+}))
+
+function NotifyHeader() {
+  const count = useNotificationStore((state) => state.count)
+  return <p className="font-semibold">Header: {count} notifications</p>
+}
+
+function NotifyEmployee() {
+  const notify = useNotificationStore((state) => state.notify)
+  return (
+    <button className={btn} onClick={notify}>
+      Employee: send notification
+    </button>
+  )
+}
+
+function NotifyDashboard() {
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 p-3">
+      <p className="mb-2 text-slate-500">Dashboard</p>
+      <NotifyEmployee />
+    </div>
+  )
+}
+
+function UnrelatedComponentsDemo() {
+  return (
+    <div className="space-y-2">
+      <NotifyHeader />
+      <NotifyDashboard />
     </div>
   )
 }
@@ -1989,6 +2037,39 @@ function DomUpdatesDemo() {
   )
 }
 
+function ClickCounter() {
+  const [count, setCount] = useState(0)
+  return (
+    <button className={btnLight} onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  )
+}
+
+function ReconcileDemo() {
+  const [Wrapper, setWrapper] = useState('div')
+  const [color, setColor] = useState('black')
+  return (
+    <div className="space-y-2">
+      <p className="text-slate-500">Click the counter a few times first, then try both buttons.</p>
+      <Wrapper style={{ color }}>
+        <ClickCounter />
+      </Wrapper>
+      <div className="flex flex-wrap gap-2">
+        <button className={btn} onClick={() => setColor(color === 'black' ? 'crimson' : 'black')}>
+          Change color (same type)
+        </button>
+        <button className={btn} onClick={() => setWrapper(Wrapper === 'div' ? 'section' : 'div')}>
+          Switch &lt;div&gt; / &lt;section&gt; (new type)
+        </button>
+      </div>
+      <p className="text-sm">
+        Wrapper: &lt;{Wrapper}&gt;, color: {color}
+      </p>
+    </div>
+  )
+}
+
 /* ---------------------- Coverage additions ---------------------- */
 
 function DrillPage({ user }) {
@@ -2482,17 +2563,83 @@ const [agree, setAgree] = useState(false)
   {
     q: 'How does a child send data to its parent?',
     level: 'Basics',
-    a: 'Data only flows down in React, so the parent passes a function as a prop and the child calls it with the data. The parent then decides what to do, usually set its own state. I name these props like events, such as onSelect or onChange, so it is clear the child is reporting something up.',
-    code: `function ColorPicker({ onSelect }) {
-  return ['red', 'blue'].map((c) => (
-    <button key={c} onClick={() => onSelect(c)}>{c}</button>
-  ))
+    a: "React follows a unidirectional data flow, meaning data generally flows from parent to child through props. For child-to-parent communication, I pass a callback function from the parent to the child as a prop. The child invokes that callback with the required data, like a string, an object or several values, and the parent handles it, usually by updating its state, which re-renders the parent with the new data. I name these props like events, such as onSelect or sendData, so it's clear the child is reporting something up. If multiple unrelated components need to communicate, I would consider lifting state up, the Context API, or a global state management solution such as Zustand or Redux Toolkit.",
+    code: `// Child: calls the callback it received through props
+function Child({ sendData, sendEmployee }) {
+  const employee = { id: 1, name: 'John', salary: 50000 }
+  return (
+    <div>
+      <h3>Child Component</h3>
+      <button onClick={() => sendData('Hello from Child Component!')}>Send Data to Parent</button>
+      <button onClick={() => sendEmployee(employee)}>Send Employee</button>
+    </div>
+  )
 }
 
-const [color, setColor] = useState('none')
-<ColorPicker onSelect={setColor} />
-<p>Parent received: {color}</p>`,
+// Parent: defines the callbacks and passes them down
+function Parent() {
+  const [message, setMessage] = useState('')
+  const [employee, setEmployee] = useState(null)
+  const handleMessage = (data) => setMessage(data)
+
+  return (
+    <div>
+      <h2>Parent Component</h2>
+      <p>Message from child: {message}</p>
+      <p>Employee from child: {employee ? employee.name + ' (salary ' + employee.salary + ')' : '-'}</p>
+      <Child sendData={handleMessage} sendEmployee={setEmployee} />
+    </div>
+  )
+}
+
+// Flow: Parent defines handleMessage -> passes it as sendData
+//       -> Child calls sendData('Hello...') -> setMessage(data) -> Parent re-renders`,
     output: <ChildToParentDemo />,
+  },
+  {
+    q: 'How do components that are not parent and child communicate?',
+    level: 'Intermediate',
+    a: "Callbacks only work between a direct parent and child. When two components are far apart, like an Employee inside a Dashboard that needs to update the Header, I pick the approach by how widely the data is shared. If they share a close common parent, I lift the state up to it and pass the value down and a callback to the other side. If many components in a subtree need it, I use the Context API to avoid prop drilling. For application-wide shared state I use Zustand or Redux Toolkit: here the Employee calls a store action and the Header reads the value, with no props or callbacks passed through Dashboard at all.",
+    code: `//        App
+//       /   \
+//   Header  Dashboard
+//              |
+//           Employee   (Employee needs to update Header)
+
+const useNotificationStore = create((set) => ({
+  count: 0,
+  notify: () => set((state) => ({ count: state.count + 1 })),
+}))
+
+function Header() {
+  const count = useNotificationStore((state) => state.count)
+  return <p>Header: {count} notifications</p>
+}
+
+function Employee() {
+  const notify = useNotificationStore((state) => state.notify)
+  return <button onClick={notify}>Employee: send notification</button>
+}
+
+function Dashboard() {
+  return <div><p>Dashboard</p><Employee /></div> // no props passed through
+}
+
+function App() {
+  return (
+    <div>
+      <Header />
+      <Dashboard />
+    </div>
+  )
+}
+
+// Approach          When to use
+// Callback props    Direct parent-child communication
+// Lift state up     A few components with a close common parent share state
+// Context API       Share state across a component tree (theme, user)
+// Zustand / Redux   Application-wide shared state`,
+    output: <UnrelatedComponentsDemo />,
   },
   {
     q: 'How do you destructure props and set default values?',
@@ -3871,6 +4018,42 @@ const add = () => {
 <ul ref={listRef} style={{ height: 80, overflow: 'auto' }}>{items.map((n) => <li key={n}>Item {n}</li>)}</ul>
 <button onClick={add}>Add item</button>`,
     output: <FlushSyncDemo />,
+  },
+  {
+    q: 'What is reconciliation in React, and how does the diffing algorithm work?',
+    level: 'Intermediate',
+    a: "Reconciliation is how React decides what to change in the DOM after a re-render. It compares the new element tree with the previous one, and a full tree comparison would be O(n³), so React uses an O(n) heuristic based on two rules. First, elements of a different type produce a different tree: if a div becomes a section, or one component becomes another, React destroys the old subtree, including all child state, and builds a new one. Second, for the same type React keeps the DOM node or component instance and only updates what changed, like attributes, styles or props, so child state is preserved. For lists, React matches children by key, so stable unique keys let it move, insert or remove only the right items; using the index as a key can attach state to the wrong row when items are reordered. The result is a list of changes that react-dom applies in the commit phase, and since React 16 this work is done by the Fiber reconciler.",
+    code: `function ClickCounter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>Clicked {count} times</button>
+}
+
+function ReconcileDemo() {
+  const [Wrapper, setWrapper] = useState('div')
+  const [color, setColor] = useState('black')
+  return (
+    <div>
+      <Wrapper style={{ color }}>
+        <ClickCounter />
+      </Wrapper>
+      {/* same type: only the style is updated, the count is kept */}
+      <button onClick={() => setColor(color === 'black' ? 'crimson' : 'black')}>
+        Change color (same type)
+      </button>
+      {/* new type: the subtree is rebuilt, the count resets to 0 */}
+      <button onClick={() => setWrapper(Wrapper === 'div' ? 'section' : 'div')}>
+        Switch div / section (new type)
+      </button>
+    </div>
+  )
+}
+
+// Rules React uses to diff (O(n) instead of O(n^3)):
+// 1. Different type (div -> section, A -> B) -> destroy old subtree, build new, state lost
+// 2. Same DOM type     -> keep the node, update only changed attributes/styles
+// 3. Same component    -> keep the instance and its state, re-render with new props
+// 4. Lists             -> match children by key (stable ids, not index)`,
+    output: <ReconcileDemo />,
   },
   {
     q: 'What is reconciliation and how does the key prop affect it?',

@@ -276,6 +276,10 @@
   "level": "Intermediate"
  },
  {
+  "title": "How do you type a callback prop for child-to-parent communication?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you type event handlers in React?",
   "level": "Advanced"
  },

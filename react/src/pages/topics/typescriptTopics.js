@@ -133,6 +133,7 @@ export default [
       'How do you type React component props and children?',
       'What is the difference between React.FC and a plain function component?',
       'What is the difference between ReactNode and JSX.Element?',
+      'How do you type a callback prop for child-to-parent communication?',
       'How do you type event handlers in React?',
       'How do you type useState and useRef?',
       'How do you type a custom hook?',

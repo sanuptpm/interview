@@ -1112,6 +1112,30 @@ const c = <Icon icon="!" />`,
     output: `error TS2322: Type 'string' is not assignable to type 'Element'.`,
   },
   {
+    q: "How do you type a callback prop for child-to-parent communication?",
+    level: 'Intermediate',
+    a: "I describe the callback in the child's props interface, like sendData: (data: string) => void, so the child can only send the type the parent expects. The parent's handler then gets data typed as string automatically, without annotating it again. If the child tries to send the wrong type, like a number, TypeScript catches it at compile time instead of the bug showing up at runtime. For objects I define a type, like Employee, and use it on both sides.",
+    code: `interface ChildProps {
+  sendData: (data: string) => void
+}
+
+function Child({ sendData }: ChildProps) {
+  return (
+    <div>
+      <button onClick={() => sendData("Hello from Child Component!")}>Send Data to Parent</button>
+      <button onClick={() => sendData(42)}>Send a number</button>
+    </div>
+  )
+}
+
+function Parent() {
+  return <Child sendData={(data) => console.log(data.toUpperCase())} />
+}`,
+    output: `error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+
+(the first button is fine; in Parent, data is inferred as string)`,
+  },
+  {
     q: "How do you type event handlers in React?",
     level: 'Advanced',
     a: "React has its own event types like ChangeEvent, MouseEvent and FormEvent, each generic over the element, such as ChangeEvent<HTMLInputElement>. If I write the handler inline, TypeScript infers the event type for me. When I pull the handler out into a variable, I annotate the event so e.target.value is typed correctly.",

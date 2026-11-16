@@ -92,6 +92,10 @@
   "level": "Basics"
  },
  {
+  "title": "How do components that are not parent and child communicate?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you destructure props and set default values?",
   "level": "Basics"
  },
@@ -366,6 +370,10 @@
  {
   "title": "What is flushSync?",
   "level": "Advanced"
+ },
+ {
+  "title": "What is reconciliation in React, and how does the diffing algorithm work?",
+  "level": "Intermediate"
  },
  {
   "title": "What is reconciliation and how does the key prop affect it?",
