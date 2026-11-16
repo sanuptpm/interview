@@ -52,3 +52,32 @@ export function groupByLevel(questions, topics = []) {
     return { level, id: levelId, count: items.length, subGroups }
   }).filter((group) => group.count > 0)
 }
+
+// Searchable text of a question: every string field (q, a, code, output, title, note...).
+const textOf = (item) =>
+  Object.values(item)
+    .filter((value) => typeof value === 'string')
+    .join(' ')
+    .toLowerCase()
+
+// Keep only the questions matching every word of `query` (in the title, answer, code
+// or sub-topic name). Numbers and anchors stay the same, empty groups are dropped.
+export function filterGroups(groups, query) {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+  if (!words.length) return groups
+  return groups
+    .map((group) => {
+      const subGroups = group.subGroups
+        .map((sub) => ({
+          ...sub,
+          items: sub.items.filter(({ item }) => {
+            const text = textOf(item) + ' ' + (sub.topic || '').toLowerCase()
+            return words.every((word) => text.includes(word))
+          }),
+        }))
+        .filter((sub) => sub.items.length > 0)
+      const count = subGroups.reduce((sum, sub) => sum + sub.items.length, 0)
+      return { ...group, subGroups, count }
+    })
+    .filter((group) => group.count > 0)
+}

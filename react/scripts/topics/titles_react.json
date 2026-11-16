@@ -116,6 +116,10 @@
   "level": "Basics"
  },
  {
+  "title": "How does React update the actual browser DOM?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What are the rules of JSX?",
   "level": "Basics"
  },
@@ -312,11 +316,19 @@
   "level": "Advanced"
  },
  {
+  "title": "What causes unnecessary re-renders?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is React.memo?",
   "level": "Advanced"
  },
  {
   "title": "React.memo vs useMemo: what is the difference?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "React.memo vs useMemo vs useCallback: when do you use each?",
   "level": "Intermediate"
  },
  {
@@ -426,6 +438,10 @@
  {
   "title": "What is the render props pattern?",
   "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between Redux Toolkit and Context API?",
+  "level": "Intermediate"
  },
  {
   "title": "Context vs Redux vs Zustand: how do you choose state management?",
@@ -632,6 +648,10 @@
   "level": "Advanced"
  },
  {
+  "title": "What is React Fiber, and what role does it play?",
+  "level": "Advanced"
+ },
+ {
   "title": "What is concurrent rendering (and React Fiber)?",
   "level": "Advanced"
  },
@@ -645,6 +665,10 @@
  },
  {
   "title": "How does React protect against XSS, and when is dangerouslySetInnerHTML risky?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you implement JWT authentication and authorization in React?",
   "level": "Advanced"
  },
  {

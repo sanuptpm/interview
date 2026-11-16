@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import CodeBlock from '../components/CodeBlock.jsx'
 import { basics } from './jsBasicsData.js'
 import LevelSections from '../components/LevelSections.jsx'
+import SearchBox from '../components/SearchBox.jsx'
+import { filterGroups, groupByLevel } from '../lib/levels.js'
 import topics from './topics/javascriptTopics.js'
 import basicsTopics from './topics/jsBasicsTopics.js'
 import { runCode, addConsoleLogs } from '../lib/runJs.js'
@@ -2427,8 +2429,13 @@ function Card({ title, note, code, output, isQuestion, autoLog, noTry }) {
   )
 }
 
+// Number of questions matching the search, for the "N of M" counter
+const countMatches = (list, listTopics, query) =>
+  filterGroups(groupByLevel(list, listTopics), query).reduce((sum, group) => sum + group.count, 0)
+
 function JavaScript() {
   const [outputs, setOutputs] = useState([])
+  const [query, setQuery] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -2453,8 +2460,18 @@ function JavaScript() {
         </a>
       </div>
 
+      <div className="mt-4">
+        <SearchBox
+          value={query}
+          onChange={setQuery}
+          matches={query ? countMatches(basics, basicsTopics, query) + countMatches(questions, topics, query) : 0}
+          total={basics.length + questions.length}
+        />
+      </div>
+
       <h2 id="basics" className="mt-8 scroll-mt-14 text-xl font-bold text-slate-900">Basics</h2>
       <LevelSections
+        query={query}
         questions={basics}
         topics={basicsTopics}
         showLevels={false}
@@ -2477,6 +2494,7 @@ function JavaScript() {
       </h2>
       <div className="mt-4 space-y-4">
         <LevelSections
+          query={query}
           questions={questions}
           topics={topics}
           idPrefix="q-"

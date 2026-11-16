@@ -152,6 +152,7 @@ export default [
     questions: [
       "What is the Context API / useContext?",
       "How do you build a global store with Context and useReducer?",
+      "What is the difference between Redux Toolkit and Context API?",
       "Context vs Redux vs Zustand: how do you choose state management?",
       "What is useSyncExternalStore?",
     ],
@@ -194,10 +195,13 @@ export default [
     topic: 'Rendering & reconciliation',
     questions: [
       "How does React render? Render phase vs commit phase",
+      "How does React update the actual browser DOM?",
       "When does a component re-render?",
+      "What causes unnecessary re-renders?",
       "What is batching in React?",
       "What is flushSync?",
       "What is reconciliation and how does the key prop affect it?",
+      "What is React Fiber, and what role does it play?",
       "What is concurrent rendering (and React Fiber)?",
     ],
   },
@@ -206,6 +210,7 @@ export default [
     questions: [
       "What is React.memo?",
       "React.memo vs useMemo: what is the difference?",
+      "React.memo vs useMemo vs useCallback: when do you use each?",
       "What is a pure component? PureComponent vs React.memo",
       "Why does React.memo sometimes not help? (inline objects and functions)",
       "How do you optimize performance in a React app?",
@@ -230,6 +235,7 @@ export default [
       "How do you build an accessible modal that closes on Escape and manages focus?",
       "How do you make React components accessible?",
       "How does React protect against XSS, and when is dangerouslySetInnerHTML risky?",
+      "How do you implement JWT authentication and authorization in React?",
     ],
   },
   {

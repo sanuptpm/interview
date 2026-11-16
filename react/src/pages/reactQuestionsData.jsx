@@ -1950,6 +1950,45 @@ function MutationDemo() {
   )
 }
 
+function DomUpdatesDemo() {
+  const [count, setCount] = useState(0)
+  const [log, setLog] = useState([])
+  const box = useRef(null)
+
+  // Watch the real DOM and log every change React makes to it
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      const lines = mutations.map((m) => {
+        if (m.type === 'characterData') return 'text node: "' + m.oldValue + '" -> "' + m.target.data + '"'
+        if (m.type === 'attributes') return 'attribute: ' + m.attributeName + ' -> "' + m.target.getAttribute(m.attributeName) + '"'
+        return 'nodes added: ' + m.addedNodes.length + ', removed: ' + m.removedNodes.length
+      })
+      setLog((old) => [...old, ...lines])
+    })
+    observer.observe(box.current, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+      characterDataOldValue: true,
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div className="space-y-2">
+      <div ref={box}>
+        <h3>Counter</h3>
+        <p className={count % 2 ? 'odd' : 'even'}>Count: {count}</p>
+      </div>
+      <button className={btn} onClick={() => setCount(count + 1)}>
+        +1
+      </button>
+      <pre className="text-xs">{log.length ? log.join('\n') : 'Click +1 to see the real DOM changes'}</pre>
+    </div>
+  )
+}
+
 /* ---------------------- Coverage additions ---------------------- */
 
 function DrillPage({ user }) {
@@ -2561,6 +2600,51 @@ const [count, setCount] = useState(0)
 3. Commit:   React sets button.textContent = "1"
 4. Paint:    the browser draws the new frame
 5. Effects:  "effect: DOM shows 1"`,
+  },
+  {
+    q: "How does React update the actual browser DOM?",
+    level: 'Intermediate',
+    a: "React never rebuilds the whole page. When state or props change, it first runs my components again to get a new virtual tree; this is the render phase and it doesn't touch the DOM. Then it reconciles: it compares the new tree with the previous one, element by element and by key, and works out the smallest list of changes, like 'change this text', 'update this class' or 'insert this list item'. In the commit phase, react-dom applies only those changes to the real DOM with normal DOM APIs, all in one batch so the user never sees a half-updated screen. After that React attaches refs, runs useLayoutEffect, the browser paints, and then useEffect runs. In this demo a MutationObserver shows that clicking +1 changes only one text node and one class attribute; the h3 and the 'Count: ' text are never touched.",
+    code: `function DomUpdatesDemo() {
+  const [count, setCount] = useState(0)
+  const [log, setLog] = useState([])
+  const box = useRef(null)
+
+  // Watch the real DOM and log every change React makes to it
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      const lines = mutations.map((m) => {
+        if (m.type === 'characterData') return 'text node: "' + m.oldValue + '" -> "' + m.target.data + '"'
+        if (m.type === 'attributes') return 'attribute: ' + m.attributeName + ' -> "' + m.target.getAttribute(m.attributeName) + '"'
+        return 'nodes added: ' + m.addedNodes.length + ', removed: ' + m.removedNodes.length
+      })
+      setLog((old) => [...old, ...lines])
+    })
+    observer.observe(box.current, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+      characterDataOldValue: true,
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div>
+      <div ref={box}>
+        <h3>Counter</h3>
+        <p className={count % 2 ? 'odd' : 'even'}>Count: {count}</p>
+      </div>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+      <pre>{log.length ? log.join('\\n') : 'Click +1 to see the real DOM changes'}</pre>
+    </div>
+  )
+}
+
+// Steps: setState -> render (new virtual tree) -> reconcile (diff)
+//        -> commit (apply only the changes to the DOM) -> paint -> useEffect`,
+    output: <DomUpdatesDemo />,
   },
   {
     q: 'What are the rules of JSX?',
@@ -3517,6 +3601,43 @@ const [count, setCount] = useState(0)
     output: <RerenderDemo />,
   },
   {
+    q: "What causes unnecessary re-renders?",
+    level: 'Intermediate',
+    a: "An unnecessary re-render is when a component renders again but its output doesn't change. The most common cause I see is a parent re-rendering, which re-renders every child, even if their props are the same. The next is passing a new object, array or inline function as a prop on every render, which breaks React.memo because the reference changes. Others are a Context value that is a new object each render, so every consumer re-renders; state kept too high in the tree, so typing in one input re-renders the whole page; Redux selectors that return a new object; and unstable keys like Math.random(). I fix them by moving state down, memoizing props with useMemo and useCallback, splitting contexts, and selecting small values, but only after the Profiler shows a real problem.",
+    code: `const Child = memo(function Child({ style, onClick }) {
+  console.log('Child render')
+  return <button style={style} onClick={onClick}>Child</button>
+})
+
+function Parent() {
+  const [count, setCount] = useState(0)
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
+      {/* new object + new function every render -> memo can't help */}
+      <Child style={{ color: 'red' }} onClick={() => {}} />
+    </>
+  )
+}
+
+// Fix: stable references
+const style = useMemo(() => ({ color: 'red' }), [])
+const handleClick = useCallback(() => {}, [])
+<Child style={style} onClick={handleClick} />`,
+    output: `Click "Count" 3 times:
+
+Before fix:  Child render  x3   (new style/onClick each time)
+After fix:   (no Child renders) (same references, memo skips)
+
+Common causes:
+- parent re-renders            -> move state down / React.memo
+- new object/array/fn props    -> useMemo / useCallback
+- Context value = new object   -> useMemo the value, split contexts
+- state too high in the tree   -> keep state close to where it's used
+- selector returns new object  -> select small values / createSelector
+- unstable keys (random/index) -> use stable ids`,
+  },
+  {
     q: 'What is React.memo?',
     level: 'Advanced',
     a: 'React.memo wraps a component and skips re-rendering it when its props are the same as last time (it does a shallow comparison). It is useful for components that render often with the same props or are expensive to render. If I pass objects or functions as props, I also need useMemo or useCallback, otherwise the props look new every time.',
@@ -3545,6 +3666,35 @@ const sorted = useMemo(() => [...names].sort(), [names])
 <ul>{sorted.map((n) => <Row key={n} name={n} />)}</ul>`,
     output: `memo(Component)    -> skips re-rendering the child when its props are equal
 useMemo(fn, deps)  -> recomputes the value only when deps change`,
+  },
+  {
+    q: "React.memo vs useMemo vs useCallback: when do you use each?",
+    level: 'Intermediate',
+    a: "All three are performance tools that skip work when inputs haven't changed. React.memo wraps a component, so it skips re-rendering when its props are the same. useMemo caches a calculated value, like a filtered or sorted list, until its dependencies change. useCallback caches a function, so I can pass the same function reference to a memoized child or use it as an effect dependency. They usually work together: React.memo on the child only helps if the object and function props I pass are stable, which is what useMemo and useCallback give me. I don't add them everywhere; I measure first, because each one has its own cost.",
+    code: `// React.memo: skip re-render if props are the same
+const EmployeeList = memo(function EmployeeList({ employees, onSelect }) {
+  return employees.map((e) => <p key={e.id} onClick={() => onSelect(e.id)}>{e.name}</p>)
+})
+
+function Page({ all, search }) {
+  // useMemo: cache an expensive value
+  const filtered = useMemo(
+    () => all.filter((e) => e.name.includes(search)),
+    [all, search]
+  )
+  // useCallback: cache a function reference
+  const handleSelect = useCallback((id) => console.log('selected', id), [])
+
+  return <EmployeeList employees={filtered} onSelect={handleSelect} />
+}`,
+    output: `Tool         Wraps        Caches              Use it when
+-----------  -----------  ------------------  ---------------------------------
+React.memo   Component    Rendered output     child re-renders with same props
+useMemo      Value        Result of a calc    expensive calc / stable object prop
+useCallback  Function     Function reference  passing a function to a memo child
+                                              or using it in effect dependencies
+
+useCallback(fn, deps) === useMemo(() => fn, deps)`,
   },
   {
     q: 'What is a pure component? PureComponent vs React.memo',
@@ -4134,6 +4284,34 @@ function Steps({ children }) {
 
 <MouseTracker render={({ x, y }) => <p>Mouse at ({x}, {y})</p>} />`,
     output: <RenderPropsDemo />,
+  },
+  {
+    q: "What is the difference between Redux Toolkit and Context API?",
+    level: 'Intermediate',
+    a: "Context is a way to pass data down the tree without prop drilling; it isn't really a state manager, I combine it with useState or useReducer. Redux Toolkit is a full state management library with a central store, slices, middleware, DevTools with time-travel debugging, and RTK Query for API data. The big practical difference is re-renders: when a Context value changes, every component using that context re-renders, while with Redux each component subscribes with useSelector and re-renders only when its selected value changes. So I use Context for small, rarely changing data like the theme, language or logged-in user, and Redux Toolkit for large, frequently updated, shared state.",
+    code: `// Context: pass a value down (re-renders all consumers on change)
+const ThemeContext = createContext('light')
+<ThemeContext value={theme}><App /></ThemeContext>
+const theme = useContext(ThemeContext)
+
+// Redux Toolkit: central store, components subscribe to a slice of it
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: { items: [] },
+  reducers: { addItem: (state, action) => { state.items.push(action.payload) } },
+})
+const count = useSelector((state) => state.cart.items.length) // re-renders only when this changes
+dispatch(cartSlice.actions.addItem({ id: 1 }))`,
+    output: `Feature           Context API                  Redux Toolkit
+----------------  ---------------------------  ------------------------------
+What it is        Dependency injection (prop   State management library
+                  drilling solution)
+Setup             Built in, very little code   Package + store + slices
+Re-renders        All consumers on any change  Only when the selected value changes
+DevTools          No                           Yes, time-travel debugging
+Middleware        No                           Yes (thunk, logger, RTK Query)
+API caching       No                           RTK Query
+Best for          Theme, locale, current user  Large, frequently updated shared state`,
   },
   {
     q: 'Context vs Redux vs Zustand: how do you choose state management?',
@@ -5345,6 +5523,36 @@ Deploy         any static host       Node / edge server or static export
 Best for       dashboards, SPAs      SEO sites, e-commerce, content`,
   },
   {
+    q: "What is React Fiber, and what role does it play?",
+    level: 'Advanced',
+    a: "React Fiber is the reconciliation engine inside React since version 16. It turns every component and element into a fiber, a small JavaScript object that knows its type, props, state, its parent, child and sibling, and what needs to change. Its role is to decide what to update and when: it splits rendering into small units of work, so React can pause, give priority to urgent updates like typing over a big list update, resume later, or throw away work that is no longer needed. Rendering happens in two phases: the render phase builds a new fiber tree by comparing it with the current one and can be interrupted, and the commit phase applies the collected changes to the real DOM in one go. Fiber is also where React keeps hook state for each component, and it is what makes Suspense, error boundaries, transitions and automatic batching possible.",
+    code: `// Each element becomes a fiber node (simplified)
+const fiber = {
+  type: 'li',            // component or DOM tag
+  props: { children: 'Item' },
+  child: null,           // first child fiber
+  sibling: null,         // next sibling fiber
+  return: parentFiber,   // parent fiber
+  lanes: 'DefaultLane',  // priority of the pending update
+  alternate: oldFiber,   // the fiber from the previous render
+}
+
+// Urgent update (typing) can interrupt a non-urgent one
+startTransition(() => setList(bigList))`,
+    output: `Old stack reconciler (React 15)   Fiber (React 16+)
+--------------------------------  ---------------------------------
+Recursive, one big task           Work split into small units (fibers)
+Can't pause, blocks the UI        Can pause, resume, or discard work
+No priorities                     Priorities (lanes): input > transition
+
+Render phase  -> build new fiber tree (interruptible)
+Commit phase  -> apply changes to the DOM (not interruptible)
+
+Role of Fiber: schedule work by priority, pause/resume/abort rendering,
+store hook state per component, enable Suspense, transitions,
+error boundaries and automatic batching`,
+  },
+  {
     q: 'What is concurrent rendering (and React Fiber)?',
     level: 'Advanced',
     a: 'Concurrent rendering means React can start a render, pause it, resume it later, or throw it away if newer input arrives, so an urgent update like typing is never blocked by a slow, non-urgent one. It is not parallel or multi-threaded: everything still runs on the single JavaScript main thread, React just works in small chunks and yields back to the browser between them. This is possible because of Fiber, the internal engine since React 16 that splits the tree into small units of work. It is enabled when I use createRoot (React 18+), and I opt updates into it with useTransition, useDeferredValue and Suspense.',
@@ -5417,6 +5625,41 @@ const id = useId()
 // If you must, sanitize first
 // <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text) }} />`,
     output: <XssDemo />,
+  },
+  {
+    q: "How do you implement JWT authentication and authorization in React?",
+    level: 'Advanced',
+    a: "Authentication is checking who the user is, and authorization is checking what they are allowed to do. On login I send the credentials to the backend, which returns a short-lived access token (a JWT) and sets a refresh token in an httpOnly cookie. I keep the access token in memory, in an AuthContext or the Redux store, rather than localStorage, because localStorage can be read by an XSS attack. Every API call adds an Authorization: Bearer header, and when I get a 401 I call the refresh endpoint once and retry, otherwise I log the user out. For authorization I read the user's role from the login response and use a ProtectedRoute that redirects guests to /login and users without the right role to /unauthorized; I also hide buttons they can't use, but the backend always checks the token and role again, because anything in the browser can be bypassed.",
+    code: `// 1. Login: keep the access token in memory (AuthContext)
+async function login(email, password) {
+  const res = await fetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+  const { accessToken, user } = await res.json() // refresh token: httpOnly cookie
+  setAuth({ token: accessToken, user })           // user = { name: 'Asha', role: 'admin' }
+}
+
+// 2. Send the token with every request
+fetch('/api/employees', { headers: { Authorization: 'Bearer ' + auth.token } })
+
+// 3. Authorization: protect routes by role
+function ProtectedRoute({ roles, children }) {
+  const { auth } = useAuth()
+  if (!auth.token) return <Navigate to="/login" replace />
+  if (roles && !roles.includes(auth.user.role)) return <Navigate to="/unauthorized" replace />
+  return children
+}
+
+<Route path="/payroll" element={<ProtectedRoute roles={['admin']}><Payroll /></ProtectedRoute>} />`,
+    output: `Login -> POST /api/login -> { accessToken (JWT), user: { role } }
+      + refresh token in an httpOnly cookie (JS can't read it)
+Request -> Authorization: Bearer <accessToken>
+401 expired -> POST /api/refresh -> new accessToken -> retry once
+              (refresh fails -> logout -> /login)
+
+Guest  opens /payroll -> redirected to /login
+Viewer opens /payroll -> redirected to /unauthorized
+Admin  opens /payroll -> Payroll page
+
+Frontend checks = better UX; backend checks = real security`,
   },
   {
     q: 'How do environment variables work in Vite?',

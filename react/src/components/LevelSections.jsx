@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
-import { groupByLevel } from '../lib/levels.js'
+import { useEffect, useState } from 'react'
+import { filterGroups, groupByLevel } from '../lib/levels.js'
+import SearchBox from './SearchBox.jsx'
 
 // Contents list: levels -> sub-topics -> questions, as jump links.
 function Contents({ groups, idPrefix, showLevels }) {
@@ -56,8 +57,13 @@ function Contents({ groups, idPrefix, showLevels }) {
 // Level sections with related questions grouped under sub-topic headings, plus a
 // contents sidebar (a dropdown on small screens). renderItem(item, number) draws a card.
 // showLevels=false hides the level headings (for lists that are all one level).
-function LevelSections({ questions, renderItem, idPrefix = '', topics = [], showLevels = true }) {
-  const groups = groupByLevel(questions, topics)
+// A search box filters the questions; pass `query` to control it from the page instead
+// (e.g. one search box for several sections), which hides the built-in box.
+function LevelSections({ questions, renderItem, idPrefix = '', topics = [], showLevels = true, query }) {
+  const [ownQuery, setOwnQuery] = useState('')
+  const search = query ?? ownQuery
+  const groups = filterGroups(groupByLevel(questions, topics), search)
+  const matches = groups.reduce((sum, group) => sum + group.count, 0)
 
   // Jump to #section when the page is opened from a link (e.g. the Index page)
   useEffect(() => {
@@ -78,6 +84,15 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
       </aside>
 
       <div className="min-w-0">
+        {query === undefined && (
+          <SearchBox value={ownQuery} onChange={setOwnQuery} matches={matches} total={questions.length} />
+        )}
+        {search && matches === 0 && (
+          <p className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">
+            No questions match “{search}”.
+          </p>
+        )}
+
         {/* Dropdown on small screens */}
         <details className="mb-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3 lg:hidden">
           <summary className="cursor-pointer text-sm font-semibold text-slate-700">Contents</summary>
