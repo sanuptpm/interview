@@ -8,7 +8,7 @@ import {
 
 // Sync highlights to Firebase (Google sign-in + Firestore), so they follow the user
 // to every device. Each user has one document: highlights/{uid} = { data: JSON, updatedAt }.
-// Without the VITE_FIREBASE_* settings (see .env.example) the site works as before,
+// Settings come from react/.env. Without them the site works as before,
 // with highlights saved only in this browser.
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

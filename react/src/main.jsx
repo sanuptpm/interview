@@ -5,7 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { startCloud } from './lib/cloudSync.js'
 
-// Sign-in + highlight sync (does nothing until Firebase is configured, see .env.example)
+// Sign-in + highlight sync (does nothing until Firebase is configured, see .env)
 startCloud()
 
 createRoot(document.getElementById('root')).render(
