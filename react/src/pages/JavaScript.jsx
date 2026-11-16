@@ -619,6 +619,444 @@ promiseAll([Promise.resolve(1), 'plain', 3]).then((v) => console.log('resolved:'
 promiseAll([1, Promise.reject('failed')]).catch((e) => console.log('rejected:', e))`,
   },
   {
+    q: 'What is unit testing? Unit vs integration vs end-to-end tests?',
+    level: 'Basics',
+    a: "A unit test checks one small piece of code, like a single function, on its own, so it's fast and tells me exactly what broke. An integration test checks that several pieces work together, like a component calling an API module. An end-to-end test drives the real app in a browser the way a user would, with a tool like Playwright or Cypress. I follow the testing pyramid: lots of fast unit tests, fewer integration tests, and a few slow end-to-end tests for the critical flows.",
+    noTry: true,
+    code: `// sum.js
+export function sum(a, b) {
+  return a + b
+}
+
+// sum.test.js
+import { test, expect } from 'vitest'
+import { sum } from './sum.js'
+
+// A unit test checks one small piece of code on its own
+test('adds two numbers', () => {
+  expect(sum(2, 3)).toBe(5)
+})
+
+test('works with negative numbers', () => {
+  expect(sum(-2, -3)).toBe(-5)
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ sum.test.js > adds two numbers
+ ✓ sum.test.js > works with negative numbers
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: 'How do you write a test with describe, it and expect?',
+    level: 'Basics',
+    a: "I group related tests with describe, write each case with it (or test, which is the same thing), and check the result with expect plus a matcher. Inside each test I follow Arrange-Act-Assert: set up the input, call the code, then assert on the result. I name each test so it reads like a sentence, and I test the normal case and the edge cases separately.",
+    noTry: true,
+    code: `// isPalindrome.js
+export function isPalindrome(text) {
+  const clean = text.toLowerCase().replace(/[^a-z0-9]/g, '')
+  return clean === [...clean].reverse().join('')
+}
+
+// isPalindrome.test.js
+import { describe, it, expect } from 'vitest'
+import { isPalindrome } from './isPalindrome.js'
+
+describe('isPalindrome', () => {
+  it('returns true for a palindrome', () => {
+    const word = 'Racecar'                // Arrange
+    const result = isPalindrome(word)     // Act
+    expect(result).toBe(true)             // Assert
+  })
+
+  it('ignores spaces and punctuation', () => {
+    expect(isPalindrome('A man, a plan, a canal: Panama')).toBe(true)
+  })
+
+  it('returns false for a normal word', () => {
+    expect(isPalindrome('hello')).toBe(false)
+  })
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ isPalindrome.test.js > isPalindrome > returns true for a palindrome
+ ✓ isPalindrome.test.js > isPalindrome > ignores spaces and punctuation
+ ✓ isPalindrome.test.js > isPalindrome > returns false for a normal word
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)`,
+  },
+  {
+    q: 'toBe vs toEqual vs toStrictEqual, and other common matchers?',
+    level: 'Basics',
+    a: "I use toBe for primitives, because it compares with Object.is, so two objects with the same content are still not toBe each other. For objects and arrays I use toEqual, which compares deeply but ignores undefined properties. toStrictEqual is stricter: it also checks undefined properties and the class of the object. Other matchers I use a lot are toContain for arrays and strings, toBeTruthy, and toThrow, where I pass a function so the matcher can catch the error.",
+    noTry: true,
+    code: `// matchers.test.js
+import { test, expect } from 'vitest'
+
+test('common matchers', () => {
+  expect(2 + 2).toBe(4)                            // same value (Object.is)
+  expect({ a: 1 }).not.toBe({ a: 1 })              // different objects
+  expect({ a: 1 }).toEqual({ a: 1, b: undefined }) // deep, ignores undefined
+  expect({ a: 1 }).not.toStrictEqual({ a: 1, b: undefined })
+  expect(['apple', 'mango']).toContain('mango')
+  expect('hello').toBeTruthy()
+  expect(() => JSON.parse('{bad')).toThrow()
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ matchers.test.js > common matchers
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'Jest vs Vitest: what is the difference?',
+    level: 'Intermediate',
+    a: "Both have almost the same API: describe, it, expect, mocks and snapshots, so moving between them is easy. Vitest is built on Vite, so it reuses my Vite config, supports ES modules and TypeScript out of the box, and is usually faster with an instant watch mode. Jest is older, has a huge ecosystem, and needs Babel or ts-jest for modern syntax. In Jest the helpers are globals and mocks use jest.fn, while in Vitest I import them from 'vitest' and use vi.fn. For a Vite or React project I pick Vitest.",
+    noTry: true,
+    code: `// sum.test.js
+// Jest: no import needed, describe/it/expect/jest.fn are globals
+// Vitest: import them (or set globals: true in the config)
+import { describe, it, expect, vi } from 'vitest'
+
+const sum = (a, b) => a + b
+
+describe('sum', () => {
+  it('adds numbers', () => {
+    const add = vi.fn(sum)          // jest.fn(sum) in Jest
+    expect(add(1, 2)).toBe(3)
+    expect(add).toHaveBeenCalledTimes(1)
+  })
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ sum.test.js > sum > adds numbers
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+Feature        Jest                 Vitest
+-------------  -------------------  ---------------------
+Globals        yes, by default      import from 'vitest'
+Mock function  jest.fn()            vi.fn()
+ESM / TS       needs Babel/ts-jest  built in (uses Vite)
+Speed          good                 faster, instant watch`,
+  },
+  {
+    q: 'What are beforeEach, afterEach and beforeAll used for?',
+    level: 'Intermediate',
+    a: "I use them for setup and teardown so each test starts from a clean state. beforeEach runs before every test, so I use it to create fresh data or reset mocks, and afterEach cleans up after every test. beforeAll and afterAll run only once for the whole file, which is good for expensive setup like starting a test server. This keeps tests independent, so they pass in any order.",
+    noTry: true,
+    code: `// cart.test.js
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
+
+let prices
+let cart
+
+beforeAll(() => { prices = { apple: 2, mango: 5 } })  // once, before all tests
+beforeEach(() => { cart = [] })                       // fresh cart before each test
+afterEach(() => { cart = null })                      // clean up after each test
+
+describe('cart', () => {
+  it('adds an item', () => {
+    cart.push('apple')
+    expect(cart).toEqual(['apple'])
+  })
+
+  it('starts empty again', () => {
+    expect(cart).toHaveLength(0)
+    expect(prices.mango).toBe(5)
+  })
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ cart.test.js > cart > adds an item
+ ✓ cart.test.js > cart > starts empty again
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: 'How do you test async code?',
+    level: 'Intermediate',
+    a: "I make the test function async and await the promise, then assert on the result like normal code. I can also use resolves and rejects, but then I must await the expect, otherwise the test finishes before the promise settles and passes by mistake. For errors I use rejects.toThrow with the expected message. I always test both the success path and the failure path.",
+    noTry: true,
+    code: `// fetchUser.test.js
+import { test, expect } from 'vitest'
+
+function fetchUser(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => (id > 0 ? resolve({ id, name: 'Ravi' }) : reject(new Error('Invalid id'))), 10)
+  })
+}
+
+test('with async/await', async () => {
+  const user = await fetchUser(1)
+  expect(user.name).toBe('Ravi')
+})
+
+test('with resolves / rejects', async () => {
+  await expect(fetchUser(1)).resolves.toEqual({ id: 1, name: 'Ravi' })
+  await expect(fetchUser(-1)).rejects.toThrow('Invalid id')
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ fetchUser.test.js > with async/await
+ ✓ fetchUser.test.js > with resolves / rejects
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: 'What are mock functions (vi.fn / jest.fn)?',
+    level: 'Intermediate',
+    a: "A mock function is a fake function that records every call, so I can check how my code used it. I create one with vi.fn() in Vitest or jest.fn() in Jest, and control what it returns with mockReturnValue or by passing an implementation. Then I assert with toHaveBeenCalledTimes and toHaveBeenCalledWith. I use mocks for callbacks and for dependencies like payment or email services that I don't want to call for real in a unit test.",
+    noTry: true,
+    code: `// mock.test.js
+import { test, expect, vi } from 'vitest'
+
+function checkout(total, pay) {
+  return pay(total) ? 'paid' : 'failed'
+}
+
+test('calls the payment function with the total', () => {
+  const pay = vi.fn().mockReturnValue(true)   // fake function
+  expect(checkout(100, pay)).toBe('paid')
+  expect(pay).toHaveBeenCalledTimes(1)
+  expect(pay).toHaveBeenCalledWith(100)
+})
+
+test('handles a failed payment', () => {
+  const pay = vi.fn(() => false)
+  expect(checkout(50, pay)).toBe('failed')
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ mock.test.js > calls the payment function with the total
+ ✓ mock.test.js > handles a failed payment
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: 'What is TDD (red, green, refactor)?',
+    level: 'Intermediate',
+    a: "TDD means I write the test before the code. Red: I write a small failing test that describes what I want. Green: I write the simplest code that makes it pass. Refactor: I clean up the code while the test keeps me safe. I repeat this in small steps, so every piece of code has a test and I don't write code nobody asked for.",
+    noTry: true,
+    code: `// slugify.test.js (written first)
+import { test, expect } from 'vitest'
+import { slugify } from './slugify.js'
+
+test('turns a title into a slug', () => {
+  expect(slugify('  Hello World  ')).toBe('hello-world')
+})
+
+// slugify.js, step 1 (red): just an empty function
+// export function slugify(title) {}
+
+// slugify.js, step 2 (green): the real code
+export function slugify(title) {
+  return title.trim().toLowerCase().replace(/\\s+/g, '-')
+}`,
+    output: `Step 1 (red):
+ × slugify.test.js > turns a title into a slug
+   → expected undefined to be 'hello-world' // Object.is equality
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+
+Step 2 (green):
+ ✓ slugify.test.js > turns a title into a slug
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'How do you mock fetch or an API call in a test?',
+    level: 'Advanced',
+    a: "I never call the real API in a unit test, because it's slow, flaky and needs a network. I replace the global fetch with vi.stubGlobal and a vi.fn that resolves to a fake response, then check that my code used the right URL and handled the data. I test the error path too by returning ok: false. After each test I restore the real fetch with vi.unstubAllGlobals. For a bigger app I'd mock the whole API module with vi.mock, or use MSW to fake the network.",
+    noTry: true,
+    code: `// posts.js
+export async function getPostTitle(id) {
+  const res = await fetch(\`https://jsonplaceholder.typicode.com/posts/\${id}\`)
+  if (!res.ok) throw new Error('Post not found')
+  const post = await res.json()
+  return post.title
+}
+
+// posts.test.js
+import { test, expect, vi, afterEach } from 'vitest'
+import { getPostTitle } from './posts.js'
+
+afterEach(() => vi.unstubAllGlobals())
+
+test('returns the post title', async () => {
+  const fakeFetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({ id: 1, title: 'Hello' }),
+  })
+  vi.stubGlobal('fetch', fakeFetch)
+
+  expect(await getPostTitle(1)).toBe('Hello')
+  expect(fakeFetch).toHaveBeenCalledWith('https://jsonplaceholder.typicode.com/posts/1')
+})
+
+test('throws when the post is missing', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }))
+  await expect(getPostTitle(999)).rejects.toThrow('Post not found')
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ posts.test.js > returns the post title
+ ✓ posts.test.js > throws when the post is missing
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: 'What is vi.spyOn, and how do you restore mocks?',
+    level: 'Advanced',
+    a: "vi.spyOn wraps an existing method on an object, so I can watch its calls and, if I want, replace its return value, like making Math.random predictable. The difference from vi.fn is that a spy replaces a real method in place, so I must put it back afterwards or it leaks into other tests. I call vi.restoreAllMocks in afterEach, or set restoreMocks: true in the config. mockClear only resets the call history, while mockRestore brings back the original function.",
+    noTry: true,
+    code: `// spy.test.js
+import { test, expect, vi, afterEach } from 'vitest'
+
+const math = {
+  random: () => Math.random(),
+  rollDice() { return Math.floor(this.random() * 6) + 1 },
+}
+
+afterEach(() => vi.restoreAllMocks())   // put the real functions back
+
+test('spy controls the random number', () => {
+  const spy = vi.spyOn(math, 'random').mockReturnValue(0.99)
+  expect(math.rollDice()).toBe(6)
+  expect(spy).toHaveBeenCalledOnce()
+})
+
+test('real function is back after restore', () => {
+  expect(vi.isMockFunction(math.random)).toBe(false)
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ spy.test.js > spy controls the random number
+ ✓ spy.test.js > real function is back after restore
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: 'How do you test setTimeout or debounce with fake timers?',
+    level: 'Advanced',
+    a: "I don't want a test to really wait 300ms, so I call vi.useFakeTimers to take control of setTimeout and setInterval. Then I move time forward with vi.advanceTimersByTime and check what has run. For a debounce I call it several times quickly and assert the callback ran only once, with the last value. I switch back with vi.useRealTimers in afterEach so other tests aren't affected.",
+    noTry: true,
+    code: `// debounce.test.js
+import { test, expect, vi, beforeEach, afterEach } from 'vitest'
+
+function debounce(fn, delay) {
+  let timer
+  return (...args) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }
+}
+
+beforeEach(() => vi.useFakeTimers())
+afterEach(() => vi.useRealTimers())
+
+test('runs only once after the user stops typing', () => {
+  const search = vi.fn()
+  const debounced = debounce(search, 300)
+  debounced('r'); debounced('re'); debounced('rea')
+
+  vi.advanceTimersByTime(299)
+  expect(search).not.toHaveBeenCalled()
+  vi.advanceTimersByTime(1)
+  expect(search).toHaveBeenCalledTimes(1)
+  expect(search).toHaveBeenCalledWith('rea')
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ debounce.test.js > runs only once after the user stops typing
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'What is code coverage, and what is good coverage?',
+    level: 'Advanced',
+    a: "Coverage shows how much of my code ran during the tests, and I get it with vitest run --coverage. It has four numbers: statements, branches (each side of an if or ternary), functions, and lines, plus the line numbers that never ran. Here the 'Fail' and invalid-score paths have no test, so branches are only 75%. I aim for around 80% and focus on branches and important logic, because 100% coverage doesn't mean the tests check the right things.",
+    noTry: true,
+    code: `// grade.js
+export function grade(score) {
+  if (score < 0 || score > 100) throw new Error('Invalid score')
+  if (score >= 90) return 'A'
+  if (score >= 50) return 'Pass'
+  return 'Fail'
+}
+
+// grade.test.js
+import { test, expect } from 'vitest'
+import { grade } from './grade.js'
+
+test('grades a score', () => {
+  expect(grade(95)).toBe('A')
+  expect(grade(60)).toBe('Pass')
+})
+// No test for 'Fail' or for an invalid score yet`,
+    output: `$ npx vitest run --coverage
+
+ ✓ grade.test.js > grades a score
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+ % Coverage report from v8
+----------|---------|----------|---------|---------|-------------------
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+----------|---------|----------|---------|---------|-------------------
+All files |   71.42 |       75 |     100 |      75 |
+ grade.js |   71.42 |       75 |     100 |      75 | 5
+----------|---------|----------|---------|---------|-------------------`,
+  },
+  {
+    q: "What unit testing have you done in your JavaScript projects?",
+    level: 'Intermediate',
+    a: "On our employee management and payroll app, most of my JavaScript tests were for utility functions, because that is where the money logic lived: net salary, tax deductions, overtime pay and pro-rated salary for someone who joins mid-month. We started with Jest and moved to Vitest when the project switched to Vite, and the tests barely changed because the API is almost the same. I always covered the edge cases, like a zero tax rate, a negative amount and rounding, as separate tests. For code that called the API I replaced fetch with vi.fn so the tests never hit the network, and I used fake timers for the debounced employee search. We aimed for about 80% coverage on these business-logic files, and GitHub Actions ran the whole suite on every pull request. When QA found a rounding bug on a payslip, I first wrote a failing test with the exact numbers and then fixed the function.",
+    noTry: true,
+    code: `// salary.js
+export function calculateNetSalary(gross, taxRate) {
+  if (gross < 0) throw new Error('Gross salary cannot be negative')
+  return Math.round(gross * (1 - taxRate))
+}
+
+// salary.test.js
+import { describe, it, expect } from 'vitest'
+import { calculateNetSalary } from './salary.js'
+
+describe('calculateNetSalary', () => {
+  it('deducts tax from the gross salary', () => {
+    expect(calculateNetSalary(50000, 0.2)).toBe(40000)
+  })
+  it('returns the full amount when there is no tax', () => {
+    expect(calculateNetSalary(30000, 0)).toBe(30000)
+  })
+  it('throws for a negative salary', () => {
+    expect(() => calculateNetSalary(-100, 0.2)).toThrow('cannot be negative')
+  })
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ salary.test.js > calculateNetSalary > deducts tax from the gross salary
+ ✓ salary.test.js > calculateNetSalary > returns the full amount when there is no tax
+ ✓ salary.test.js > calculateNetSalary > throws for a negative salary
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)`,
+  },
+  {
     q: 'Flatten a nested array without .flat()?',
     level: 'Coding round',
     a: "I'd solve it with recursion. I loop through the array, and if an item is itself an array, I flatten it recursively and spread the result in; otherwise I push the item. This works for any depth of nesting.",
@@ -1954,7 +2392,7 @@ console.log(mergeIntervals([[1, 3], [8, 10], [2, 6], [15, 18]]))`,
   },
 ]
 
-function Card({ title, note, code, output, isQuestion, autoLog }) {
+function Card({ title, note, code, output, isQuestion, autoLog, noTry }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -1962,7 +2400,7 @@ function Card({ title, note, code, output, isQuestion, autoLog }) {
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-semibold text-indigo-600">{title}</h3>
-          <TryItButton open={open} onClick={() => setOpen(!open)} />
+          {!noTry && <TryItButton open={open} onClick={() => setOpen(!open)} />}
         </div>
         {isQuestion && (
           <p className="mt-3 text-xs font-semibold text-slate-400 uppercase">Answer</p>
@@ -1980,7 +2418,7 @@ function Card({ title, note, code, output, isQuestion, autoLog }) {
         </pre>
       </div>
 
-      {open && (
+      {open && !noTry && (
         <div className="min-w-0 md:col-span-2">
           <TryIt kind="js" code={autoLog ? addConsoleLogs(code) : code} />
         </div>
@@ -1994,7 +2432,8 @@ function JavaScript() {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all(questions.map((item) => runCode(item.code))).then((results) => {
+    // Questions with a fixed output (e.g. test files run with Vitest) aren't run in the browser.
+    Promise.all(questions.map((item) => (item.output ? null : runCode(item.code)))).then((results) => {
       if (!cancelled) setOutputs(results)
     })
     return () => {
@@ -2050,7 +2489,8 @@ function JavaScript() {
                 title={'Q' + number + '. ' + item.q}
                 note={item.a}
                 code={item.code}
-                output={outputs[index] ? outputs[index].join('\n') : 'Running...'}
+                noTry={item.noTry}
+                output={item.output ?? (outputs[index] ? outputs[index].join('\n') : 'Running...')}
               />
             )
           }}

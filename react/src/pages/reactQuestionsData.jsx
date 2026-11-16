@@ -32,7 +32,7 @@ import {
 import { createPortal, flushSync, useFormStatus } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { configureStore, createSlice } from '@reduxjs/toolkit'
-import { ApiProvider, createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
+import { ApiProvider, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { Provider, useDispatch, useSelector } from 'react-redux'
 import {
   QueryClient,
@@ -41,6 +41,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import { create } from 'zustand'
 
 const btn = 'rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500 disabled:opacity-50'
 const btnLight = 'rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:opacity-50'
@@ -1811,102 +1812,139 @@ function ReduxCounterDemo() {
   )
 }
 
-const userApi = createApi({
-  reducerPath: 'userApi',
-  baseQuery: fakeBaseQuery(),
+// Fake REST API used by the data-fetching demos
+const POSTS_URL = 'https://jsonplaceholder.typicode.com/posts'
+const fetchPosts = () =>
+  fetch(POSTS_URL + '?_limit=3').then((res) => {
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    return res.json()
+  })
+const createPost = (post) =>
+  fetch(POSTS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(post),
+  }).then((res) => res.json())
+const timeOf = (ms) => (ms ? new Date(ms).toLocaleTimeString() : '-')
+
+function PostTitles({ posts }) {
+  return (
+    <ul className="ml-5 list-disc text-sm">
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  )
+}
+
+const postsApi = createApi({
+  reducerPath: 'postsApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
   endpoints: (build) => ({
-    getUser: build.query({ queryFn: () => wait(800).then(() => ({ data: 'Asha' })) }),
+    getPosts: build.query({ query: () => 'posts?_limit=3' }),
   }),
 })
 
-function RtkUser() {
-  const { data, isLoading } = userApi.useGetUserQuery()
-  return <p>{isLoading ? 'Loading...' : 'Hello ' + data}</p>
+function RtkPosts() {
+  const { data = [], isLoading, error } = postsApi.useGetPostsQuery()
+  if (isLoading) return <p>Loading...</p>
+  if (error) return <p className={errorCls}>Error: {error.status}</p>
+  return <PostTitles posts={data} />
 }
 
 function RtkQueryDemo() {
   return (
-    <ApiProvider api={userApi}>
-      <RtkUser />
+    <ApiProvider api={postsApi}>
+      <RtkPosts />
     </ApiProvider>
   )
 }
 
-const rtkTodos = ['Learn Redux'] // fake in-memory DB
-const todoApi = createApi({
-  reducerPath: 'todoApi',
-  baseQuery: fakeBaseQuery(),
-  tagTypes: ['Todo'],
+const postTagsApi = createApi({
+  reducerPath: 'postTagsApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
+  tagTypes: ['Post'],
   endpoints: (build) => ({
-    getTodos: build.query({ queryFn: () => ({ data: [...rtkTodos] }), providesTags: ['Todo'] }),
-    addTodo: build.mutation({ queryFn: (t) => ({ data: rtkTodos.push(t) }), invalidatesTags: ['Todo'] }),
+    getPosts: build.query({ query: () => 'posts?_limit=3', providesTags: ['Post'] }),
+    addPost: build.mutation({
+      query: (body) => ({ url: 'posts', method: 'POST', body }),
+      invalidatesTags: ['Post'],
+    }),
   }),
 })
 
-function RtkTodos() {
-  const { data = [] } = todoApi.useGetTodosQuery()
-  const [addTodo] = todoApi.useAddTodoMutation()
+function RtkTagPosts() {
+  const { data = [], fulfilledTimeStamp, isFetching } = postTagsApi.useGetPostsQuery()
+  const [addPost, { data: saved, isLoading: saving }] = postTagsApi.useAddPostMutation()
   return (
     <div className="space-y-2">
-      <button className={btn} onClick={() => addTodo('Task ' + data.length)}>
-        Add
+      <button className={btn} disabled={saving} onClick={() => addPost({ title: 'New post', userId: 1 })}>
+        {saving ? 'Saving...' : 'Add post'}
       </button>
-      <p>{data.join(', ')}</p>
+      {saved && <p className="text-sm">Saved post id: {saved.id}</p>}
+      <p className="text-sm text-slate-500">
+        List {isFetching ? 'refetching...' : 'fetched at ' + timeOf(fulfilledTimeStamp)}
+      </p>
+      <PostTitles posts={data} />
     </div>
   )
 }
 
 function RtkTagsDemo() {
   return (
-    <ApiProvider api={todoApi}>
-      <RtkTodos />
+    <ApiProvider api={postTagsApi}>
+      <RtkTagPosts />
     </ApiProvider>
   )
 }
 
-const fetchRqUser = () => wait(800).then(() => ({ name: 'Asha' })) // fake API
-const userClient = new QueryClient()
+const postsClient = new QueryClient()
 
-function RqUser() {
-  const { data, isPending, error } = useQuery({ queryKey: ['user'], queryFn: fetchRqUser })
+function RqPosts() {
+  const { data, isPending, error } = useQuery({ queryKey: ['posts'], queryFn: fetchPosts })
   if (isPending) return <p>Loading...</p>
   if (error) return <p className={errorCls}>Error: {error.message}</p>
-  return <p>Hello {data.name}</p>
+  return <PostTitles posts={data} />
 }
 
 function UseQueryDemo() {
   return (
-    <QueryClientProvider client={userClient}>
-      <RqUser />
+    <QueryClientProvider client={postsClient}>
+      <RqPosts />
     </QueryClientProvider>
   )
 }
 
-const rqTodos = ['Learn React Query'] // fake in-memory DB
-const getRqTodos = () => wait(300).then(() => [...rqTodos])
-const addRqTodo = (text) => wait(300).then(() => rqTodos.push(text))
-const todoClient = new QueryClient()
+const mutationClient = new QueryClient()
 
 function RqTodos() {
   const queryClient = useQueryClient()
-  const { data = [] } = useQuery({ queryKey: ['todos'], queryFn: getRqTodos })
+  const { data = [], dataUpdatedAt, isFetching } = useQuery({ queryKey: ['posts'], queryFn: fetchPosts })
   const add = useMutation({
-    mutationFn: addRqTodo,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+    mutationFn: createPost,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),
   })
   return (
     <div className="space-y-2">
-      <button className={btn} disabled={add.isPending} onClick={() => add.mutate('Task ' + data.length)}>
-        {add.isPending ? 'Saving...' : 'Add'}
+      <button
+        className={btn}
+        disabled={add.isPending}
+        onClick={() => add.mutate({ title: 'New post', userId: 1 })}
+      >
+        {add.isPending ? 'Saving...' : 'Add post'}
       </button>
-      <p>{data.join(', ')}</p>
+      {add.data && <p className="text-sm">Saved post id: {add.data.id}</p>}
+      <p className="text-sm text-slate-500">
+        List {isFetching ? 'refetching...' : 'fetched at ' + timeOf(dataUpdatedAt)}
+      </p>
+      <PostTitles posts={data} />
     </div>
   )
 }
 
 function MutationDemo() {
   return (
-    <QueryClientProvider client={todoClient}>
+    <QueryClientProvider client={mutationClient}>
       <RqTodos />
     </QueryClientProvider>
   )
@@ -2032,6 +2070,33 @@ function FormStatusDemo() {
       <input className={inputCls} name="title" defaultValue="My note" />
       <SubmitButton />
     </form>
+  )
+}
+
+/* ------------------------------- Zustand ------------------------------- */
+const useDemoCounterStore = create((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+}))
+
+function ZustandCounterDemo() {
+  const count = useDemoCounterStore((state) => state.count)
+  const increment = useDemoCounterStore((state) => state.increment)
+  const decrement = useDemoCounterStore((state) => state.decrement)
+  return (
+    <div>
+      <h2 className="text-2xl font-bold">{count}</h2>
+      <div className="mt-2 flex gap-2">
+        <button onClick={increment} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500">
+          Increment
+        </button>
+        <button onClick={decrement} className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50">
+          Decrement
+        </button>
+      </div>
+      <p className="mt-2 text-xs text-slate-500">No Provider needed: the store is just a hook.</p>
+    </div>
   )
 }
 
@@ -3808,6 +3873,131 @@ const debouncedQuery = useDebounce(query, 500)
     output: <ReorderKeysDemo />,
   },
   {
+    q: 'What changed in React 18?',
+    level: 'Intermediate',
+    a: "React 18 introduced concurrent rendering, which is turned on when I create the app with createRoot instead of ReactDOM.render. With it I get automatic batching everywhere, so several setState calls in a timeout, promise or native event cause one re-render instead of many. It also added transitions (useTransition, startTransition) and useDeferredValue to keep the UI responsive, streaming SSR with Suspense and selective hydration, and new hooks like useId and useSyncExternalStore. In development, StrictMode started mounting, unmounting and remounting components to catch missing effect cleanups.",
+    code: `// React 17
+ReactDOM.render(<App />, document.getElementById('root'))
+
+// React 18: createRoot enables concurrent features
+const root = createRoot(document.getElementById('root'))
+root.render(<App />)
+
+// Automatic batching: one re-render, even inside setTimeout
+setTimeout(() => {
+  setCount((c) => c + 1)
+  setFlag((f) => !f)
+}, 1000)`,
+    output: `React 17 (setTimeout)  -> 2 re-renders (no batching outside events)
+React 18 (setTimeout)  -> 1 re-render  (automatic batching)
+
+New in React 18: createRoot, automatic batching, useTransition,
+startTransition, useDeferredValue, useId, useSyncExternalStore,
+useInsertionEffect, streaming SSR + selective hydration`,
+  },
+  {
+    q: 'What is the difference between React 18 and React 19?',
+    level: 'Intermediate',
+    a: "React 18 was about how React renders: it brought concurrent rendering, automatic batching and transitions. React 19 builds on that and is about how I write apps: Actions let me pass async functions to forms and transitions, and React handles pending state, errors and optimistic updates with useActionState, useFormStatus and useOptimistic. It also adds the use() API for reading promises and context, makes Server Components and Server Actions stable, lets me pass ref as a normal prop and use <Context> directly as a provider, and supports <title> and <meta> inside components. On the cleanup side, React 19 removes old APIs like ReactDOM.render, string refs, propTypes and defaultProps for function components.",
+    code: `// React 18: forwardRef + manual pending state
+const Input = forwardRef((props, ref) => <input ref={ref} {...props} />)
+
+const [isPending, setIsPending] = useState(false)
+async function handleSubmit(e) {
+  e.preventDefault()
+  setIsPending(true)
+  await savePost(new FormData(e.target))
+  setIsPending(false)
+}
+<form onSubmit={handleSubmit}>...</form>
+
+// React 19: ref is a prop, and Actions handle the pending state
+function Input({ ref, ...props }) {
+  return <input ref={ref} {...props} />
+}
+
+const [error, submitAction, isPending] = useActionState(async (prev, formData) => {
+  await savePost(formData)
+  return null
+}, null)
+<form action={submitAction}>...</form>`,
+    output: `Feature              React 18                     React 19
+-------------------  ---------------------------  -------------------------------
+Main focus           Concurrent rendering         Actions, server features
+Root API             createRoot (render legacy)   createRoot (render removed)
+Forms / async        onSubmit + manual state      action={fn}, useActionState
+Pending / optimistic Manual useState              useFormStatus, useOptimistic
+Read promise         useEffect + state            use(promise) with Suspense
+Refs                 forwardRef                   ref as a prop
+Context provider     <Ctx.Provider value>         <Ctx value>
+Document metadata    react-helmet                 <title>, <meta> in components
+Server Components    Experimental                 Stable
+Removed              -                            propTypes, defaultProps (fn),
+                                                  string refs, ReactDOM.render`,
+  },
+  {
+    q: 'What are the smaller React 19 improvements (ref as a prop, Context as provider, metadata)?',
+    level: 'Intermediate',
+    a: "Besides Actions, React 19 has several small changes I use every day. Function components receive ref as a normal prop, so I don't need forwardRef any more, and a ref callback can return a cleanup function. I can render <ThemeContext value=\"dark\"> directly instead of <ThemeContext.Provider>. I can put <title>, <meta> and <link> tags inside any component and React hoists them into the document head, so I don't need react-helmet. useDeferredValue also accepts an initial value now.",
+    code: `// 1. ref as a prop (no forwardRef)
+function MyInput({ ref, placeholder }) {
+  return <input ref={ref} placeholder={placeholder} />
+}
+
+// 2. Context as a provider
+<ThemeContext value="dark">
+  <App />
+</ThemeContext>
+
+// 3. Document metadata from any component
+function BlogPost({ post }) {
+  return (
+    <article>
+      <title>{post.title}</title>
+      <meta name="description" content={post.excerpt} />
+      <h1>{post.title}</h1>
+    </article>
+  )
+}`,
+    output: `<head>
+  <title>My first post</title>                       <- hoisted by React 19
+  <meta name="description" content="Short summary">
+</head>
+<body>
+  <article><h1>My first post</h1></article>
+</body>`,
+  },
+  {
+    q: 'How do you upgrade from React 18 to React 19 (breaking changes)?',
+    level: 'Advanced',
+    a: "First I upgrade to React 18.3, which adds warnings for everything React 19 removes, and fix those warnings. Then I update react, react-dom and @types/react together to 19 and run the official codemods, for example to replace ReactDOM.render with createRoot, string refs with ref callbacks, and propTypes with TypeScript. The main breaking changes are the removed legacy APIs (ReactDOM.render, hydrate, findDOMNode, string refs, legacy context, defaultProps on function components), errors during render no longer being re-thrown (I can handle them with onUncaughtError and onCaughtError on createRoot), and TypeScript changes like useRef requiring an argument. I run the test suite and check the console after each step.",
+    code: `# 1. Fix the deprecation warnings first
+npm install react@18.3 react-dom@18.3
+
+# 2. Upgrade together
+npm install react@19 react-dom@19 @types/react@19 @types/react-dom@19
+
+# 3. Run the codemods
+npx codemod@latest react/19/migration-recipe
+
+// Before (removed in 19)
+ReactDOM.render(<App />, rootEl)
+Button.defaultProps = { size: 'md' }
+
+// After
+createRoot(rootEl).render(<App />)
+function Button({ size = 'md' }) { /* ... */ }`,
+    output: `Removed in React 19             Replace with
+------------------------------  --------------------------------
+ReactDOM.render / hydrate       createRoot / hydrateRoot
+defaultProps (function comps)   default parameters
+propTypes                       TypeScript
+string refs (ref="input")       useRef / ref callback
+findDOMNode                     a ref on the DOM element
+legacy context (contextTypes)   createContext + useContext
+react-test-renderer/shallow     React Testing Library`,
+  },
+  {
     q: 'What are Actions and useActionState in React 19?',
     level: 'Advanced',
     a: 'In React 19 I can pass an async function directly to a form action prop, and React handles the pending state and errors for me. useActionState wraps that function: it gives me the latest returned state, a formAction to pass to the form, and an isPending flag. The action receives the previous state and the FormData, so I do not need a useState for every field or manual loading flags.',
@@ -4003,6 +4193,33 @@ store.dispatch({ type: 'add' })`,
 2`,
   },
   {
+    q: "Explain the Redux workflow (data flow).",
+    level: 'Basics',
+    a: "Redux has a one-way data flow. When something happens in the UI, the component dispatches an action, a plain object with a type and optional payload. The store passes the current state and that action to the reducer, a pure function that returns the new state without changing the old one. The store saves the new state and notifies its subscribers, so components reading that data re-render with the new values. Because every change goes through dispatch and a reducer, state changes are predictable and easy to trace in Redux DevTools.",
+    code: `import { configureStore } from '@reduxjs/toolkit'
+
+// Reducer: (state, action) => new state
+function counterReducer(state = { count: 0 }, action) {
+  if (action.type === 'counter/increment') {
+    console.log('2. reducer runs:', action.type)
+    return { count: state.count + 1 }
+  }
+  return state
+}
+
+const store = configureStore({ reducer: counterReducer })
+store.subscribe(() => console.log('3. store updated, UI re-renders:', store.getState()))
+
+console.log('1. UI dispatches an action')
+store.dispatch({ type: 'counter/increment' })`,
+    output: `1. UI dispatches an action
+2. reducer runs: counter/increment
+3. store updated, UI re-renders: { count: 1 }
+
+Flow: UI event -> dispatch(action) -> reducer(state, action) -> new state in store
+      -> subscribers notified -> components re-render`,
+  },
+  {
     q: 'What is Redux Toolkit and why use it instead of plain Redux?',
     level: 'Basics',
     a: "Redux Toolkit is the official, recommended way to write Redux logic, and I use it to manage global client state that many components share: the logged-in user, roles and permissions, a shopping cart, app settings, theme preferences and shared UI state. createSlice gives me the reducer and action creators in one place, so there are no action type constants or long switch statements. It uses Immer, so I can write simple \"mutating\" code safely, and configureStore sets up DevTools and thunks for me.",
@@ -4194,14 +4411,14 @@ console.log(reducer(0, add(5)))`,
     a: "I have two options. For most CRUD APIs I use RTK Query: I define endpoints with createApi and get hooks with loading, error, caching and refetching built in. For one-off calls or custom logic I use createAsyncThunk and handle the pending, fulfilled and rejected actions in extraReducers to store the result in my slice.",
     code: `// Option 1: RTK Query (loading, caching and refetch built in)
 const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  endpoints: (build) => ({ getUsers: build.query({ query: () => 'users' }) }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
+  endpoints: (build) => ({ getPosts: build.query({ query: () => 'posts' }) }),
 })
-const { data, isLoading } = api.useGetUsersQuery()
+const { data, isLoading } = api.useGetPostsQuery()
 
 // Option 2: createAsyncThunk (I store the result in a slice myself)
-const fetchUsers = createAsyncThunk('users/fetch', async () => {
-  const res = await fetch('/api/users')
+const fetchPosts = createAsyncThunk('posts/fetch', async () => {
+  const res = await fetch('https://jsonplaceholder.typicode.com/posts')
   return res.json()
 })`,
     output: `RTK Query        -> most CRUD APIs: loading, error, caching, refetch built in
@@ -4256,47 +4473,79 @@ the data the component uses actually changes`,
   {
     q: 'What is RTK Query and how do you define an API with createApi?',
     level: 'Intermediate',
-    a: "RTK Query is the API data-fetching and caching solution built into Redux Toolkit, so I use it for server state in a Redux app. Instead of managing loading, success and error state, caching, refetching and cache invalidation by hand, I describe my endpoints once with createApi and it generates hooks like useGetUserQuery that give me data, isLoading and error. In a real app I use fetchBaseQuery with a baseUrl and add api.reducer and api.middleware to the store; here fakeBaseQuery fakes the server.",
-    code: `import { ApiProvider, createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
+    a: "RTK Query is the API data-fetching and caching solution built into Redux Toolkit, so I use it for server state in a Redux app. Instead of managing loading, success and error state, caching, refetching and cache invalidation by hand, I describe my endpoints once with createApi and it generates hooks like useGetPostsQuery that give me data, isLoading and error. I use fetchBaseQuery with a baseUrl, and in a full Redux app I add api.reducer and api.middleware to the store; ApiProvider does that for me when I only need RTK Query.",
+    code: `import { ApiProvider, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 const api = createApi({
-  baseQuery: fakeBaseQuery(), // real app: fetchBaseQuery({ baseUrl: '/api' })
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
   endpoints: (build) => ({
-    getUser: build.query({ queryFn: () => wait(800).then(() => ({ data: 'Asha' })) }),
+    getPosts: build.query({ query: () => 'posts?_limit=3' }),
   }),
 })
 
-function User() {
-  const { data, isLoading } = api.useGetUserQuery() // generated hook
-  return <p>{isLoading ? 'Loading...' : 'Hello ' + data}</p>
+function Posts() {
+  const { data = [], isLoading } = api.useGetPostsQuery() // generated hook
+  if (isLoading) return <p>Loading...</p>
+  return <ul>{data.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
 }
 
-<ApiProvider api={api}><User /></ApiProvider>`,
+<ApiProvider api={api}><Posts /></ApiProvider>`,
     output: <RtkQueryDemo />,
+  },
+  {
+    q: "Explain the RTK Query workflow.",
+    level: 'Advanced',
+    a: "First, I define an API slice with createApi, giving it a baseQuery like fetchBaseQuery and the endpoints, and RTK Query generates hooks such as useGetPostsQuery. I add api.reducer and api.middleware to the store. When a component calls the hook, RTK Query checks its cache, keyed by endpoint and arguments: if the data is there it returns it, otherwise it sends the request and gives me isLoading, data and error. Other components asking for the same data share that cache entry. When a mutation succeeds, its invalidatesTags marks matching providesTags queries as stale, so they refetch automatically and the components update.",
+    code: `// 1. API slice: endpoints + tags
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
+  tagTypes: ['Post'],
+  endpoints: (build) => ({
+    getPosts: build.query({ query: () => 'posts', providesTags: ['Post'] }),
+    addPost: build.mutation({
+      query: (body) => ({ url: 'posts', method: 'POST', body }),
+      invalidatesTags: ['Post'],
+    }),
+  }),
+})
+// 2. Store: reducer: { [api.reducerPath]: api.reducer }, middleware: api.middleware
+// 3. Component: const { data, isLoading } = api.useGetPostsQuery()`,
+    output: `Flow: createApi(endpoints) -> add api.reducer + api.middleware to the store
+      -> component calls useGetPostsQuery() -> cache hit? return data : fetch
+      -> isLoading -> data / error -> shared by every component using it
+      -> useAddPostMutation() succeeds -> invalidatesTags('Post')
+      -> queries with providesTags('Post') refetch -> components re-render`,
   },
   {
     q: 'How does RTK Query caching and invalidation work (providesTags / invalidatesTags)?',
     level: 'Advanced',
-    a: 'RTK Query caches each query result, and components asking for the same data share one request. A query marks its data with providesTags, like Todo, and a mutation lists invalidatesTags; after the mutation succeeds, every query with that tag refetches automatically. This keeps the list up to date without me manually updating the cache or calling refetch.',
-    code: `import { ApiProvider, createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
+    a: 'RTK Query caches each query result, and components asking for the same data share one request. A query marks its data with providesTags, like Post, and a mutation lists invalidatesTags; after the mutation succeeds, every query with that tag refetches automatically. This keeps the list up to date without me manually updating the cache or calling refetch.',
+    code: `import { ApiProvider, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-const todos = ['Learn Redux'] // fake in-memory DB
 const api = createApi({
-  baseQuery: fakeBaseQuery(),
-  tagTypes: ['Todo'],
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
+  tagTypes: ['Post'],
   endpoints: (build) => ({
-    getTodos: build.query({ queryFn: () => ({ data: [...todos] }), providesTags: ['Todo'] }),
-    addTodo: build.mutation({ queryFn: (t) => ({ data: todos.push(t) }), invalidatesTags: ['Todo'] }),
+    getPosts: build.query({ query: () => 'posts?_limit=3', providesTags: ['Post'] }),
+    addPost: build.mutation({
+      query: (body) => ({ url: 'posts', method: 'POST', body }),
+      invalidatesTags: ['Post'], // after saving, getPosts refetches
+    }),
   }),
 })
 
-function Todos() {
-  const { data = [] } = api.useGetTodosQuery()
-  const [addTodo] = api.useAddTodoMutation()
-  return <button onClick={() => addTodo('Task ' + data.length)}>Add: {data.join(', ')}</button>
+function Posts() {
+  const { data = [] } = api.useGetPostsQuery()
+  const [addPost] = api.useAddPostMutation()
+  return (
+    <div>
+      <button onClick={() => addPost({ title: 'New post', userId: 1 })}>Add post</button>
+      <ul>{data.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
+    </div>
+  )
 }
 
-<ApiProvider api={api}><Todos /></ApiProvider>`,
+<ApiProvider api={api}><Posts /></ApiProvider>`,
     output: <RtkTagsDemo />,
   },
   {
@@ -4305,18 +4554,47 @@ function Todos() {
     a: "TanStack Query, formerly React Query, is a standalone library for fetching, caching, synchronizing and updating server data, and it does not need Redux. I use it for things like fetching employee details or payroll records, search and filter screens, updating employee information, caching API responses and automatically refetching stale data. I wrap the app in a QueryClientProvider and call useQuery with a queryKey (the cache key) and a queryFn that returns a promise; it gives me isPending, error and data, shared by every component using the same key.",
     code: `import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 
-const fetchUser = () => wait(800).then(() => ({ name: 'Asha' })) // fake API
+const fetchPosts = () =>
+  fetch('https://jsonplaceholder.typicode.com/posts?_limit=3').then((res) => res.json())
 const client = new QueryClient()
 
-function User() {
-  const { data, isPending, error } = useQuery({ queryKey: ['user'], queryFn: fetchUser })
+function Posts() {
+  const { data, isPending, error } = useQuery({ queryKey: ['posts'], queryFn: fetchPosts })
   if (isPending) return <p>Loading...</p>
   if (error) return <p>Error: {error.message}</p>
-  return <p>Hello {data.name}</p>
+  return <ul>{data.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
 }
 
-<QueryClientProvider client={client}><User /></QueryClientProvider>`,
+<QueryClientProvider client={client}><Posts /></QueryClientProvider>`,
     output: <UseQueryDemo />,
+  },
+  {
+    q: "Explain the TanStack Query workflow.",
+    level: 'Intermediate',
+    a: "First, I create a QueryClient, which holds the cache, and wrap the app in QueryClientProvider. In a component I call useQuery with a queryKey and a queryFn. TanStack Query looks up the key in the cache: fresh data is returned right away, and missing or stale data is fetched, with isPending, data and error telling the component what to show. The result is cached under the key and shared by every component using it; it stays fresh for staleTime, refetches in the background on things like window focus, and is removed gcTime after nothing uses it. For changes I use useMutation, and in onSuccess I call invalidateQueries so the related queries refetch.",
+    code: `// 1. Client + provider (holds the cache)
+const queryClient = new QueryClient()
+// <QueryClientProvider client={queryClient}><App /></QueryClientProvider>
+
+// 2. Read: cached under the queryKey
+const URL = 'https://jsonplaceholder.typicode.com/posts'
+const { data, isPending, error } = useQuery({
+  queryKey: ['posts'],
+  queryFn: () => fetch(URL).then((res) => res.json()),
+  staleTime: 60_000,
+})
+
+// 3. Write, then refresh the cached list
+const add = useMutation({
+  mutationFn: (post) => fetch(URL, { method: 'POST', body: JSON.stringify(post) }),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),
+})`,
+    output: `Flow: QueryClient + QueryClientProvider -> useQuery({ queryKey, queryFn })
+      -> cache lookup: fresh? return it : fetch (isPending -> data / error)
+      -> cached under the key, shared by all components
+      -> stale after staleTime -> background refetch (focus, reconnect)
+      -> useMutation succeeds -> invalidateQueries(key) -> refetch -> re-render
+      -> unused cache removed after gcTime`,
   },
   {
     q: 'How do you update data with useMutation and invalidateQueries in React Query?',
@@ -4324,22 +4602,34 @@ function User() {
     a: 'For creating, updating or deleting data I use useMutation with a mutationFn, and call mutate from an event handler. In onSuccess I call queryClient.invalidateQueries with the same key, so React Query marks the list as stale and refetches it. I also use isPending to disable the button while the request is running.',
     code: `import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-const todos = ['Learn React Query'] // fake in-memory DB
-const getTodos = () => wait(300).then(() => [...todos])
-const addTodo = (text) => wait(300).then(() => todos.push(text))
+const URL = 'https://jsonplaceholder.typicode.com/posts'
+const getPosts = () => fetch(URL + '?_limit=3').then((res) => res.json())
+const addPost = (post) =>
+  fetch(URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(post),
+  }).then((res) => res.json())
 const client = new QueryClient()
 
-function Todos() {
+function Posts() {
   const queryClient = useQueryClient()
-  const { data = [] } = useQuery({ queryKey: ['todos'], queryFn: getTodos })
+  const { data = [] } = useQuery({ queryKey: ['posts'], queryFn: getPosts })
   const add = useMutation({
-    mutationFn: addTodo,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+    mutationFn: addPost,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),
   })
-  return <button onClick={() => add.mutate('Task ' + data.length)}>Add: {data.join(', ')}</button>
+  return (
+    <div>
+      <button disabled={add.isPending} onClick={() => add.mutate({ title: 'New post', userId: 1 })}>
+        {add.isPending ? 'Saving...' : 'Add post'}
+      </button>
+      <ul>{data.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
+    </div>
+  )
 }
 
-<QueryClientProvider client={client}><Todos /></QueryClientProvider>`,
+<QueryClientProvider client={client}><Posts /></QueryClientProvider>`,
     output: <MutationDemo />,
   },
   {
@@ -4378,6 +4668,175 @@ Loading/error        Usually manual       Built in           Built in
 Cache invalidation   Manual               Tag-based          Query-key based
 Requires Redux       Yes                  Yes (Redux store)  No
 Mutations            Reducers/thunks      Built in           Built in`,
+  },
+  {
+    q: "What is Zustand and how do you create a store?",
+    level: 'Intermediate',
+    a: "Zustand is a small library for global client-side state, like the logged-in user, theme, shopping cart, sidebar visibility or selected filters. I create a store with create(), which gives me a hook; inside it, set() updates the state. Components read only what they need with a selector like useCounterStore((s) => s.count), and they re-render only when that selected value changes. Unlike Redux or Context, I don't need a Provider, and there's very little boilerplate.",
+    code: `import { create } from 'zustand'
+
+const useCounterStore = create((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+}))
+
+function Counter() {
+  const count = useCounterStore((state) => state.count)
+  const increment = useCounterStore((state) => state.increment)
+  const decrement = useCounterStore((state) => state.decrement)
+  return (
+    <div>
+      <h2>{count}</h2>
+      <button onClick={increment}>Increment</button>
+      <button onClick={decrement}>Decrement</button>
+    </div>
+  )
+}`,
+    output: <ZustandCounterDemo />,
+  },
+  {
+    q: "Explain the Zustand workflow.",
+    level: 'Intermediate',
+    a: "First, I create a store with create(), where I define the state and the actions that change it; actions call set() to update the store. The store is itself a hook, so there's no Provider: any component can call it with a selector, like useStore((s) => s.count), to read only the value it needs. When an action runs, set() merges the new state and Zustand notifies its subscribers. Only the components whose selected value changed re-render, which keeps updates cheap without memoization.",
+    code: `// 1. Create the store: state + actions (actions call set)
+const useCartStore = create((set) => ({
+  items: [],
+  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
+}))
+
+// 2. Read with a selector  3. Call an action
+function Cart() {
+  const items = useCartStore((state) => state.items)
+  const addItem = useCartStore((state) => state.addItem)
+  return <button onClick={() => addItem('Pen')}>Items: {items.length}</button>
+}`,
+    output: `Flow: create(store) -> component reads with selector (no Provider)
+      -> action calls set() -> store updates and notifies subscribers
+      -> only components whose selected value changed re-render`,
+  },
+  {
+    q: "What are the key TanStack Query concepts (queryKey, queryFn, refetch, invalidateQueries)?",
+    level: 'Intermediate',
+    a: "queryKey uniquely identifies cached data, so ['employees', dept] caches each department separately, and queryFn is the function that fetches it. useQuery reads data and useMutation creates, updates or deletes it. After a mutation I call invalidateQueries to mark the cached data stale so it refetches; refetch lets me fetch again manually. staleTime controls how long data counts as fresh, and gcTime how long unused cache is kept.",
+    code: `const { data, isLoading, isError, error, refetch } = useQuery({
+  queryKey: ['employees', department], // cache key (one entry per department)
+  queryFn: () => fetchEmployees(department), // how to fetch
+  staleTime: 60_000, // fresh for 1 minute, no refetch
+})
+
+if (isLoading) return <p>Loading...</p>
+if (isError) return <p>{error.message}</p>
+
+<button onClick={() => refetch()}>Reload</button>`,
+    output: `Concept            Purpose
+-----------------  ------------------------------------------
+useQuery           Fetch API data
+useMutation        Create, update, delete API data
+queryKey           Uniquely identifies cached data
+queryFn            Function that fetches data
+invalidateQueries  Marks cached data stale (it refetches)
+refetch            Manually fetch data again
+staleTime          How long data is considered fresh
+gcTime             How long inactive cache remains`,
+  },
+  {
+    q: "What is the difference between Zustand and TanStack Query?",
+    level: 'Intermediate',
+    a: "They solve different problems. Zustand manages client state, data that lives only in the browser like the theme, filters or the sidebar. TanStack Query manages server state, data that lives on the backend, and gives me fetching, caching, loading and error states, background refetching and mutations out of the box. With Zustand I would have to build all of that by hand, so I don't use it for API data.",
+    code: `// Client state: Zustand
+const useUiStore = create((set) => ({
+  sidebarOpen: true,
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+}))
+
+// Server state: TanStack Query
+const { data: employees, isLoading } = useQuery({
+  queryKey: ['employees'],
+  queryFn: fetchEmployees,
+})`,
+    output: `Feature             Zustand                 TanStack Query
+------------------  ----------------------  -----------------------
+Main purpose        Client state            Server state
+API fetching        Manual                  Built-in
+Caching             Not built-in            Built-in
+Loading state       Manage manually         Built-in
+Error handling      Manage manually         Built-in
+Background refetch  Manual                  Built-in
+Global state        Yes                     Not its primary purpose
+Mutations           Manual API integration  useMutation`,
+  },
+  {
+    q: "Can you use Zustand and TanStack Query together?",
+    level: 'Advanced',
+    a: "Yes, and for large apps it's a good architecture. In an employee payroll app, Zustand holds client state like authentication, the theme, the selected department and the sidebar, while TanStack Query handles employees, payroll and attendance from the API. The selected department from Zustand goes into the queryKey, so changing the filter fetches and caches the right list, and after an update with useMutation I call invalidateQueries to refresh it.",
+    code: `const useFilterStore = create((set) => ({
+  userId: 1,
+  setUserId: (userId) => set({ userId }),
+}))
+
+function PostList() {
+  const userId = useFilterStore((s) => s.userId) // client state
+  const { data } = useQuery({                     // server state
+    queryKey: ['posts', userId],
+    queryFn: () =>
+      fetch('https://jsonplaceholder.typicode.com/posts?userId=' + userId).then((r) => r.json()),
+  })
+  return <ul>{data?.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
+}`,
+    output: `React components  (Employee list · Payroll · Dashboard)
+   |                              |
+Zustand (client state)        TanStack Query (server state)
+- Authentication              - Employee API
+- Theme                       - Payroll API
+- Selected filters            - Attendance API
+- Sidebar state               - Caching, refetching
+                                  |
+                          Backend APIs (REST, database)
+
+Update flow: useMutation -> PUT https://jsonplaceholder.typicode.com/posts/1
+             -> onSuccess: invalidateQueries(['posts']) -> list refetches`,
+  },
+  {
+    q: "What is the difference between Redux Toolkit, Zustand and TanStack Query?",
+    level: 'Advanced',
+    a: "Redux Toolkit and Zustand both manage client state: Redux Toolkit is more structured, with slices, middleware and great DevTools, while Zustand has much less boilerplate. TanStack Query is for server state, with API caching built in. Redux Toolkit can also handle server state through RTK Query, and Zustand can if I build it myself, but for API data I prefer a tool made for it.",
+    code: `// Redux Toolkit: slice + store + Provider
+const cartSlice = createSlice({ name: 'cart', initialState: [], reducers: { add: (s, a) => { s.push(a.payload) } } })
+
+// Zustand: one hook, no Provider
+const useCart = create((set) => ({ items: [], add: (i) => set((s) => ({ items: [...s.items, i] })) }))
+
+// TanStack Query: server data with caching
+const { data } = useQuery({ queryKey: ['products'], queryFn: fetchProducts })`,
+    output: `Feature        Redux Toolkit     Zustand             TanStack Query
+-------------  ----------------  ------------------  -----------------------
+Client state   Yes               Yes                 No, not primary
+Server state   Possible (RTKQ)   Possible            Yes
+Boilerplate    Moderate          Low                 Low
+API caching    Additional setup  Additional setup    Built-in
+Middleware     Yes               Middleware support  Query lifecycle options`,
+  },
+  {
+    q: "Why would you choose Zustand and TanStack Query instead of Redux Toolkit?",
+    level: 'Advanced',
+    a: "I would choose Zustand for lightweight global client-side state, because it needs less boilerplate and has a simple API. For server-side data I would use TanStack Query, because it gives me caching, background refetching, loading and error handling, and query invalidation out of the box. For example, in an employee payroll application, Zustand would manage authentication state, UI preferences and selected filters, while TanStack Query would handle employee records, payroll data and API mutations. This separation keeps client state and server state independent and makes the app easier to maintain.",
+    code: `// Client state -> Zustand (small, no Provider)
+const useAuthStore = create((set) => ({
+  user: null,
+  login: (user) => set({ user }),
+}))
+
+// Server state -> TanStack Query (cache, refetch, mutations)
+const { data: payroll } = useQuery({ queryKey: ['payroll'], queryFn: fetchPayroll })
+
+// I'd still pick Redux Toolkit when the team already uses it, or for
+// very complex client state that benefits from strict structure and DevTools.`,
+    output: `Zustand        -> auth, theme, filters, sidebar (client state)
+TanStack Query -> employees, payroll, attendance (server state)
+
+Result: less boilerplate, no hand-written loading/caching code,
+client and server state kept independent.`,
   },
   {
     q: 'How do you optimize performance in a React app?',
@@ -4422,10 +4881,116 @@ ProductList update 3.1ms
 (timings vary from run to run)`,
   },
   {
+    q: "How do you write a simple unit test for a React component?",
+    level: 'Basics',
+    a: "The simplest test has three steps: render the component, find something the user would see, and check it. I use render from React Testing Library to put the component into a fake browser DOM (jsdom), screen.getByText to find the text, and expect(...).toBeInTheDocument() to check that it is there. getByText throws if the text is missing, so a broken component fails the test with a clear message. toBeInTheDocument comes from jest-dom, which I load once in a setup file, and I run the tests with npx vitest run.",
+    code: `// Greeting.jsx
+export default function Greeting({ name }) {
+  return <p>Hello, {name}</p>
+}
+
+// Greeting.test.jsx
+import { test, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Greeting from './Greeting'
+
+test('shows the name', () => {
+  render(<Greeting name="Asha" />)
+  expect(screen.getByText('Hello, Asha')).toBeInTheDocument()
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ src/Greeting.test.jsx > shows the name
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'What should you test in a React component, and which testing tools do you use?',
+    level: 'Basics',
+    a: 'I test behavior, not implementation: what the user sees on the screen and what happens when they click or type, not internal state, hook calls or CSS class names. That way I can refactor the component and the tests still pass. My usual stack is Vitest (or Jest) as the test runner, jsdom as a fake browser DOM, React Testing Library to render and query, user-event to simulate real user actions, and jest-dom for readable matchers like toBeInTheDocument.',
+    code: `// vitest.config.js
+export default defineConfig({
+  plugins: [react()],
+  test: { environment: 'jsdom', globals: true, setupFiles: ['./setup.js'] },
+})
+// setup.js
+import '@testing-library/jest-dom/vitest'
+
+// Greeting.jsx
+export default function Greeting({ name }) {
+  return <h1>Hello, {name}!</h1>
+}
+
+// Greeting.test.jsx
+test('greets the user by name', () => {
+  render(<Greeting name="Asha" />)
+  expect(screen.getByRole('heading')).toHaveTextContent('Hello, Asha!')
+})`,
+    output: ` ✓ src/Greeting.test.jsx > greets the user by name
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'What is Vitest, and how do you set it up in a Vite + React project?',
+    level: 'Basics',
+    a: "Vitest is a test runner built on Vite, so it reuses my vite.config.js, plugins and aliases, understands JSX, TypeScript and ES modules without Babel, and has a Jest-compatible API (describe, it, expect, vi.fn). To set it up I install vitest, jsdom, React Testing Library and jest-dom as dev dependencies, then add a test block to vite.config.js with environment: 'jsdom', globals: true and a setup file that loads jest-dom. I add a \"test\": \"vitest\" script, which runs in watch mode and re-runs only the tests affected by my change, and in CI I use vitest run so it runs once and exits.",
+    code: `# 1. Install
+npm install -D vitest jsdom @testing-library/react @testing-library/jest-dom
+
+// 2. vite.config.js
+/// <reference types="vitest/config" />
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',              // fake browser DOM
+    globals: true,                     // describe / it / expect without imports
+    setupFiles: './src/setupTests.js', // runs before every test file
+  },
+})
+
+// 3. src/setupTests.js
+import '@testing-library/jest-dom/vitest'
+
+// 4. package.json
+"scripts": { "test": "vitest" }
+
+// 5. src/Greeting.test.jsx
+import { render, screen } from '@testing-library/react'
+import Greeting from './Greeting'
+
+describe('Greeting', () => {
+  it('shows the name', () => {
+    render(<Greeting name="Asha" />)
+    expect(screen.getByText('Hello, Asha')).toBeInTheDocument()
+  })
+})`,
+    output: `$ npm test -- --run --reporter=verbose
+
+ ✓ src/Greeting.test.jsx > Greeting > shows the name
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+npm test          -> watch mode, re-runs tests when files change
+npx vitest run    -> runs once and exits (use in CI)`,
+  },
+  {
     q: 'How do you test React components with React Testing Library?',
-    level: 'Advanced',
+    level: 'Basics',
     a: 'React Testing Library tests components the way a user uses them: I render the component, find elements by role, label or text, and fire events with user-event. I avoid testing internal state or implementation details, so refactoring does not break my tests. I run the tests with Vitest or Jest, and for async UI I use findBy queries, which wait for the element to appear.',
-    code: `import { render, screen } from '@testing-library/react'
+    code: `// Counter.jsx
+export default function Counter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>Clicked {count} times</button>
+}
+
+// Counter.test.jsx
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Counter from './Counter'
 
@@ -4434,8 +4999,248 @@ test('increments the count when clicked', async () => {
   await userEvent.click(screen.getByRole('button'))
   expect(screen.getByText('Clicked 1 times')).toBeInTheDocument()
 })`,
-    output: ` ✓ src/Counter.test.jsx (1)
-   ✓ increments the count when clicked
+    output: ` ✓ src/Counter.test.jsx > increments the count when clicked
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'getBy vs queryBy vs findBy vs getAllBy: which query should you use?',
+    level: 'Basics',
+    a: 'I use getBy when the element must be there right now, because it throws if it is missing. I use queryBy only to check that something is NOT there, because it returns null instead of throwing. I use findBy for things that appear later, since it returns a promise and retries until the element shows up (1 second by default), and the AllBy versions when I expect several matches. For which query to pick, I go in this order: getByRole first, then getByLabelText, getByText, and getByTestId only as a last resort.',
+    code: `// TodoList.jsx: loads two todos after 100ms
+useEffect(() => {
+  setTimeout(() => setTodos(['Learn RTL', 'Write tests']), 100)
+}, [])
+return <ul>{todos.map((t) => <li key={t}>{t}</li>)}</ul>
+
+// TodoList.test.jsx
+test('getBy, queryBy, findBy and getAllBy', async () => {
+  render(<TodoList />)
+  expect(screen.getByRole('list')).toBeInTheDocument()       // must exist now
+  expect(screen.queryByText('Learn RTL')).not.toBeInTheDocument() // may be absent
+  expect(await screen.findByText('Learn RTL')).toBeInTheDocument() // waits (up to 1s)
+  expect(screen.getAllByRole('listitem')).toHaveLength(2)    // many matches
+})`,
+    output: ` ✓ src/TodoList.test.jsx > getBy, queryBy, findBy and getAllBy
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'How do you test typing in an input and submitting a form with user-event?',
+    level: 'Intermediate',
+    a: 'I create a user with userEvent.setup(), then await user.type() and user.click(), because user-event fires the full chain of real browser events (focus, keydown, input, keyup) instead of a single fake event like fireEvent. I find the input by its label, which also checks that the form is accessible, and the button by role and name. Then I assert on what the user sees after submitting, not on the component state.',
+    code: `// LoginForm.jsx
+const [email, setEmail] = useState('')
+const [message, setMessage] = useState('')
+<form onSubmit={(e) => { e.preventDefault(); setMessage('Welcome ' + email) }}>
+  <label>Email <input value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+  <button type="submit">Log in</button>
+  <p>{message}</p>
+</form>
+
+// LoginForm.test.jsx
+test('types an email and submits the form', async () => {
+  const user = userEvent.setup()
+  render(<LoginForm />)
+  await user.type(screen.getByLabelText('Email'), 'asha@test.com')
+  await user.click(screen.getByRole('button', { name: 'Log in' }))
+  expect(screen.getByText('Welcome asha@test.com')).toBeInTheDocument()
+})`,
+    output: ` ✓ src/LoginForm.test.jsx > types an email and submits the form
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'How do you test a component that fetches data from an API?',
+    level: 'Intermediate',
+    a: 'I never call the real API in a unit test, because it is slow and flaky, so I mock fetch with vi.spyOn and return fake data. First I assert the loading state, then I await findByText, which waits until the data has rendered. I also check that fetch was called with the right URL. For bigger apps I prefer MSW, which mocks the network instead of the fetch function.',
+    code: `// Posts.jsx
+useEffect(() => {
+  fetch('https://jsonplaceholder.typicode.com/posts')
+    .then((res) => res.json())
+    .then(setPosts)
+}, [])
+if (!posts) return <p>Loading...</p>
+return <ul>{posts.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
+
+// Posts.test.jsx
+test('shows posts from the API', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+    json: async () => [{ id: 1, title: 'Hello world' }],
+  })
+  render(<Posts />)
+  expect(screen.getByText('Loading...')).toBeInTheDocument()
+  expect(await screen.findByText('Hello world')).toBeInTheDocument()
+  expect(fetch).toHaveBeenCalledWith('https://jsonplaceholder.typicode.com/posts')
+})`,
+    output: ` ✓ src/Posts.test.jsx > shows posts from the API
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'How do you mock functions and modules with vi.fn and vi.mock?',
+    level: 'Intermediate',
+    a: 'vi.fn() creates a mock function that records every call, so I pass it as a callback prop like onSubmit and then assert with toHaveBeenCalledWith. vi.mock(\'./module\') replaces a whole imported module, so every export becomes a mock function; I use it for things like analytics, logging or API clients that I do not want to run in a test. Vitest hoists vi.mock to the top of the file, so it applies before the component is imported. In Jest the same functions are jest.fn and jest.mock.',
+    code: `// SubscribeForm.jsx
+import { track } from './analytics'
+export default function SubscribeForm({ onSubmit }) {
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    track('subscribe')
+    onSubmit({ plan: 'pro' })
+  }
+  return <form onSubmit={handleSubmit}><button>Subscribe</button></form>
+}
+
+// SubscribeForm.test.jsx
+import { track } from './analytics'
+vi.mock('./analytics') // every export becomes a vi.fn()
+
+test('calls onSubmit and tracks the event', async () => {
+  const onSubmit = vi.fn()
+  render(<SubscribeForm onSubmit={onSubmit} />)
+  await userEvent.click(screen.getByRole('button', { name: 'Subscribe' }))
+  expect(onSubmit).toHaveBeenCalledWith({ plan: 'pro' })
+  expect(onSubmit).toHaveBeenCalledTimes(1)
+  expect(track).toHaveBeenCalledWith('subscribe')
+})`,
+    output: ` ✓ src/SubscribeForm.test.jsx > calls onSubmit and tracks the event
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'How do you test a custom hook with renderHook and act?',
+    level: 'Intermediate',
+    a: 'A hook can only run inside a component, so I use renderHook from React Testing Library, which renders a tiny test component for me. result.current always holds the latest return value of the hook. When I call something that updates state, I wrap it in act() so React finishes the update before I assert. If the hook is simple and only used in one component, I usually just test it through that component instead.',
+    code: `// useCounter.js
+export function useCounter(initial = 0) {
+  const [count, setCount] = useState(initial)
+  const increment = () => setCount((c) => c + 1)
+  const reset = () => setCount(initial)
+  return { count, increment, reset }
+}
+
+// useCounter.test.js
+test('increments and resets the count', () => {
+  const { result } = renderHook(() => useCounter(5))
+  expect(result.current.count).toBe(5)
+  act(() => result.current.increment())
+  expect(result.current.count).toBe(6)
+  act(() => result.current.reset())
+  expect(result.current.count).toBe(5)
+})`,
+    output: ` ✓ src/useCounter.test.js > increments and resets the count
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'What is snapshot testing, and when should you avoid it?',
+    level: 'Intermediate',
+    a: 'A snapshot test saves the rendered output to a __snapshots__ file the first time it runs, and later runs fail if the output changes; I update it on purpose with vitest -u. I use it only for small, stable pieces like a badge or an icon, or for serialized data. I avoid big component snapshots, because they break on every small markup change, people just press update without reading the diff, and they do not say what behavior matters. For most components I prefer explicit assertions with getByRole and toHaveTextContent.',
+    code: `// Badge.jsx
+export default function Badge({ status }) {
+  return <span className={'badge badge-' + status}>{status.toUpperCase()}</span>
+}
+
+// Badge.test.jsx
+test('matches the snapshot', () => {
+  const { container } = render(<Badge status="active" />)
+  expect(container.firstChild).toMatchSnapshot()
+})`,
+    output: ` ✓ src/Badge.test.jsx > matches the snapshot
+
+  Snapshots  1 written
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+// __snapshots__/Badge.test.jsx.snap (generated)
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[\`matches the snapshot 1\`] = \`
+<span
+  class="badge badge-active"
+>
+  ACTIVE
+</span>
+\`;`,
+  },
+  {
+    q: 'How do you test a component that uses Redux Toolkit or Context?',
+    level: 'Advanced',
+    a: 'A component that calls useSelector or useContext crashes without its Provider, so I write a small renderWithStore helper that creates a real store with configureStore and wraps the UI in <Provider>. I use the real reducers instead of mocking useSelector, so the test covers the component and the slice together, and preloadedState lets me start from any state. Then I click like a user and assert on the screen, and only check store.getState() when it adds value. For Context it is the same idea: I wrap the component in the real Provider with a test value.',
+    code: `// Cart.jsx shows "Items: N" and a button that dispatches addItem('Book')
+
+// Cart.test.jsx
+function renderWithStore(ui, preloadedState) {
+  const store = configureStore({ reducer: { cart: cartReducer }, preloadedState })
+  render(<Provider store={store}>{ui}</Provider>)
+  return store
+}
+
+test('adds an item to the real store', async () => {
+  const store = renderWithStore(<Cart />, { cart: { items: ['Pen'] } })
+  expect(screen.getByText('Items: 1')).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Add book' }))
+  expect(screen.getByText('Items: 2')).toBeInTheDocument()
+  expect(store.getState().cart.items).toEqual(['Pen', 'Book'])
+})`,
+    output: ` ✓ src/Cart.test.jsx > adds an item to the real store
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: 'Mock Service Worker (MSW) vs mocking fetch: which do you prefer?',
+    level: 'Advanced',
+    a: 'Mocking fetch with vi.spyOn is quick for one test, but it ties the test to how the code calls the network, so it breaks if I switch to axios or React Query. MSW intercepts the real HTTP request at the network level and returns my fake response, so the component code runs exactly as in production. I can also reuse the same handlers in tests, in Storybook and in the browser during development. So for a real app I prefer MSW, and I keep plain fetch mocks for tiny one-off cases.',
+    code: `// Posts.test.jsx: same Posts component, no fetch mock
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+
+const server = setupServer(
+  http.get('https://jsonplaceholder.typicode.com/posts', () =>
+    HttpResponse.json([{ id: 1, title: 'From MSW' }]),
+  ),
+)
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+test('shows posts returned by the mock server', async () => {
+  render(<Posts />)
+  expect(await screen.findByText('From MSW')).toBeInTheDocument()
+})`,
+    output: ` ✓ src/PostsMsw.test.jsx > shows posts returned by the mock server
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: "What unit testing have you done in your React projects?",
+    level: 'Intermediate',
+    a: "In my last project, an employee management and payroll app with a React and TypeScript front end, I wrote component tests with Vitest, React Testing Library and user-event. I mostly tested what the user sees and does: forms like the salary and leave forms showing validation errors, the employee table rendering the right rows, and the Save button being disabled while a request is in progress. I tested custom hooks like useEmployees with renderHook, and our Redux Toolkit slices as plain reducer functions. For API calls I used MSW, so the components made real fetch calls to fake handlers, and vi.mock for small modules like analytics. We aimed for about 80% coverage on the business logic rather than 100% everywhere, and GitHub Actions ran the tests on every pull request. When a bug was reported, I first wrote a failing test that reproduced it and then fixed it, so it could not come back.",
+    code: `// SalaryForm.test.jsx
+import { test, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import SalaryForm from './SalaryForm'
+
+test('shows an error for a negative salary', async () => {
+  const user = userEvent.setup()
+  render(<SalaryForm />)
+  await user.type(screen.getByLabelText('Salary'), '-500')
+  await user.click(screen.getByRole('button', { name: 'Save' }))
+  expect(screen.getByRole('alert')).toHaveTextContent('Salary must be greater than 0')
+})`,
+    output: `$ npx vitest run --reporter=verbose
+
+ ✓ src/SalaryForm.test.jsx > shows an error for a negative salary
 
  Test Files  1 passed (1)
       Tests  1 passed (1)`,
@@ -4618,7 +5423,7 @@ const id = useId()
     level: 'Advanced',
     a: 'Vite loads variables from .env files but exposes only the ones starting with VITE_ to my code, through import.meta.env instead of process.env. They are replaced at build time, so they end up inside the JavaScript bundle where anyone can read them; I never put secrets like private API keys there, those stay on a server. I use .env.development and .env.production for per-mode values, and .env.local for my own machine, which is git-ignored.',
     code: `# .env
-VITE_API_URL=https://api.example.com
+VITE_API_URL=https://jsonplaceholder.typicode.com
 DB_PASSWORD=secret123   # not exposed: no VITE_ prefix
 
 # .env.development
@@ -4629,7 +5434,7 @@ const API_URL = import.meta.env.VITE_API_URL
 console.log(import.meta.env.MODE)        // 'development' or 'production'
 console.log(import.meta.env.DB_PASSWORD) // undefined`,
     output: `npm run dev    -> VITE_API_URL = http://localhost:3000, MODE = development
-npm run build  -> VITE_API_URL = https://api.example.com, MODE = production
+npm run build  -> VITE_API_URL = https://jsonplaceholder.typicode.com, MODE = production
 DB_PASSWORD    -> undefined (only VITE_ variables reach the browser)
 
 VITE_ values are baked into the bundle: never put secrets there.`,

@@ -148,6 +148,17 @@ export default [
     ],
   },
   {
+    topic: 'Testing',
+    questions: [
+      'How do you unit test TypeScript code?',
+      'How do you type mocks in Vitest (vi.fn, vi.mocked)?',
+      'Does a passing type-check replace unit tests?',
+      'How do you test a generic function, and why use satisfies for test fixtures?',
+      'How do you test types with expectTypeOf and assertType?',
+      'What unit testing have you done in your TypeScript projects?',
+    ],
+  },
+  {
     topic: 'Coding round',
     questions: [
       'Write a typed groupBy function.',

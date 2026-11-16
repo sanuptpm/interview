@@ -180,6 +180,58 @@
   "level": "Coding round"
  },
  {
+  "title": "What is unit testing? Unit vs integration vs end-to-end tests?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you write a test with describe, it and expect?",
+  "level": "Basics"
+ },
+ {
+  "title": "toBe vs toEqual vs toStrictEqual, and other common matchers?",
+  "level": "Basics"
+ },
+ {
+  "title": "Jest vs Vitest: what is the difference?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are beforeEach, afterEach and beforeAll used for?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you test async code?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are mock functions (vi.fn / jest.fn)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is TDD (red, green, refactor)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you mock fetch or an API call in a test?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is vi.spyOn, and how do you restore mocks?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you test setTimeout or debounce with fake timers?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is code coverage, and what is good coverage?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What unit testing have you done in your JavaScript projects?",
+  "level": "Intermediate"
+ },
+ {
   "title": "Flatten a nested array without .flat()?",
   "level": "Coding round"
  },

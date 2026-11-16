@@ -80,6 +80,7 @@ function ReactRunner({ code = '', files: programFiles, tailwind = false, height 
             }),
             ...(allCode.includes('@tanstack/react-query') && { '@tanstack/react-query': '5.105.0' }),
             ...(allCode.includes('react-router') && { 'react-router-dom': '7.18.5' }),
+            ...(allCode.includes('zustand') && { zustand: '5.0.16' }),
           },
         }}
         options={{

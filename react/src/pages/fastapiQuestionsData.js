@@ -2072,6 +2072,29 @@ def test_me_with_fake_user():
 1 passed in 0.17s`,
   },
   {
+    q: "What unit testing have you done in your FastAPI projects?",
+    level: 'Intermediate',
+    a: "For the FastAPI back end of our payroll app, I wrote API tests with pytest and TestClient, which calls the app directly without starting a server. I tested every endpoint for the happy path and the error cases: 404 for a missing employee, 422 for invalid input like a negative salary, and 401 or 403 when the user isn't logged in or isn't an HR admin. I swapped dependencies with app.dependency_overrides, for example get_current_user with a fake admin and get_db with a fake or a test database. For the database layer I used a separate SQLite test database that a fixture created fresh for each test, so tests never touched real data and didn't depend on each other. I cleared the overrides after each test so one test couldn't leak into the next. The suite ran in GitHub Actions on every pull request, with about 80% coverage on the routes and services that handle payroll.",
+    code: `# test_main.py   (main.py has get_db and GET /employees)
+from fastapi.testclient import TestClient
+from main import app, get_db
+
+class FakeDB:
+    def get_employees(self):
+        return [{"id": 1, "name": "Asha", "salary": 50000}]
+
+def test_list_employees():
+    app.dependency_overrides[get_db] = lambda: FakeDB()
+    client = TestClient(app)
+    response = client.get("/employees")
+    assert response.status_code == 200
+    assert response.json() == [{"id": 1, "name": "Asha", "salary": 50000}]
+    app.dependency_overrides.clear()`,
+    output: `$ pytest -q
+.                                                                        [100%]
+1 passed in 0.16s`,
+  },
+  {
     q: "How do WebSockets work in FastAPI?",
     level: 'Advanced',
     a: "A WebSocket keeps one connection open so the server and client can both send messages any time, which is good for chat, live notifications, or dashboards. I use @app.websocket, accept the connection, and then loop over incoming messages with async for, which ends cleanly when the client leaves (with a while True loop I'd catch WebSocketDisconnect instead). For many users across several servers I'd use something like Redis pub/sub to broadcast.",

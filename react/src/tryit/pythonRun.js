@@ -63,6 +63,21 @@ async function runNow(code, onStatus) {
     },
   })
 
+  // Code can write its own modules (e.g. test_math.py for pytest) and import them.
+  // Forget modules from the working folder that an earlier run imported, and skip .pyc
+  // files, so an edited file is imported again instead of the old copy.
+  const scratch = pyodide.globals.get('dict')()
+  pyodide.runPython(
+    'import sys, os, importlib\n' +
+    'sys.dont_write_bytecode = True\n' +
+    'here = os.getcwd() + "/"\n' +
+    'for name in [n for n, m in list(sys.modules.items()) if (getattr(m, "__file__", None) or "").startswith(here)]:\n' +
+    '    del sys.modules[name]\n' +
+    'importlib.invalidate_caches()',
+    { globals: scratch },
+  )
+  scratch.destroy()
+
   // A fresh namespace for every run, so variables don't leak between runs.
   const namespace = pyodide.globals.get('dict')()
   namespace.set('__name__', '__main__')

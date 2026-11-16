@@ -142,6 +142,7 @@ export default [
       'How do you test async endpoints?',
       'How do you test a FastAPI app?',
       'How do you mock dependencies in tests with dependency_overrides?',
+      'What unit testing have you done in your FastAPI projects?',
     ],
   },
   {

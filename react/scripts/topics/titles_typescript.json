@@ -304,6 +304,30 @@
   "level": "Advanced"
  },
  {
+  "title": "How do you unit test TypeScript code?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you type mocks in Vitest (vi.fn, vi.mocked)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Does a passing type-check replace unit tests?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you test a generic function, and why use satisfies for test fixtures?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you test types with expectTypeOf and assertType?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What unit testing have you done in your TypeScript projects?",
+  "level": "Intermediate"
+ },
+ {
   "title": "Write a typed groupBy function.",
   "level": "Coding round"
  },

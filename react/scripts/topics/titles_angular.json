@@ -1,0 +1,342 @@
+[
+ {
+  "title": "What is Angular and why use it?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between Angular and React?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the Angular CLI and which commands do you use most?",
+  "level": "Basics"
+ },
+ {
+  "title": "What does an Angular project structure look like?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does an Angular app start (main.ts and bootstrapApplication)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between standalone components and NgModules?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a component and what goes in the @Component decorator?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are the lifecycle hooks and in what order do they run?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between the constructor and ngOnInit?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is view encapsulation?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is content projection (ng-content)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are ViewChild and ContentChild (and the viewChild() signal query)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are the types of data binding in Angular?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does two-way binding work ([(ngModel)] / banana in a box)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is a template reference variable?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the built-in control flow (@if, @for, @switch) and how is it different from *ngIf/*ngFor?",
+  "level": "Basics"
+ },
+ {
+  "title": "Why is track required in @for, and what do @empty and $index do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between attribute and structural directives?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create a custom attribute directive?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you use ngClass and ngStyle (and class/style bindings)?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you pass data from parent to child with @Input / input()?",
+  "level": "Basics"
+ },
+ {
+  "title": "How does a child send data to the parent with @Output / output()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is model() and how do you support two-way binding on your own component?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do sibling or unrelated components communicate?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are pipes and which built-in pipes do you use?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create a custom pipe?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between pure and impure pipes?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What does the async pipe do?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a service and what is dependency injection in Angular?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the inject() function and why is it preferred over constructor injection?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are useClass, useValue, useFactory and useExisting providers?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is an InjectionToken?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are hierarchical injectors?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are signals in Angular?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is computed()?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is effect() and when should you use it?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "When do you use signals vs RxJS?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you convert between signals and observables (toSignal / toObservable)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is linkedSignal()?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are resource() and httpResource()?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between an Observable and a Promise?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between Subject, BehaviorSubject and ReplaySubject?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do the map, filter and tap operators work?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between switchMap, mergeMap, concatMap and exhaustMap?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do debounceTime and distinctUntilChanged help with a search box?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you unsubscribe and avoid memory leaks (async pipe, takeUntilDestroyed)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you make HTTP calls with HttpClient?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are HTTP interceptors and how do you write a functional interceptor?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you handle HTTP errors and retry failed requests?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you set up routing (routes, provideRouter, router-outlet, routerLink)?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you read route parameters?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How does lazy loading work with loadComponent and loadChildren?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are route guards (functional CanActivate) and how do you write one?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is a route resolver?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between template-driven and reactive forms?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you build a reactive form with FormGroup, FormControl and FormBuilder?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do validators work, and how do you write a custom validator?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are typed reactive forms?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are Signal Forms?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does change detection work, and what is Zone.js?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is the difference between Default and OnPush change detection?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is zoneless change detection?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is @defer and how does it help performance?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you improve the performance of an Angular app?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you manage state with a service and signals?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are NgRx store, actions, reducers, selectors and effects?",
+  "level": "Advanced"
+ },
+ {
+  "title": "When do you use NgRx vs services with signals (and what is NgRx SignalStore)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you write a simple unit test in Angular?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you unit test a simple component (counter with a signal)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between Jasmine/Karma, Jest and Vitest for Angular?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you test a component with TestBed and ComponentFixture?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you test a component's input() and output()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you mock a service dependency in a component test?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What unit testing have you done in your Angular projects?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you test a service that uses HttpClient (HttpTestingController)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between AOT and JIT compilation (and what is Ivy)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What is SSR and hydration in Angular?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What are Angular Elements?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How does Angular protect against XSS (sanitization)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you migrate an older Angular app to standalone, the new control flow and signals?",
+  "level": "Advanced"
+ },
+ {
+  "title": "Build a counter component with signals.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Build a todo list with @for.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Build a search box with debounceTime and switchMap.",
+  "level": "Coding round"
+ },
+ {
+  "title": "Write a custom pipe (e.g. initials).",
+  "level": "Coding round"
+ },
+ {
+  "title": "Build a reactive form with validation.",
+  "level": "Coding round"
+ }
+]

@@ -2441,6 +2441,186 @@ print("freed:", watch() is None)`,
     output: `freed: True`,
   },
   {
+    q: "What is unit testing, and how is it different from integration testing?",
+    level: 'Basics',
+    a: "A unit test checks one small piece of code, usually a single function, on its own with known inputs and expected outputs. I write them because they catch bugs early, run in milliseconds, and let me refactor safely. An integration test checks that several parts work together, like my code with a real database or API, so it is slower and fails for more reasons. I keep many unit tests and fewer integration tests, and in unit tests I fake slow dependencies.",
+    code: `def is_even(n):
+    return n % 2 == 0
+
+# Unit tests: check one small function on its own
+assert is_even(4) is True
+assert is_even(7) is False
+assert is_even(0) is True
+print("all unit tests passed")
+
+try:
+    assert is_even(3), "3 should be even"   # a failing test
+except AssertionError as err:
+    print("failed:", err)`,
+    output: `all unit tests passed
+failed: 3 should be even`,
+  },
+  {
+    q: "How do you write and run tests with pytest?",
+    level: 'Basics',
+    a: "With pytest I put tests in files named test_*.py and write plain functions named test_*, using a normal assert statement. pytest finds them automatically, and when an assert fails it shows the actual values, so I don't need special assert methods. I run them with pytest from the project folder, and pytest -v lists every test with PASSED or FAILED. Here pytest.main() does the same as the command, so the example runs as a script.",
+    code: `from pathlib import Path
+import pytest
+
+Path("test_math.py").write_text('''
+def add(a, b):
+    return a + b
+
+def test_add():
+    assert add(2, 3) == 5
+
+def test_add_negative():
+    assert add(-1, 1) == 0
+''')
+
+pytest.main(["-v", "--no-header", "test_math.py"])   # same as: pytest -v test_math.py`,
+    output: `============================= test session starts ==============================
+collecting ... collected 2 items
+
+test_math.py::test_add PASSED                                            [ 50%]
+test_math.py::test_add_negative PASSED                                   [100%]
+
+============================== 2 passed in 0.01s ===============================`,
+  },
+  {
+    q: "What is the difference between unittest and pytest?",
+    level: 'Intermediate',
+    a: "unittest is built into Python: I write classes that subclass TestCase and use methods like assertEqual and assertRaises. pytest is a third-party package where tests are plain functions with plain assert, and it adds fixtures, parametrize, better failure messages and many plugins. pytest can also run existing unittest classes, so a team can switch without rewriting old tests. I prefer pytest for new projects and use unittest when I can't add dependencies.",
+    code: `from pathlib import Path
+import pytest
+
+Path("test_styles.py").write_text('''
+import unittest
+
+def add(a, b):
+    return a + b
+
+class TestAdd(unittest.TestCase):    # unittest style
+    def test_add(self):
+        self.assertEqual(add(2, 3), 5)
+
+def test_add_plain():                # pytest style
+    assert add(2, 3) == 5
+''')
+
+pytest.main(["-v", "--no-header", "test_styles.py"])`,
+    output: `============================= test session starts ==============================
+collecting ... collected 2 items
+
+test_styles.py::TestAdd::test_add PASSED                                 [ 50%]
+test_styles.py::test_add_plain PASSED                                    [100%]
+
+============================== 2 passed in 0.01s ===============================`,
+  },
+  {
+    q: "How do you run one test with many inputs using @pytest.mark.parametrize?",
+    level: 'Intermediate',
+    a: "I use @pytest.mark.parametrize when the same test should run with different inputs, instead of copying the test or looping inside it. I give it the argument names and a list of value tuples, and pytest runs the test once per tuple. Each case shows up as its own test with an id like test_is_even[7-False], so I can see exactly which input failed. It keeps edge cases like zero and negatives easy to add.",
+    code: `from pathlib import Path
+import pytest
+
+Path("test_even.py").write_text('''
+import pytest
+
+def is_even(n):
+    return n % 2 == 0
+
+@pytest.mark.parametrize("n, expected", [(2, True), (7, False), (0, True)])
+def test_is_even(n, expected):
+    assert is_even(n) == expected
+''')
+
+pytest.main(["-v", "--no-header", "test_even.py"])`,
+    output: `============================= test session starts ==============================
+collecting ... collected 3 items
+
+test_even.py::test_is_even[2-True] PASSED                                [ 33%]
+test_even.py::test_is_even[7-False] PASSED                               [ 66%]
+test_even.py::test_is_even[0-True] PASSED                                [100%]
+
+============================== 3 passed in 0.01s ===============================`,
+  },
+  {
+    q: "How do you test that code raises an exception with pytest.raises?",
+    level: 'Intermediate',
+    a: "I wrap the call in with pytest.raises(SomeError), and the test passes only if that exception is raised inside the block. I add match= with a regex to also check the error message, and the as err part lets me inspect err.value afterwards. If no exception is raised, pytest.raises fails the test with DID NOT RAISE. In unittest the same thing is self.assertRaises.",
+    code: `import pytest
+
+def divide(a, b):
+    if b == 0:
+        raise ValueError("cannot divide by zero")
+    return a / b
+
+with pytest.raises(ValueError, match="by zero") as err:
+    divide(10, 0)
+print("raised:", err.value)
+
+try:
+    with pytest.raises(ValueError):
+        divide(10, 2)                 # no error, so the check fails
+except pytest.fail.Exception as e:
+    print("test failed:", type(e).__name__)`,
+    output: `raised: cannot divide by zero
+test failed: Failed`,
+  },
+  {
+    q: "What are pytest fixtures, and how do conftest.py and fixture scope work?",
+    level: 'Intermediate',
+    a: "A fixture is a function marked with @pytest.fixture that prepares something a test needs, like data, a temp file or a database connection. A test asks for it just by naming it as a parameter, and code after yield runs as teardown. By default a fixture is created fresh for each test (scope=\"function\"); I use scope=\"module\" or \"session\" for expensive things like a DB connection. I put shared fixtures in conftest.py, and pytest makes them available to every test in that folder without imports.",
+    code: `from pathlib import Path
+import pytest
+
+Path("test_cart.py").write_text('''
+import pytest
+
+@pytest.fixture
+def cart():
+    items = ["apple"]          # setup: a fresh cart for every test
+    yield items
+    items.clear()              # teardown runs after the test
+
+def test_add_item(cart):
+    cart.append("pen")
+    assert len(cart) == 2
+
+def test_cart_is_fresh(cart):
+    assert cart == ["apple"]
+''')
+
+pytest.main(["-q", "test_cart.py"])`,
+    output: `..                                                                       [100%]
+2 passed in 0.01s`,
+  },
+  {
+    q: "What is TDD (test-driven development)?",
+    level: 'Intermediate',
+    a: "TDD means I write a failing test first, then write just enough code to make it pass, then refactor while the tests stay green. This cycle is called red, green, refactor. It makes me think about how the function will be used before writing it, and I end up with tests for every feature. I use it most for logic with clear inputs and outputs, like parsing or calculations.",
+    code: `# 1. Red: write the test first, before fizz() exists
+def test_fizz():
+    assert fizz(3) == "Fizz"
+    assert fizz(4) == "4"
+
+try:
+    test_fizz()
+except NameError as err:
+    print("red:", err)
+
+# 2. Green: write just enough code to pass
+def fizz(n):
+    return "Fizz" if n % 3 == 0 else str(n)
+
+test_fizz()
+print("green: test passes")
+# 3. Refactor: clean up the code, re-run the tests`,
+    output: `red: name 'fizz' is not defined
+green: test passes`,
+  },
+  {
     q: "How do you write unit tests with unittest and mock dependencies?",
     level: 'Advanced',
     a: "I subclass unittest.TestCase and write test_ methods using assertions like assertEqual and assertRaises, and setUp prepares shared data. For things like APIs or databases I use unittest.mock: patch replaces the real call with a Mock, so tests are fast and deterministic, and I can assert how it was called. In real projects I run them with python -m unittest or pytest; here I run them from code.",
@@ -2459,6 +2639,101 @@ class PriceTests(TestCase):
 result = PriceTests("test_price").run()
 print("ran:", result.testsRun, "ok:", result.wasSuccessful())`,
     output: `ran: 1 ok: True`,
+  },
+  {
+    q: "How do you mock with unittest.mock.patch, MagicMock and pytest's monkeypatch?",
+    level: 'Advanced',
+    a: "I mock dependencies like HTTP APIs so tests don't hit the network and always give the same result. unittest.mock.patch temporarily replaces a name with a MagicMock, which accepts any call and records it, so I can set return_value and later check assert_called_once. I patch the name where it is looked up (here test_posts.get_posts), not where it was defined. In pytest I often use the monkeypatch fixture, which replaces an attribute for one test and undoes it automatically.",
+    code: `from pathlib import Path
+import pytest
+
+Path("test_posts.py").write_text('''
+import json, urllib.request
+from unittest.mock import patch
+
+URL = "https://jsonplaceholder.typicode.com/posts"
+
+def get_posts():                     # the real network call
+    with urllib.request.urlopen(URL) as resp:
+        return json.load(resp)
+
+def first_title():
+    return get_posts()[0]["title"]
+
+def test_with_patch():
+    with patch("test_posts.get_posts", return_value=[{"title": "hi"}]) as fake:
+        assert first_title() == "hi"
+    fake.assert_called_once()
+
+def test_with_monkeypatch(monkeypatch):
+    monkeypatch.setattr("test_posts.get_posts", lambda: [{"title": "yo"}])
+    assert first_title() == "yo"
+''')
+
+pytest.main(["-v", "--no-header", "test_posts.py"])`,
+    output: `============================= test session starts ==============================
+collecting ... collected 2 items
+
+test_posts.py::test_with_patch PASSED                                    [ 50%]
+test_posts.py::test_with_monkeypatch PASSED                              [100%]
+
+============================== 2 passed in 0.01s ===============================`,
+  },
+  {
+    q: "How do you measure code coverage with coverage.py and pytest-cov?",
+    level: 'Advanced',
+    a: "Code coverage shows which lines my tests actually ran, so I can find untested code. I run coverage run -m pytest and then coverage report -m, or with the pytest-cov plugin just pytest --cov=myapp --cov-report=term-missing. The Missing column lists the line numbers no test reached, here the \"fail\" branch on line 5. I treat coverage as a guide, not a goal: 100% coverage still doesn't prove the asserts are good.",
+    code: `from pathlib import Path
+import coverage
+
+Path("grade.py").write_text('''
+def grade(score):
+    if score >= 50:
+        return "pass"
+    return "fail"
+''')
+
+cov = coverage.Coverage(data_file=None)
+cov.start()
+from grade import grade
+assert grade(80) == "pass"           # we only test the "pass" branch
+cov.stop()
+cov.report(show_missing=True)        # like: pytest --cov=grade --cov-report=term-missing`,
+    output: `Name       Stmts   Miss  Cover   Missing
+----------------------------------------
+grade.py       4      1    75%   5
+----------------------------------------
+TOTAL          4      1    75%`,
+  },
+  {
+    q: "What unit testing have you done in your Python projects?",
+    level: 'Intermediate',
+    a: "On the back end of our employee management and payroll app, I used pytest to test the plain Python business logic, separately from the API layer. The main part was the payroll rules: income tax slabs, overtime, leave deductions and pro-rated salary, and I used @pytest.mark.parametrize a lot so every slab boundary was its own test case. I kept shared test data, like a sample employee, in fixtures in conftest.py, and used pytest.raises to check that invalid input like a negative salary raised an error. For outside services like sending payslip emails, I used unittest.mock.patch or monkeypatch, so the tests never sent real emails or called the network. GitHub Actions ran pytest --cov on every pull request, and we kept about 80% coverage on the payroll module without chasing 100%. When a bug was reported, like the tax being wrong exactly at a slab limit, I first added that case as a failing test and then fixed the code.",
+    code: `from pathlib import Path
+import pytest
+
+Path("test_tax.py").write_text('''
+import pytest
+
+def income_tax(salary):
+    if salary <= 25000:
+        return 0
+    return round((salary - 25000) * 0.2, 2)
+
+@pytest.mark.parametrize("salary, expected", [(20000, 0), (25000, 0), (40000, 3000)])
+def test_income_tax(salary, expected):
+    assert income_tax(salary) == expected
+''')
+
+pytest.main(["-v", "--no-header", "test_tax.py"])`,
+    output: `============================= test session starts ==============================
+collecting ... collected 3 items
+
+test_tax.py::test_income_tax[20000-0] PASSED                             [ 33%]
+test_tax.py::test_income_tax[25000-0] PASSED                             [ 66%]
+test_tax.py::test_income_tax[40000-3000] PASSED                          [100%]
+
+============================== 3 passed in 0.01s ===============================`,
   },
   {
     q: "Coding: Reverse a string",

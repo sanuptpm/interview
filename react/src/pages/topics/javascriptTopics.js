@@ -164,6 +164,24 @@ export default [
     ],
   },
   {
+    topic: "Unit testing",
+    questions: [
+      "What is unit testing? Unit vs integration vs end-to-end tests?",
+      "How do you write a test with describe, it and expect?",
+      "toBe vs toEqual vs toStrictEqual, and other common matchers?",
+      "Jest vs Vitest: what is the difference?",
+      "What are beforeEach, afterEach and beforeAll used for?",
+      "How do you test async code?",
+      "What are mock functions (vi.fn / jest.fn)?",
+      "What is TDD (red, green, refactor)?",
+      "How do you mock fetch or an API call in a test?",
+      "What is vi.spyOn, and how do you restore mocks?",
+      "How do you test setTimeout or debounce with fake timers?",
+      "What is code coverage, and what is good coverage?",
+      "What unit testing have you done in your JavaScript projects?",
+    ],
+  },
+  {
     topic: "Coding: arrays & objects",
     questions: [
       "Remove duplicates from an array?",

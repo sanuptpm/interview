@@ -11,6 +11,10 @@ import reduxCounterSource from './pages/ReduxCounter.jsx?raw'
 import reduxStoreSource from './pages/reduxCounter/store.js?raw'
 import reduxSliceSource from './pages/reduxCounter/counterSlice.js?raw'
 import reduxComponentSource from './pages/reduxCounter/Counter.jsx?raw'
+import zqAppSource from './pages/ZustandQuery.jsx?raw'
+import zqStoreSource from './pages/zustandQuery/useFilterStore.js?raw'
+import zqApiSource from './pages/zustandQuery/postsApi.js?raw'
+import zqListSource from './pages/zustandQuery/PostList.jsx?raw'
 
 // Each page is loaded only when it is opened, to keep the first load small.
 const TopicsIndex = lazy(() => import('./pages/TopicsIndex.jsx'))
@@ -19,10 +23,12 @@ const BubbleSort = lazy(() => import('./pages/BubbleSort.jsx'))
 const StringReverse = lazy(() => import('./pages/StringReverse.jsx'))
 const Palindrome = lazy(() => import('./pages/Palindrome.jsx'))
 const ReduxCounter = lazy(() => import('./pages/ReduxCounter.jsx'))
+const ZustandQuery = lazy(() => import('./pages/ZustandQuery.jsx'))
 const CssQuestions = lazy(() => import('./pages/CssQuestions.jsx'))
 const JavaScript = lazy(() => import('./pages/JavaScript.jsx'))
 const TypeScriptQuestions = lazy(() => import('./pages/TypeScriptQuestions.jsx'))
 const ReactQuestions = lazy(() => import('./pages/ReactQuestions.jsx'))
+const AngularQuestions = lazy(() => import('./pages/AngularQuestions.jsx'))
 const PythonQuestions = lazy(() => import('./pages/PythonQuestions.jsx'))
 const FastApiQuestions = lazy(() => import('./pages/FastApiQuestions.jsx'))
 const DatabaseQuestions = lazy(() => import('./pages/DatabaseQuestions.jsx'))
@@ -94,6 +100,21 @@ const programs = [
     ],
   },
   {
+    path: '/zustand-tanstack-query',
+    group: 'program',
+    badge: 'Zustand',
+    badgeColor: 'bg-amber-50 text-amber-700',
+    title: 'Zustand + TanStack Query',
+    description: 'Client state in Zustand, server state in TanStack Query: filter, fetch, cache and add posts (jsonplaceholder API).',
+    component: ZustandQuery,
+    files: [
+      { name: 'zustandQuery/useFilterStore.js', code: zqStoreSource, sandpack: '/zustandQuery/useFilterStore.js' },
+      { name: 'zustandQuery/postsApi.js', code: zqApiSource, sandpack: '/zustandQuery/postsApi.js' },
+      { name: 'zustandQuery/PostList.jsx', code: zqListSource, sandpack: '/zustandQuery/PostList.js' },
+      { name: 'ZustandQuery.jsx (App)', code: zqAppSource, sandpack: '/App.js' },
+    ],
+  },
+  {
     path: '/css-questions',
     group: 'questions',
     badge: 'CSS',
@@ -128,6 +149,15 @@ const programs = [
     title: 'React Interview Questions',
     description: 'From JSX and props to hooks, performance and patterns, with live demos.',
     component: ReactQuestions,
+  },
+  {
+    path: '/angular-questions',
+    group: 'questions',
+    badge: 'Angular',
+    badgeColor: 'bg-rose-50 text-rose-700',
+    title: 'Angular Interview Questions',
+    description: 'Components, signals, RxJS, DI, routing, forms and modern Angular (standalone, @if/@for, zoneless).',
+    component: AngularQuestions,
   },
   {
     path: '/python-questions',

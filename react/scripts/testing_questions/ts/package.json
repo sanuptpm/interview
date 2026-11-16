@@ -1,0 +1,20 @@
+{
+  "name": "ts-testing-questions",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "q1": "vitest run q1 --reporter=verbose",
+    "q2": "vitest run q2 --reporter=verbose",
+    "q3": "vitest run q3 --typecheck.only --typecheck.tsconfig=tsconfig.q3.json --reporter=verbose",
+    "q4": "tsc --noEmit --strict --module esnext --moduleResolution bundler --target es2022 --skipLibCheck --ignoreConfig q4/*.ts; vitest run q4 --reporter=verbose",
+    "q5": "vitest run q5 --reporter=verbose",
+    "q5:typecheck": "tsc --noEmit --strict --module esnext --moduleResolution bundler --target es2022 --skipLibCheck --ignoreConfig q5/*.ts"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  },
+  "overrides": {
+    "vite": "8.3.5"
+  }
+}

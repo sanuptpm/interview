@@ -1226,6 +1226,182 @@ function log(msg) { console.log(msg) }`,
     output: `error TS18048: 'first' is possibly 'undefined'.
 error TS7006: Parameter 'msg' implicitly has an 'any' type.`,
   },
+  // Testing: real Vitest 5.0.5 output (TypeScript 7.0.2) from scripts/testing_questions/ts
+  {
+    q: "How do you unit test TypeScript code?",
+    level: 'Basics',
+    a: "I use Vitest, because it runs .ts test files directly through Vite, so there is no separate compile step or extra config. With Jest I would need ts-jest or Babel to transform the TypeScript first. I write a small typed function and a .test.ts file next to it with describe, it and expect. One thing to know is that Vitest only strips the types, it doesn't type-check, so I still run tsc in CI.",
+    code: `// sum.ts
+export function sum(a: number, b: number): number {
+  return a + b
+}
+
+// sum.test.ts
+import { describe, it, expect } from 'vitest'
+import { sum } from './sum'
+
+describe('sum', () => {
+  it('adds two numbers', () => {
+    expect(sum(2, 3)).toBe(5)
+  })
+})`,
+    output: `$ vitest run
+ ✓ sum.test.ts > sum > adds two numbers
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: "How do you type mocks in Vitest (vi.fn, vi.mocked)?",
+    level: 'Intermediate',
+    a: "I mock the API module with vi.mock so the test never hits the network, and then wrap the import in vi.mocked() to get the mock methods with the real types. That means mockResolvedValue only accepts a Post[], so a wrong fixture is a type error. For a standalone callback I pass the function type to vi.fn, like vi.fn<(id: number) => boolean>(). This keeps my mocks in sync when the real signature changes.",
+    code: `// api.ts
+export interface Post { id: number; title: string }
+export async function fetchPosts(): Promise<Post[]> {
+  const res = await fetch('https://jsonplaceholder.typicode.com/posts')
+  return res.json()
+}
+
+// titles.ts
+import { fetchPosts } from './api'
+export async function getTitles(): Promise<string[]> {
+  const posts = await fetchPosts()
+  return posts.map((p) => p.title)
+}
+
+// titles.test.ts
+import { it, expect, vi } from 'vitest'
+import { fetchPosts } from './api'
+import { getTitles } from './titles'
+
+vi.mock('./api')   // auto-mock the module, no real network call
+
+it('returns post titles', async () => {
+  vi.mocked(fetchPosts).mockResolvedValue([{ id: 1, title: 'Hello' }])
+  expect(await getTitles()).toEqual(['Hello'])
+  expect(fetchPosts).toHaveBeenCalledOnce()
+})
+
+it('types a standalone mock', () => {
+  const onSave = vi.fn<(id: number) => boolean>().mockReturnValue(true)
+  expect(onSave(1)).toBe(true)
+})`,
+    output: `$ vitest run
+ ✓ titles.test.ts > returns post titles
+ ✓ titles.test.ts > types a standalone mock
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)`,
+  },
+  {
+    q: "Does a passing type-check replace unit tests?",
+    level: 'Intermediate',
+    a: "No. I see types and tests as covering different things: tsc proves that the shapes line up, like passing a number where a number is expected. It can't tell me if the logic is right, so a function with perfect types can still return the wrong value. Tests check behaviour with real values and edge cases. So I run both in CI, and good types just mean I don't have to write tests for things like wrong argument types.",
+    code: `// discount.ts — types are perfect, the logic is wrong
+export function applyDiscount(price: number, pct: number): number {
+  return price * pct   // should be price * (1 - pct)
+}
+
+// discount.test.ts
+import { it, expect } from 'vitest'
+import { applyDiscount } from './discount'
+
+it('takes 10% off', () => {
+  expect(applyDiscount(100, 0.1)).toBe(90)
+})`,
+    output: `$ tsc --noEmit --strict
+(no errors)
+
+$ vitest run
+ × discount.test.ts > takes 10% off
+   → expected 10 to be 90 // Object.is equality
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)`,
+  },
+  {
+    q: "How do you test a generic function, and why use satisfies for test fixtures?",
+    level: 'Advanced',
+    a: "For a generic function I test it with a couple of different types and the edge cases, like an empty array. For fixtures I write the data with satisfies Post[] instead of as Post[]: satisfies checks every object against the interface, while as would silently accept a typo. It also keeps the exact inferred type of the fixture. Note that the test itself still passes, so it's tsc in CI that catches the typo.",
+    code: `// first.ts
+export function first<T>(items: T[]): T | undefined {
+  return items[0]
+}
+
+// first.test.ts
+import { it, expect } from 'vitest'
+import { first } from './first'
+import type { Post } from './api'   // interface Post { id: number; title: string }
+
+const posts = [
+  { id: 1, title: 'Hello' },
+  { id: 2, titel: 'World' },   // typo
+] satisfies Post[]
+
+it('returns the first item', () => {
+  expect(first(posts)?.id).toBe(1)
+  expect(first([])).toBeUndefined()
+})`,
+    output: `$ tsc --noEmit --strict
+error TS2561: Object literal may only specify known properties, but 'titel' does not exist in type 'Post'. Did you mean to write 'title'?
+
+$ vitest run
+ ✓ first.test.ts > returns the first item
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
+  {
+    q: "How do you test types with expectTypeOf and assertType?",
+    level: 'Advanced',
+    a: "When the types are the product, like in a library or a utility type, I write type tests in a .test-d.ts file. expectTypeOf(x).toEqualTypeOf<T>() checks the exact type, and assertType<T>(x) checks that a value is assignable to T. These are never run as code; vitest --typecheck runs tsc over them and reports a failing check as a test failure. Here the last line is wrong on purpose, to show what a failure looks like.",
+    code: `// toArray.test-d.ts
+import { expectTypeOf, assertType, test } from 'vitest'
+
+function toArray<T>(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value]
+}
+
+test('toArray types', () => {
+  expectTypeOf(toArray(1)).toEqualTypeOf<number[]>()
+  assertType<string[]>(toArray('a'))
+  expectTypeOf(toArray(['a'])).toEqualTypeOf<string[][]>()   // wrong on purpose
+})`,
+    output: `$ vitest run --typecheck.only
+ × toArray.test-d.ts:8 > toArray types
+   → Type 'string[][]' does not satisfy the constraint '"Expected ..., Actual string"[]'.
+  Type 'string[]' is not assignable to type '"Expected ..., Actual string"'.
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+Type Errors  no errors`,
+  },
+  {
+    q: "What unit testing have you done in your TypeScript projects?",
+    level: 'Intermediate',
+    a: "The front end of our payroll app was React with TypeScript, and I wrote the unit tests in TypeScript with Vitest. I typed the test data with the real interfaces like Employee and Payslip, so when the back end added a required field, the old fixtures stopped compiling before any test even ran. For the API layer I used vi.mock on the module and vi.mocked() around the import, so mockResolvedValue only accepted the real return type and a wrong fixture was a type error. I tested the typed helpers too, like the salary and tax utilities and a generic groupBy we used for the department report. I still wrote these tests even though tsc passed, because the type checker can't tell me that a tax calculation is wrong. GitHub Actions ran tsc --noEmit and the Vitest suite on every pull request, and we kept around 80% coverage on the business logic.",
+    code: `// payroll.test.ts   (fetchEmployees calls the API, getTotalPayroll adds the salaries)
+import { it, expect, vi } from 'vitest'
+import { fetchEmployees, type Employee } from './employeeApi'
+import { getTotalPayroll } from './payroll'
+
+vi.mock('./employeeApi')   // no real network call
+
+const employees: Employee[] = [
+  { id: 1, name: 'Asha', salary: 50000 },
+  { id: 2, name: 'Ravi', salary: 40000 },
+]
+
+it('adds up the salaries from the employee API', async () => {
+  vi.mocked(fetchEmployees).mockResolvedValue(employees)
+  expect(await getTotalPayroll()).toBe(90000)
+})`,
+    output: `$ vitest run
+ ✓ payroll.test.ts > adds up the salaries from the employee API
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)`,
+  },
   {
     q: "Write a typed groupBy function.",
     level: 'Coding round',

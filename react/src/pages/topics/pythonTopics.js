@@ -203,12 +203,27 @@ export default [
     ],
   },
   {
-    topic: 'Typing, memory & testing',
+    topic: 'Typing & memory',
     questions: [
       "What are type hints?",
       "How do you use Optional, Union, TypedDict and Protocol from typing?",
       "How does Python manage memory: reference counting, garbage collection and weakref?",
+    ],
+  },
+  {
+    topic: 'Unit testing',
+    questions: [
+      "What is unit testing, and how is it different from integration testing?",
+      "How do you write and run tests with pytest?",
+      "What is the difference between unittest and pytest?",
+      "How do you run one test with many inputs using @pytest.mark.parametrize?",
+      "How do you test that code raises an exception with pytest.raises?",
+      "What are pytest fixtures, and how do conftest.py and fixture scope work?",
+      "What is TDD (test-driven development)?",
       "How do you write unit tests with unittest and mock dependencies?",
+      "How do you mock with unittest.mock.patch, MagicMock and pytest's monkeypatch?",
+      "How do you measure code coverage with coverage.py and pytest-cov?",
+      "What unit testing have you done in your Python projects?",
     ],
   },
   {

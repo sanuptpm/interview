@@ -29,3 +29,9 @@ scripts/**/work
 
 # TypeScript compiler used only to generate/check the TypeScript question outputs
 scripts/ts_questions/node_modules
+
+# Test runners used only to generate the unit-testing question outputs
+scripts/testing_questions/**/node_modules
+
+# Angular/RxJS packages used only to generate the Angular question outputs
+scripts/angular_questions/node_modules

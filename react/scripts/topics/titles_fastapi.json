@@ -308,6 +308,10 @@
   "level": "Advanced"
  },
  {
+  "title": "What unit testing have you done in your FastAPI projects?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do WebSockets work in FastAPI?",
   "level": "Advanced"
  },
