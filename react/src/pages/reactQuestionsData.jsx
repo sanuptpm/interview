@@ -42,6 +42,18 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { create } from 'zustand'
+import axios, { AxiosError } from 'axios'
+import {
+  Link,
+  MemoryRouter,
+  Navigate,
+  Route,
+  Routes,
+  UNSAFE_LocationContext as LocationContext,
+  UNSAFE_RouteContext as RouteContext,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 
 const btn = 'rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500 disabled:opacity-50'
 const btnLight = 'rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:opacity-50'
@@ -2070,6 +2082,442 @@ function ReconcileDemo() {
   )
 }
 
+// Add to the top of a list: the new item goes first in the new array
+function AddToTopDemo() {
+  const [employees, setEmployees] = useState([
+    { id: 1, name: "Asha" },
+    { id: 2, name: "Ravi" },
+    { id: 3, name: "Meera" },
+  ]);
+  const [name, setName] = useState("Alex");
+  const nextId = () => Math.max(0, ...employees.map((e) => e.id)) + 1;
+
+  const addToTop = () => {
+    if (!name.trim()) return;
+    setEmployees((prev) => [{ id: nextId(), name: name.trim() }, ...prev]);
+    setName("");
+  };
+  const addToBottom = () => {
+    if (!name.trim()) return;
+    setEmployees((prev) => [...prev, { id: nextId(), name: name.trim() }]);
+    setName("");
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <input
+          className="rounded-lg border border-slate-300 px-2 py-1"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+        />
+        <button className={btn} onClick={addToTop}>
+          Add to top
+        </button>
+        <button className={btnLight} onClick={addToBottom}>
+          Add to bottom
+        </button>
+      </div>
+      <ol className="list-decimal pl-6">
+        {employees.map((e) => (
+          <li key={e.id}>
+            {e.name} <span className="text-xs text-slate-500">(id {e.id})</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/* ---------------- Authentication, authorization & interceptors ---------------- */
+
+// Authentication vs authorization: a fake "server" answers 401 (who are you?) or 403 (not allowed)
+const AUTH_USERS = {
+  guest: null,
+  asha: { name: "Asha", role: "viewer" },
+  ravi: { name: "Ravi", role: "admin" },
+};
+
+function checkRequest(user, action) {
+  if (!user) return "401 Unauthorized: please log in"; // authentication failed
+  if (action === "delete" && user.role !== "admin")
+    return "403 Forbidden: admins only"; // authorization failed
+  return action === "delete"
+    ? "200 OK: post deleted"
+    : "200 OK: here are the posts";
+}
+
+function AuthCheckDemo() {
+  const [who, setWho] = useState("guest");
+  const [log, setLog] = useState([]);
+  const user = AUTH_USERS[who];
+  const call = (action) =>
+    setLog((prev) =>
+      [
+        `${user?.name ?? "Guest"} (${user?.role ?? "not logged in"}) -> ${action}: ${checkRequest(user, action)}`,
+        ...prev,
+      ].slice(0, 5),
+    );
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {Object.keys(AUTH_USERS).map((key) => (
+          <button
+            key={key}
+            className={who === key ? btn : btnLight}
+            onClick={() => setWho(key)}
+          >
+            {AUTH_USERS[key]
+              ? `${AUTH_USERS[key].name} (${AUTH_USERS[key].role})`
+              : "Guest"}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button className={btnLight} onClick={() => call("view")}>
+          View posts
+        </button>
+        <button className={btnLight} onClick={() => call("delete")}>
+          Delete post
+        </button>
+      </div>
+      <ul className="space-y-1 font-mono text-xs">
+        {log.map((line, i) => (
+          <li key={log.length - i}>{line}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Protected routes: AuthContext + a ProtectedRoute wrapper around the route element
+const AuthContext = createContext(null);
+const useAuth = () => useContext(AuthContext);
+
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  return (
+    <AuthContext value={{ user, login: setUser, logout: () => setUser(null) }}>
+      {children}
+    </AuthContext>
+  );
+}
+
+function ProtectedRoute({ roles, children }) {
+  const { user } = useAuth();
+  const location = useLocation();
+  // Not logged in: go to /login and remember where the user wanted to go
+  if (!user)
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  // Logged in but wrong role
+  if (roles && !roles.includes(user.role))
+    return <Navigate to="/unauthorized" replace />;
+  return children;
+}
+
+function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const from = useLocation().state?.from || "/";
+  const signIn = (user) => {
+    login(user);
+    navigate(from, { replace: true }); // back to the page they asked for
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span>Login page.</span>
+      <button
+        className={btnLight}
+        onClick={() => signIn({ name: "Asha", role: "viewer" })}
+      >
+        Log in as Asha (viewer)
+      </button>
+      <button
+        className={btnLight}
+        onClick={() => signIn({ name: "Ravi", role: "admin" })}
+      >
+        Log in as Ravi (admin)
+      </button>
+    </div>
+  );
+}
+
+function AuthNav() {
+  const { user, logout } = useAuth();
+  const { pathname } = useLocation();
+  return (
+    <nav className="flex flex-wrap items-center gap-3 text-sm">
+      <Link className="text-indigo-600 underline" to="/">
+        Home
+      </Link>
+      <Link className="text-indigo-600 underline" to="/dashboard">
+        Dashboard
+      </Link>
+      <Link className="text-indigo-600 underline" to="/admin">
+        Admin
+      </Link>
+      <span className="text-slate-500">URL: {pathname}</span>
+      <span>{user ? `${user.name} (${user.role})` : "Guest"}</span>
+      {user && (
+        <button className={btnLight} onClick={logout}>
+          Log out
+        </button>
+      )}
+    </nav>
+  );
+}
+
+function ProtectedRoutesDemo() {
+  // This page already runs inside the site's router, and React Router doesn't allow a router
+  // inside another one, so the demo resets the router context first (not needed in a real app).
+  return (
+    <LocationContext.Provider value={null}>
+      <RouteContext.Provider
+        value={{ outlet: null, matches: [], isDataRoute: false }}
+      >
+        <AuthProvider>
+          <MemoryRouter>
+            <div className="space-y-2">
+              <AuthNav />
+              <Routes>
+                <Route path="/" element={<p>Home (public)</p>} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <p>Dashboard (any logged-in user)</p>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute roles={["admin"]}>
+                      <p>Admin panel (admins only)</p>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/unauthorized"
+                  element={<p>403: you don't have access to that page</p>}
+                />
+              </Routes>
+            </div>
+          </MemoryRouter>
+        </AuthProvider>
+      </RouteContext.Provider>
+    </LocationContext.Provider>
+  );
+}
+
+// Axios interceptors: add the token to every request, handle every error in one place
+const postsHttp = axios.create({
+  baseURL: "https://jsonplaceholder.typicode.com",
+});
+let httpToken = "abc123"; // set after login, kept in memory
+let httpLog = () => {};
+
+postsHttp.interceptors.request.use((config) => {
+  config.headers.Authorization = "Bearer " + httpToken;
+  config.startedAt = Date.now();
+  httpLog(
+    `request interceptor: ${config.method.toUpperCase()} ${config.url} + Authorization: Bearer ${httpToken}`,
+  );
+  return config;
+});
+
+postsHttp.interceptors.response.use(
+  (response) => {
+    httpLog(
+      `response interceptor: ${response.status} in ${Date.now() - response.config.startedAt} ms`,
+    );
+    return response;
+  },
+  (error) => {
+    const status = error.response?.status;
+    httpLog(
+      `error interceptor: ${status ?? "network error"}, handled in one place`,
+    );
+    if (status === 401) httpToken = null; // real app: log out and go to /login
+    return Promise.reject(
+      new Error(status === 404 ? "Post not found" : "Something went wrong"),
+    );
+  },
+);
+
+function InterceptorDemo() {
+  const [lines, setLines] = useState([]);
+  const load = async (id) => {
+    httpLog = (line) => setLines((prev) => [...prev, line]);
+    setLines([]);
+    try {
+      const { data } = await postsHttp.get("/posts/" + id);
+      httpLog(`component: "${data.title}"`);
+    } catch (err) {
+      httpLog(`component: ${err.message}`);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <button className={btnLight} onClick={() => load(1)}>
+          GET /posts/1
+        </button>
+        <button className={btnLight} onClick={() => load(9999)}>
+          GET /posts/9999 (404)
+        </button>
+      </div>
+      <ul className="space-y-1 font-mono text-xs">
+        {lines.map((line, i) => (
+          <li key={i}>{line}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Refresh token on 401. jsonplaceholder has no auth, so a fake "server" (an axios adapter)
+// checks the token first and then does the real request.
+let serverTokenVersion = 1;
+let refreshLog = () => {};
+const fetchAdapter = axios.getAdapter("fetch");
+
+async function fakeAuthServer(config) {
+  await wait(300);
+  if (config.url === "/refresh") {
+    refreshLog(`server: POST /refresh -> new token-${serverTokenVersion}`);
+    return {
+      data: { accessToken: "token-" + serverTokenVersion },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config,
+    };
+  }
+  const sent = config.headers.Authorization.replace("Bearer ", "");
+  if (sent !== "token-" + serverTokenVersion) {
+    refreshLog(`server: GET ${config.url} with ${sent} -> 401`);
+    throw new AxiosError("Unauthorized", "ERR_BAD_REQUEST", config, null, {
+      status: 401,
+      data: {},
+      headers: {},
+      config,
+    });
+  }
+  refreshLog(`server: GET ${config.url} with ${sent} -> 200`);
+  return fetchAdapter(config);
+}
+
+const authHttp = axios.create({
+  baseURL: "https://jsonplaceholder.typicode.com",
+  adapter: fakeAuthServer,
+});
+let accessToken = "token-1"; // in memory; the refresh token would be an httpOnly cookie
+let refreshing = null; // one shared refresh for all requests that fail at the same time
+let refreshCount = 0;
+
+authHttp.interceptors.request.use((config) => {
+  config.headers.Authorization = "Bearer " + accessToken;
+  return config;
+});
+
+authHttp.interceptors.response.use(undefined, async (error) => {
+  const original = error.config;
+  if (error.response?.status !== 401 || original._retry)
+    return Promise.reject(error);
+  original._retry = true; // retry only once, so we can't loop forever
+  refreshing ??= authHttp
+    .post("/refresh")
+    .then((res) => {
+      refreshCount++;
+      accessToken = res.data.accessToken;
+    })
+    .finally(() => {
+      refreshing = null;
+    });
+  await refreshing; // if refresh fails, this throws: real app logs out here
+  refreshLog(`interceptor: retry ${original.url} with ${accessToken}`);
+  return authHttp(original);
+});
+
+function RefreshTokenDemo() {
+  const [lines, setLines] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const loadThree = async () => {
+    refreshLog = (line) => setLines((prev) => [...prev, line]);
+    setLines([]);
+    setBusy(true);
+    try {
+      const results = await Promise.all(
+        [1, 2, 3].map((id) => authHttp.get("/posts/" + id)),
+      );
+      refreshLog(
+        `component: loaded ${results.length} posts, refresh called ${refreshCount} time(s) so far`,
+      );
+    } catch (err) {
+      refreshLog("component: " + err.message);
+    }
+    setBusy(false);
+  };
+  const expire = () => {
+    serverTokenVersion++; // the server no longer accepts the old access token
+    setLines([
+      `server: token-${serverTokenVersion - 1} expired (the client still has ${accessToken})`,
+    ]);
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <button className={btn} disabled={busy} onClick={loadThree}>
+          Load 3 posts at once
+        </button>
+        <button className={btnLight} disabled={busy} onClick={expire}>
+          Expire access token
+        </button>
+      </div>
+      <ul className="space-y-1 font-mono text-xs">
+        {lines.map((line, i) => (
+          <li key={i}>{line}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// useCallback with [] keeps the function from the first render, so it sees the first count forever
+function EmptyDepsCallbackDemo() {
+  const [count, setCount] = useState(0)
+  const [log, setLog] = useState([])
+  const show = (line) => setLog((prev) => [line, ...prev].slice(0, 4))
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- stale on purpose for the demo
+  const readStale = useCallback(() => show(`[] deps reads count = ${count}`), [])
+  const readFresh = useCallback(() => show(`[count] deps reads count = ${count}`), [count])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- stale on purpose for the demo
+  const addStale = useCallback(() => setCount(count + 1), []) // always 0 + 1
+  const addSafe = useCallback(() => setCount((c) => c + 1), []) // updater: [] is fine
+
+  return (
+    <div className="space-y-2">
+      <p>Count: {count}</p>
+      <div className="flex flex-wrap gap-2">
+        <button className={btn} onClick={addSafe}>+1 with updater ([] deps)</button>
+        <button className={btnLight} onClick={addStale}>+1 with count + 1 ([] deps)</button>
+        <button className={btnLight} onClick={readStale}>Read count ([] deps)</button>
+        <button className={btnLight} onClick={readFresh}>Read count ([count] deps)</button>
+      </div>
+      <ul className="space-y-1 font-mono text-xs">
+        {log.map((line, i) => (
+          <li key={log.length - i}>{line}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 /* ---------------------- Coverage additions ---------------------- */
 
 function DrillPage({ user }) {
@@ -2496,6 +2944,40 @@ const toggle = (id) =>
     output: <TodoDemo />,
   },
   {
+    q: "Program: how do you add an element to the top of a list in React state?",
+    level: "Basics",
+    a: "I create a new array with the new item first and spread the old items after it: setEmployees([{ id: 4, name: 'Alex' }, ...employees]). Putting the spread last is what makes it go to the top; spreading first and adding after puts it at the bottom. I don't use unshift, because it changes the same array in place, and React compares the old and new array by reference, so it would see no change and not re-render. When the new value depends on the old list I use the functional form, setEmployees(prev => [newItem, ...prev]), so two quick clicks never lose an item. Each item gets a unique id and I use it as the key, so React keeps the existing rows and only inserts one new row at the top; with index keys every row would shift.",
+    code: `const [employees, setEmployees] = useState([
+  { id: 1, name: 'Asha' },
+  { id: 2, name: 'Ravi' },
+  { id: 3, name: 'Meera' },
+])
+const [name, setName] = useState('Alex')
+const nextId = () => Math.max(0, ...employees.map((e) => e.id)) + 1
+
+// New item first, then the old items: it goes to the top
+const addToTop = () => {
+  setEmployees((prev) => [{ id: nextId(), name }, ...prev])
+  setName('')
+}
+// Old items first, then the new item: it goes to the bottom
+const addToBottom = () => {
+  setEmployees((prev) => [...prev, { id: nextId(), name }])
+  setName('')
+}
+
+// Wrong: unshift mutates the same array, so React doesn't re-render
+// employees.unshift({ id: 4, name: 'Alex' }); setEmployees(employees)
+
+<input value={name} onChange={(e) => setName(e.target.value)} />
+<button onClick={addToTop}>Add to top</button>
+<button onClick={addToBottom}>Add to bottom</button>
+<ol>
+  {employees.map((e) => <li key={e.id}>{e.name} (id {e.id})</li>)}
+</ol>`,
+    output: <AddToTopDemo />,
+  },
+  {
     q: 'How do you update nested object state?',
     level: 'Basics',
     a: 'I have to copy every level I change, because spread only makes a shallow copy. So I spread the outer object, then spread the nested object and override the one field. If my state gets deeply nested, I try to flatten it or use a reducer or a library like Immer to keep the updates readable.',
@@ -2907,32 +3389,253 @@ Rule of thumb: files that change together live together.`,
   {
     q: "How would you structure a large React application?",
     level: 'Advanced',
-    a: "I organise by feature, not by file type. Each module, like auth, employees or payroll, owns its pages, components, RTK Query endpoints, a small UI slice, types and schemas, and exposes a public API through an index.ts so other modules don't import its internals. The app/ folder holds the providers, store, router and layouts, shared/ holds reusable UI, hooks and utils, and services/api has one RTK Query baseApi that every module extends with injectEndpoints. I also lazy-load each module's routes, keep server data in RTK Query instead of slices, add a <Can> component for permission checks, and keep tests next to the code they test.",
-    code: `employee-management/src/
-├── app/
-│   ├── providers/   (Store, Theme)
-│   ├── router/      (AppRouter, ProtectedRoute, PermissionRoute, lazy routes)
-│   ├── store/       (store.ts, typed hooks.ts)
-│   └── layouts/     (MainLayout with <Outlet />, Header, Sidebar)
-├── modules/
-│   ├── auth/  dashboard/  attendance/  payroll/  reports/
-│   └── employees/
-│       ├── components/ pages/ routes/
-│       ├── services/employeeApi.ts   (baseApi.injectEndpoints)
-│       ├── store/employeeSlice.ts    (UI state only: filters, selection)
-│       ├── schemas/ types/
-│       └── index.ts                  (public API of the module)
-├── shared/      (components, hooks, utils, constants, <Can>)
-├── services/api/ (baseApi.ts, baseQueryWithReauth.ts)
-├── config/env.ts (validated env variables)
-└── test/        (setupTests, renderWithProviders, MSW mocks)`,
-    output: `Feature-based modules   -> each feature is self-contained, easy to find/delete
-index.ts per module     -> clear boundaries, no deep imports
-One RTK Query baseApi   -> one cache, shared tags, auth/refresh in one place
-Slices = UI state only  -> server data lives in RTK Query's cache
-Lazy-loaded routes      -> login page doesn't download payroll code
-<Can> + PermissionRoute -> page-level and button-level permissions
-Tests next to the code  -> plus MSW mocks and Playwright e2e tests`,
+    a: "I organise a large app into layers with clear jobs, and every business feature lives in its own module. app/ is the wiring that runs once: main.tsx and App.tsx, the router (it collects each module's routes.tsx, lazy-loads them and wraps private ones in ProtectedRoute), AppProviders with React Query and the theme, the layouts (MainLayout for logged-in pages, AuthLayout for login) and a global error boundary plus a 404 page. core/ holds the app-wide services there is exactly one of: the axios instance with interceptors and one error handler, auth (service, a Zustand store with the user and the in-memory token, and the useAuth hook), permissions with a <Can> component, constants, and config/env.ts, which reads and validates the VITE_ variables once. modules/ has dashboard, employees, attendance, payroll and recruitment, and each has the same shape: pages, components, services for API calls, React Query hooks, a store for UI state only like filters, Zod schemas, types, utils, tests and its own routes.tsx. shared/ is the UI kit and generic helpers with no business logic, one folder per component. The import rule keeps it maintainable: modules can use core and shared, but never another module's internals, and shared never imports app code. That way a team can work on payroll without touching employees, each module is lazy-loaded, and server data lives in React Query while Zustand only holds UI state.",
+    code: `hr-payroll-app/
+│
+├── public/
+│   ├── images/
+│   ├── icons/
+│   └── favicon.ico
+│
+├── src/
+│   │
+│   ├── app/
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   │
+│   │   ├── router/
+│   │   │   ├── index.tsx
+│   │   │   ├── routeConfig.ts
+│   │   │   └── ProtectedRoute.tsx
+│   │   │
+│   │   ├── providers/
+│   │   │   ├── AppProviders.tsx
+│   │   │   ├── QueryProvider.tsx
+│   │   │   └── ThemeProvider.tsx
+│   │   │
+│   │   ├── layouts/
+│   │   │   ├── MainLayout.tsx
+│   │   │   ├── AuthLayout.tsx
+│   │   │   └── components/
+│   │   │       ├── Header.tsx
+│   │   │       ├── Sidebar.tsx
+│   │   │       └── Footer.tsx
+│   │   │
+│   │   └── error/
+│   │       ├── GlobalErrorBoundary.tsx
+│   │       └── NotFound.tsx
+│   │
+│   ├── core/
+│   │   ├── api/
+│   │   │   ├── axiosInstance.ts
+│   │   │   ├── apiEndpoints.ts
+│   │   │   └── apiErrorHandler.ts
+│   │   │
+│   │   ├── auth/
+│   │   │   ├── authService.ts
+│   │   │   ├── authStore.ts
+│   │   │   ├── useAuth.ts
+│   │   │   └── authTypes.ts
+│   │   │
+│   │   ├── permissions/
+│   │   │   ├── permissions.ts
+│   │   │   ├── permissionService.ts
+│   │   │   └── Can.tsx
+│   │   │
+│   │   ├── constants/
+│   │   │   └── appConstants.ts
+│   │   │
+│   │   ├── hooks/
+│   │   │   └── useDebounce.ts
+│   │   │
+│   │   └── config/
+│   │       └── env.ts
+│   │
+│   ├── modules/
+│   │   │
+│   │   ├── dashboard/
+│   │   │   ├── pages/
+│   │   │   │   └── Dashboard.tsx
+│   │   │   ├── components/
+│   │   │   ├── services/
+│   │   │   ├── hooks/
+│   │   │   ├── types/
+│   │   │   └── routes.tsx
+│   │   │
+│   │   ├── employees/
+│   │   │   ├── pages/
+│   │   │   │   ├── EmployeeList.tsx
+│   │   │   │   ├── EmployeeDetails.tsx
+│   │   │   │   └── AddEmployee.tsx
+│   │   │   ├── components/
+│   │   │   │   ├── EmployeeTable.tsx
+│   │   │   │   ├── EmployeeForm.tsx
+│   │   │   │   └── EmployeeFilters.tsx
+│   │   │   ├── services/
+│   │   │   │   └── employeeService.ts
+│   │   │   ├── hooks/
+│   │   │   │   └── useEmployees.ts
+│   │   │   ├── store/
+│   │   │   │   └── employeeFilterStore.ts
+│   │   │   ├── schemas/
+│   │   │   │   └── employeeSchema.ts
+│   │   │   ├── types/
+│   │   │   │   └── employeeTypes.ts
+│   │   │   ├── utils/
+│   │   │   ├── tests/
+│   │   │   └── routes.tsx
+│   │   │
+│   │   ├── attendance/
+│   │   │   ├── pages/
+│   │   │   ├── components/
+│   │   │   ├── services/
+│   │   │   ├── hooks/
+│   │   │   ├── store/
+│   │   │   ├── types/
+│   │   │   └── routes.tsx
+│   │   │
+│   │   ├── payroll/
+│   │   │   ├── pages/
+│   │   │   ├── components/
+│   │   │   ├── services/
+│   │   │   ├── hooks/
+│   │   │   ├── store/
+│   │   │   ├── schemas/
+│   │   │   ├── types/
+│   │   │   ├── utils/
+│   │   │   └── routes.tsx
+│   │   │
+│   │   └── recruitment/
+│   │       ├── pages/
+│   │       ├── components/
+│   │       ├── services/
+│   │       ├── hooks/
+│   │       ├── store/
+│   │       ├── types/
+│   │       └── routes.tsx
+│   │
+│   ├── shared/
+│   │   ├── components/
+│   │   │   ├── Button/
+│   │   │   ├── Input/
+│   │   │   ├── Modal/
+│   │   │   ├── DataTable/
+│   │   │   ├── Loader/
+│   │   │   └── ErrorMessage/
+│   │   │
+│   │   ├── hooks/
+│   │   ├── utils/
+│   │   ├── types/
+│   │   ├── constants/
+│   │   └── validators/
+│   │
+│   ├── assets/
+│   │   ├── images/
+│   │   ├── icons/
+│   │   └── styles/
+│   │       ├── globals.css
+│   │       └── variables.css
+│   │
+│   └── test/
+│       ├── setup.ts
+│       └── testUtils.tsx
+│
+├── .env.development
+├── .env.production
+├── .env.example
+├── .gitignore
+├── eslint.config.js
+├── tsconfig.json
+├── vite.config.ts
+├── package.json
+└── README.md`,
+    output: `FOLDER BY FOLDER
+
+public/                    Copied to the build as-is, served from "/": favicon, images
+                           that are never imported in code (email logos, og images).
+
+src/app/  (wiring: runs once, imports from everywhere, nothing imports it)
+  main.tsx                 Entry point: createRoot(...).render(<App />)
+  App.tsx                  <AppProviders> + <RouterProvider router={router} />
+  router/index.tsx         createBrowserRouter: collects every module's routes.tsx,
+                           lazy-loads them, puts them under the right layout
+  router/routeConfig.ts    Path constants (ROUTES.EMPLOYEES = '/employees'), so
+                           links never hard-code strings
+  router/ProtectedRoute    Not logged in -> <Navigate to="/login" />
+  providers/AppProviders   One component that nests QueryProvider, ThemeProvider...
+  providers/QueryProvider  new QueryClient() + defaults (staleTime, retry)
+  providers/ThemeProvider  Light/dark theme context
+  layouts/MainLayout       Header + Sidebar + <Outlet /> + Footer for logged-in pages
+  layouts/AuthLayout       Plain centred card for login / forgot password
+  error/GlobalErrorBoundary  Catches render crashes: "Something went wrong" + retry
+  error/NotFound           The "*" route (404 page)
+
+src/core/  (app-wide services: exactly one of each, no UI pages)
+  api/axiosInstance.ts     axios.create({ baseURL: env.apiUrl }) + interceptors:
+                           add Bearer token, refresh on 401, retry once
+  api/apiEndpoints.ts      All URLs in one place: EMPLOYEES: '/employees'
+  api/apiErrorHandler.ts   Turns any error into one shape { status, message } for toasts
+  auth/authService.ts      login(), logout(), refresh(): the API calls
+  auth/authStore.ts        Zustand store: user, accessToken (in memory), isLoggedIn
+  auth/useAuth.ts          The hook components use: const { user, login } = useAuth()
+  auth/authTypes.ts        User, Role, LoginRequest, LoginResponse types
+  permissions/permissions.ts       Role -> permissions map
+                                   (hr: ['employee.view', 'payroll.run'])
+  permissions/permissionService.ts hasPermission(user, 'payroll.run')
+  permissions/Can.tsx      <Can perform="payroll.run"><RunButton /></Can>
+                           (hides buttons; the backend still checks)
+  constants/appConstants   PAGE_SIZE, DATE_FORMAT, ROLES
+  hooks/useDebounce        App-wide hooks the core layer itself needs
+  config/env.ts            Reads import.meta.env.VITE_* once, validates it, exports
+                           a typed object; the app fails fast if a variable is missing
+
+src/modules/  (one folder per business feature; same shape every time)
+  pages/        Route-level screens: EmployeeList, EmployeeDetails, AddEmployee
+  components/   Used only inside this module: EmployeeTable, EmployeeForm, EmployeeFilters
+  services/     API calls for this feature: employeeService.getAll(params)
+                using core's axiosInstance + apiEndpoints
+  hooks/        React Query hooks: useEmployees(filters) -> { data, isLoading }
+  store/        Client/UI state only (Zustand): employeeFilterStore = search,
+                department, page. Server data stays in React Query, never here
+  schemas/      Zod schemas for forms and API data: employeeSchema
+                (also gives the TS type with z.infer)
+  types/        Employee, EmployeeFilters
+  utils/        Feature helpers: calculateNetSalary() in payroll
+  tests/        Tests for this module
+  routes.tsx    The module's own routes; app/router just collects them
+
+  dashboard, employees, attendance, payroll, recruitment: each one can be built,
+  tested, lazy-loaded or removed on its own.
+
+src/shared/  (reusable, no business logic: could be copied to another project)
+  components/Button/   One folder per component: Button.tsx, Button.test.tsx, index.ts
+  DataTable, Modal, Input, Loader, ErrorMessage: the app's UI kit
+  hooks/ utils/ types/ constants/ validators/   Generic helpers: formatDate,
+                       usePagination, email/phone validators
+
+src/assets/    Imported files: images, icons, styles/globals.css, variables.css
+src/test/      setup.ts (jest-dom matchers, MSW server) and testUtils.tsx
+               (renderWithProviders wraps QueryClient + Router for every test)
+
+Root files
+  .env.development / .env.production   VITE_API_URL per mode (no secrets: they ship
+                                        in the bundle)
+  .env.example        Committed list of required variables, without real values
+  eslint.config.js, tsconfig.json (path alias @/ -> src/), vite.config.ts,
+  package.json, README.md (how to run, env setup, folder rules)
+
+IMPORT RULES (what keeps it clean)
+  app      -> can import anything
+  modules  -> core, shared      (never another module's internals)
+  core     -> shared
+  shared   -> nothing app-specific
+
+ONE REQUEST THROUGH THE LAYERS
+  /employees -> router/index.tsx -> ProtectedRoute -> MainLayout -> EmployeeList
+    -> useEmployees(filters from employeeFilterStore)        React Query cache
+    -> employeeService.getAll() -> axiosInstance             token added by interceptor
+    -> EmployeeTable renders shared <DataTable>, <Loader>, <ErrorMessage>
+    -> <Can perform="employee.create"> shows "Add employee" only to HR`,
   },
   {
     q: 'What are hooks in React, and what types of hooks are there?',
@@ -3670,6 +4373,27 @@ useEffect(() => {
 <input value={query} onChange={(e) => setQuery(e.target.value)} />
 <button onClick={() => setDark(!dark)}>Toggle theme</button>`,
     output: <CallbackEffectDemo />,
+  },
+  {
+    q: 'What happens if you provide an empty dependency array to useCallback?',
+    level: 'Intermediate',
+    a: "With an empty array, useCallback creates the function once on the first render and returns that same function on every later render, until the component unmounts. That gives a stable reference, which is good for a memo child or an effect dependency. The catch is the stale closure: the function remembers the props and state from the first render, so if it reads count it always sees 0, and setCount(count + 1) always sets 1. It's safe only when the function uses nothing that changes, or only uses things React keeps stable, like the setState function, a ref, or the updater form setCount(c => c + 1). Otherwise I list every value it uses in the array, and I keep the exhaustive-deps lint rule on so it warns me.",
+    code: `const [count, setCount] = useState(0)
+
+// Created once: always sees count from the first render (0)
+const readStale = useCallback(() => console.log(count), [])
+const addStale = useCallback(() => setCount(count + 1), []) // always sets 1
+
+// Fixes
+const readFresh = useCallback(() => console.log(count), [count]) // new function when count changes
+const addSafe = useCallback(() => setCount((c) => c + 1), [])    // updater: [] is fine
+
+<p>Count: {count}</p>
+<button onClick={addSafe}>+1 with updater ([] deps)</button>
+<button onClick={addStale}>+1 with count + 1 ([] deps)</button>
+<button onClick={readStale}>Read count ([] deps)</button>
+<button onClick={readFresh}>Read count ([count] deps)</button>`,
+    output: <EmptyDepsCallbackDemo />,
   },
   {
     q: 'useEffect vs useCallback: what is the difference?',
@@ -5843,6 +6567,160 @@ Viewer opens /payroll -> redirected to /unauthorized
 Admin  opens /payroll -> Payroll page
 
 Frontend checks = better UX; backend checks = real security`,
+  },
+  {
+    q: "What is the difference between authentication and authorization?",
+    level: "Basics",
+    a: "Authentication answers 'who are you?': the user proves their identity with a password, Google login or OTP, and gets a token or session. Authorization answers 'what are you allowed to do?': with the identity known, the server checks the user's role or permissions for this action. Authentication always comes first. When it fails the server returns 401 Unauthorized (really meaning not authenticated), and when you are logged in but not allowed it returns 403 Forbidden. In React I do both for user experience, like redirecting guests to /login and hiding admin buttons, but the real checks always happen on the server.",
+    code: `const USERS = { guest: null, asha: { name: 'Asha', role: 'viewer' }, ravi: { name: 'Ravi', role: 'admin' } }
+
+// What the server does for every request
+function checkRequest(user, action) {
+  if (!user) return '401 Unauthorized: please log in'             // authentication failed
+  if (action === 'delete' && user.role !== 'admin')
+    return '403 Forbidden: admins only'                           // authorization failed
+  return action === 'delete' ? '200 OK: post deleted' : '200 OK: here are the posts'
+}
+
+checkRequest(USERS.guest, 'view')    // who are you?
+checkRequest(USERS.asha, 'delete')   // you're Asha, but not an admin
+checkRequest(USERS.ravi, 'delete')   // admin: allowed`,
+    output: <AuthCheckDemo />,
+  },
+  {
+    q: "How do you create protected routes (route guards) with React Router?",
+    level: "Intermediate",
+    a: "I keep the logged-in user in an AuthContext and wrap private pages in a ProtectedRoute component. If there is no user it returns <Navigate to=\"/login\" replace />, and I pass the current path in state so after login I can send the user back to the page they asked for. If the route needs a role, like admin, and the user doesn't have it, I redirect to /unauthorized. I use replace so the blocked URL doesn't stay in the browser history. This is the React version of Angular's canActivate guard, and it only protects the UI: the API must still check the token and role.",
+    code: `import { createContext, useContext, useState } from 'react'
+import { MemoryRouter, Routes, Route, Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+
+const AuthContext = createContext(null)
+const useAuth = () => useContext(AuthContext)
+
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
+  return <AuthContext value={{ user, login: setUser, logout: () => setUser(null) }}>{children}</AuthContext>
+}
+
+function ProtectedRoute({ roles, children }) {
+  const { user } = useAuth()
+  const location = useLocation()
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (roles && !roles.includes(user.role)) return <Navigate to="/unauthorized" replace />
+  return children
+}
+
+function LoginPage() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const from = useLocation().state?.from || '/'
+  const signIn = (user) => { login(user); navigate(from, { replace: true }) }
+  return (
+    <div>
+      <button onClick={() => signIn({ name: 'Asha', role: 'viewer' })}>Log in as Asha (viewer)</button>
+      <button onClick={() => signIn({ name: 'Ravi', role: 'admin' })}>Log in as Ravi (admin)</button>
+    </div>
+  )
+}
+
+function AuthNav() {
+  const { user, logout } = useAuth()
+  const { pathname } = useLocation()
+  return (
+    <nav>
+      <Link to="/">Home</Link> | <Link to="/dashboard">Dashboard</Link> | <Link to="/admin">Admin</Link>
+      {' '}URL: {pathname} | {user ? user.name + ' (' + user.role + ')' : 'Guest'}
+      {user && <button onClick={logout}>Log out</button>}
+    </nav>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <MemoryRouter>
+        <AuthNav />
+        <Routes>
+          <Route path="/" element={<p>Home (public)</p>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<ProtectedRoute><p>Dashboard (any logged-in user)</p></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute roles={['admin']}><p>Admin panel (admins only)</p></ProtectedRoute>} />
+          <Route path="/unauthorized" element={<p>403: you don't have access to that page</p>} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>
+  )
+}`,
+    output: <ProtectedRoutesDemo />,
+  },
+  {
+    q: "What are HTTP interceptors, and how do you use axios interceptors in React?",
+    level: "Intermediate",
+    a: "An interceptor is a function that runs for every request before it is sent, or for every response before my component gets it. I create one axios instance for the app and add interceptors to it once. In the request interceptor I attach the Authorization: Bearer token, and I can add headers like a language or request id. In the response interceptor I handle errors in one place: a 401 logs the user out, other errors become a friendly message or a toast, and I can log timings. Components then just call api.get('/posts/1') and don't repeat this logic. Without axios I get the same effect with a small fetch wrapper function, and in Angular the same idea is an HttpInterceptor.",
+    code: `import axios from 'axios'
+
+const api = axios.create({ baseURL: 'https://jsonplaceholder.typicode.com' })
+let token = 'abc123' // set after login, kept in memory
+
+// Runs before every request is sent
+api.interceptors.request.use((config) => {
+  config.headers.Authorization = 'Bearer ' + token
+  config.startedAt = Date.now()
+  return config
+})
+
+// Runs for every response (first function) and every error (second function)
+api.interceptors.response.use(
+  (response) => {
+    console.log(response.status, 'in', Date.now() - response.config.startedAt, 'ms')
+    return response
+  },
+  (error) => {
+    const status = error.response?.status
+    if (status === 401) token = null // log out and go to /login
+    return Promise.reject(new Error(status === 404 ? 'Post not found' : 'Something went wrong'))
+  }
+)
+
+// In a component: no token or error code here
+try {
+  const { data } = await api.get('/posts/1')
+  setTitle(data.title)
+} catch (err) {
+  setError(err.message)
+}`,
+    output: <InterceptorDemo />,
+  },
+  {
+    q: "How do you refresh an expired access token with an interceptor (401, refresh, retry)?",
+    level: "Advanced",
+    a: "The access token is short-lived and kept in memory, and the refresh token is in an httpOnly cookie. In the response interceptor, when a request fails with 401 I mark it with _retry so it is retried only once, call /refresh to get a new access token, and then send the original request again. The request interceptor adds the new token. The tricky part is several requests failing at the same time: I store the refresh promise in one variable, so they all wait for a single refresh instead of calling it three times. If the refresh itself fails, the session has really ended, so I clear the token and redirect to /login. In this demo a fake server (an axios adapter) does the token check, because jsonplaceholder has no auth; the posts themselves come from jsonplaceholder.",
+    code: `const api = axios.create({ baseURL: 'https://jsonplaceholder.typicode.com' })
+let accessToken = 'token-1' // in memory; refresh token is an httpOnly cookie
+let refreshing = null       // one shared refresh for all failing requests
+
+api.interceptors.request.use((config) => {
+  config.headers.Authorization = 'Bearer ' + accessToken
+  return config
+})
+
+api.interceptors.response.use(undefined, async (error) => {
+  const original = error.config
+  if (error.response?.status !== 401 || original._retry) return Promise.reject(error)
+  original._retry = true // retry only once, never loop
+
+  refreshing ??= api
+    .post('/refresh') // the browser sends the httpOnly cookie
+    .then((res) => { accessToken = res.data.accessToken })
+    .finally(() => { refreshing = null })
+
+  await refreshing // refresh failed? it throws: clear the token, go to /login
+  return api(original) // retry with the new token
+})
+
+// Three requests at once with an expired token
+await Promise.all([1, 2, 3].map((id) => api.get('/posts/' + id)))`,
+    output: <RefreshTokenDemo />,
   },
   {
     q: 'How do environment variables work in Vite?',

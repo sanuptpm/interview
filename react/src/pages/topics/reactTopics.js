@@ -39,6 +39,7 @@ export default [
     topic: 'Updating state',
     questions: [
       "How do you add, remove, update and toggle items in array state? (todo list)",
+      "Program: how do you add an element to the top of a list in React state?",
       "How do you update nested object state?",
       "Derived state vs duplicated state",
       "Why should state be immutable? How do you update arrays and objects?",
@@ -133,6 +134,7 @@ export default [
       "What is useMemo?",
       "What is useCallback?",
       "When should you use useCallback (and when not)?",
+      "What happens if you provide an empty dependency array to useCallback?",
       "What are useTransition and useDeferredValue?",
       "What is startTransition, and how is it different from useTransition?",
     ],
@@ -237,6 +239,15 @@ export default [
       "How do you build an accessible modal that closes on Escape and manages focus?",
       "How do you make React components accessible?",
       "How does React protect against XSS, and when is dangerouslySetInnerHTML risky?",
+    ],
+  },
+  {
+    topic: 'Authentication, authorization & interceptors',
+    questions: [
+      "What is the difference between authentication and authorization?",
+      "How do you create protected routes (route guards) with React Router?",
+      "What are HTTP interceptors, and how do you use axios interceptors in React?",
+      "How do you refresh an expired access token with an interceptor (401, refresh, retry)?",
       "How do you implement JWT authentication and authorization in React?",
     ],
   },

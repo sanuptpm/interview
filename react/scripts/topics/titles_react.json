@@ -72,6 +72,10 @@
   "level": "Basics"
  },
  {
+  "title": "Program: how do you add an element to the top of a list in React state?",
+  "level": "Basics"
+ },
+ {
   "title": "How do you update nested object state?",
   "level": "Basics"
  },
@@ -301,6 +305,10 @@
  },
  {
   "title": "When should you use useCallback (and when not)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What happens if you provide an empty dependency array to useCallback?",
   "level": "Intermediate"
  },
  {
@@ -678,6 +686,22 @@
  {
   "title": "How do you implement JWT authentication and authorization in React?",
   "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between authentication and authorization?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you create protected routes (route guards) with React Router?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are HTTP interceptors, and how do you use axios interceptors in React?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you refresh an expired access token with an interceptor (401, refresh, retry)?",
+  "level": "Basics"
  },
  {
   "title": "How do environment variables work in Vite?",
