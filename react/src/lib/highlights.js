@@ -63,7 +63,9 @@ function mergeRange(ranges, start, end, color) {
 export function mergeHighlights(base, incoming) {
   const result = { ...base }
   for (const [id, ranges] of Object.entries(incoming || {})) {
-    if (!Array.isArray(ranges)) continue
+    // Ids look like "/interview/react-questions|Question title". Anything else (for example
+    // "__proto__" in a hand-made backup file) is ignored, so it can't change the object itself.
+    if (!/^\/[^|]*\|./.test(id) || !Array.isArray(ranges)) continue
     for (const range of ranges) {
       if (!Number.isInteger(range?.start) || !Number.isInteger(range?.end) || range.end <= range.start) continue
       const color = COLORS.includes(range.color) ? range.color : 'yellow'
