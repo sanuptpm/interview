@@ -1606,7 +1606,7 @@ function CssCard({ item, number }) {
 
 function CssQuestions() {
   return (
-    <div className="p-6">
+    <div className="p-2">
       <h1 className="text-2xl font-bold text-slate-900">CSS Interview Questions</h1>
       <p className="mt-1 text-sm text-slate-500">
         {questions.length} questions · Click "Try it" to edit the HTML and CSS

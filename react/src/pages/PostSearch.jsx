@@ -34,7 +34,7 @@ function PostSearch() {
   }, [posts, debouncedSearch])
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <h1 className="text-2xl font-bold text-slate-900">Post Search</h1>
 
       <input

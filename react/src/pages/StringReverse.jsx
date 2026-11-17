@@ -13,7 +13,7 @@ function StringReverse() {
   const reversed = reverseString(text)
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <h1 className="text-2xl font-bold text-slate-900">String Reverse</h1>
 
       <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

@@ -22,6 +22,11 @@ export default [
       "What is view encapsulation?",
       "What is content projection (ng-content)?",
       "What are ViewChild and ContentChild (and the viewChild() signal query)?",
+      "What are ng-template, ng-container and ngTemplateOutlet?",
+      "What are @HostListener, @HostBinding and the host property?",
+      "How do you create components dynamically?",
+      "What is @let in Angular templates?",
+      "What is ngOnChanges, and how do input signals replace it?",
     ],
   },
   {
@@ -68,6 +73,9 @@ export default [
       "What are useClass, useValue, useFactory and useExisting providers?",
       "What is an InjectionToken?",
       "What are hierarchical injectors?",
+      "What are multi providers?",
+      "What do the inject() options optional, self, skipSelf and host do?",
+      "How do you run code before the app starts (provideAppInitializer)?",
     ],
   },
   {
@@ -80,6 +88,9 @@ export default [
       "How do you convert between signals and observables (toSignal / toObservable)?",
       "What is linkedSignal()?",
       "What are resource() and httpResource()?",
+      "How do you update arrays and objects inside a signal?",
+      "What is untracked(), and how do you control signal equality?",
+      "How do required inputs, input transforms and aliases work?",
     ],
   },
   {
@@ -91,6 +102,9 @@ export default [
       "What is the difference between switchMap, mergeMap, concatMap and exhaustMap?",
       "How do debounceTime and distinctUntilChanged help with a search box?",
       "How do you unsubscribe and avoid memory leaks (async pipe, takeUntilDestroyed)?",
+      "What is the difference between of, from, interval and timer?",
+      "What is the difference between forkJoin, combineLatest, zip and withLatestFrom?",
+      "What are hot and cold observables, and what does shareReplay do?",
     ],
   },
   {
@@ -99,6 +113,9 @@ export default [
       "How do you make HTTP calls with HttpClient?",
       "What are HTTP interceptors and how do you write a functional interceptor?",
       "How do you handle HTTP errors and retry failed requests?",
+      "How do you send query params and headers with HttpClient?",
+      "How do you show a global loading spinner with an interceptor?",
+      "How do you cache GET requests with an interceptor?",
     ],
   },
   {
@@ -109,6 +126,20 @@ export default [
       "How does lazy loading work with loadComponent and loadChildren?",
       "What are route guards (functional CanActivate) and how do you write one?",
       "What is a route resolver?",
+      "How do you navigate from code and use query parameters?",
+      "What is withComponentInputBinding()?",
+      "How do you stop users leaving a page with unsaved changes (CanDeactivate)?",
+      "How do you handle redirects and a 404 page (wildcard routes)?",
+      "What are preloading strategies?",
+    ],
+  },
+  {
+    topic: "Authentication & authorization",
+    questions: [
+      "What is the difference between authentication and authorization in Angular?",
+      "How do you implement JWT login with an AuthService and signals?",
+      "How do you write a role-based route guard?",
+      "How do you refresh an expired token in a functional interceptor?",
     ],
   },
   {
@@ -119,6 +150,11 @@ export default [
       "How do validators work, and how do you write a custom validator?",
       "What are typed reactive forms?",
       "What are Signal Forms?",
+      "What is the difference between setValue and patchValue, and how do you use valueChanges?",
+      "How do you build a dynamic form with FormArray?",
+      "How do you write a cross-field validator (password and confirm password)?",
+      "How do you write an async validator (e.g. check if an email is taken)?",
+      "What is ControlValueAccessor and when do you implement it?",
     ],
   },
   {
@@ -129,6 +165,7 @@ export default [
       "What is zoneless change detection?",
       "What is @defer and how does it help performance?",
       "How do you improve the performance of an Angular app?",
+      "What is the difference between markForCheck, detectChanges and runOutsideAngular?",
     ],
   },
   {
@@ -150,6 +187,7 @@ export default [
       "How do you mock a service dependency in a component test?",
       "What unit testing have you done in your Angular projects?",
       "How do you test a service that uses HttpClient (HttpTestingController)?",
+      "How do you test code that uses timers or debounceTime?",
     ],
   },
   {
@@ -160,6 +198,8 @@ export default [
       "What are Angular Elements?",
       "How does Angular protect against XSS (sanitization)?",
       "How do you migrate an older Angular app to standalone, the new control flow and signals?",
+      "How do you handle errors globally (ErrorHandler)?",
+      "How do you manage environment configuration in Angular?",
     ],
   },
   {
@@ -170,6 +210,8 @@ export default [
       "Build a search box with debounceTime and switchMap.",
       "Write a custom pipe (e.g. initials).",
       "Build a reactive form with validation.",
+      "Build a cart service with signals (add, remove, total).",
+      "Build pagination for a list with signals.",
     ],
   },
 ]

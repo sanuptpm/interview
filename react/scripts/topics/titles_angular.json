@@ -48,6 +48,26 @@
   "level": "Intermediate"
  },
  {
+  "title": "What are ng-template, ng-container and ngTemplateOutlet?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are @HostListener, @HostBinding and the host property?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you create components dynamically?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is @let in Angular templates?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is ngOnChanges, and how do input signals replace it?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What are the types of data binding in Angular?",
   "level": "Basics"
  },
@@ -132,6 +152,18 @@
   "level": "Advanced"
  },
  {
+  "title": "What are multi providers?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What do the inject() options optional, self, skipSelf and host do?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you run code before the app starts (provideAppInitializer)?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What are signals in Angular?",
   "level": "Basics"
  },
@@ -160,6 +192,18 @@
   "level": "Advanced"
  },
  {
+  "title": "How do you update arrays and objects inside a signal?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is untracked(), and how do you control signal equality?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do required inputs, input transforms and aliases work?",
+  "level": "Intermediate"
+ },
+ {
   "title": "What is the difference between an Observable and a Promise?",
   "level": "Basics"
  },
@@ -184,6 +228,18 @@
   "level": "Intermediate"
  },
  {
+  "title": "What is the difference between of, from, interval and timer?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is the difference between forkJoin, combineLatest, zip and withLatestFrom?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "What are hot and cold observables, and what does shareReplay do?",
+  "level": "Intermediate"
+ },
+ {
   "title": "How do you make HTTP calls with HttpClient?",
   "level": "Basics"
  },
@@ -194,6 +250,18 @@
  {
   "title": "How do you handle HTTP errors and retry failed requests?",
   "level": "Intermediate"
+ },
+ {
+  "title": "How do you send query params and headers with HttpClient?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you show a global loading spinner with an interceptor?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you cache GET requests with an interceptor?",
+  "level": "Advanced"
  },
  {
   "title": "How do you set up routing (routes, provideRouter, router-outlet, routerLink)?",
@@ -213,6 +281,42 @@
  },
  {
   "title": "What is a route resolver?",
+  "level": "Advanced"
+ },
+ {
+  "title": "How do you navigate from code and use query parameters?",
+  "level": "Basics"
+ },
+ {
+  "title": "What is withComponentInputBinding()?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you stop users leaving a page with unsaved changes (CanDeactivate)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you handle redirects and a 404 page (wildcard routes)?",
+  "level": "Basics"
+ },
+ {
+  "title": "What are preloading strategies?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between authentication and authorization in Angular?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you implement JWT login with an AuthService and signals?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you write a role-based route guard?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you refresh an expired token in a functional interceptor?",
   "level": "Advanced"
  },
  {
@@ -236,6 +340,26 @@
   "level": "Advanced"
  },
  {
+  "title": "What is the difference between setValue and patchValue, and how do you use valueChanges?",
+  "level": "Basics"
+ },
+ {
+  "title": "How do you build a dynamic form with FormArray?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you write a cross-field validator (password and confirm password)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you write an async validator (e.g. check if an email is taken)?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is ControlValueAccessor and when do you implement it?",
+  "level": "Advanced"
+ },
+ {
   "title": "How does change detection work, and what is Zone.js?",
   "level": "Intermediate"
  },
@@ -253,6 +377,10 @@
  },
  {
   "title": "How do you improve the performance of an Angular app?",
+  "level": "Advanced"
+ },
+ {
+  "title": "What is the difference between markForCheck, detectChanges and runOutsideAngular?",
   "level": "Advanced"
  },
  {
@@ -300,6 +428,10 @@
   "level": "Advanced"
  },
  {
+  "title": "How do you test code that uses timers or debounceTime?",
+  "level": "Advanced"
+ },
+ {
   "title": "What is the difference between AOT and JIT compilation (and what is Ivy)?",
   "level": "Intermediate"
  },
@@ -320,6 +452,14 @@
   "level": "Advanced"
  },
  {
+  "title": "How do you handle errors globally (ErrorHandler)?",
+  "level": "Intermediate"
+ },
+ {
+  "title": "How do you manage environment configuration in Angular?",
+  "level": "Basics"
+ },
+ {
   "title": "Build a counter component with signals.",
   "level": "Coding round"
  },
@@ -338,5 +478,13 @@
  {
   "title": "Build a reactive form with validation.",
   "level": "Coding round"
+ },
+ {
+  "title": "Build a cart service with signals (add, remove, total).",
+  "level": "Intermediate"
+ },
+ {
+  "title": "Build pagination for a list with signals.",
+  "level": "Intermediate"
  }
 ]

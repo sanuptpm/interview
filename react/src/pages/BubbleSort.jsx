@@ -19,7 +19,7 @@ function BubbleSort() {
   const sorted = bubbleSort(numbers)
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <h1 className="text-2xl font-bold text-slate-900">Bubble Sort</h1>
 
       <p className="mt-6 text-sm font-medium text-slate-500">Input</p>

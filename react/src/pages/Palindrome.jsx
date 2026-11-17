@@ -17,7 +17,7 @@ function Palindrome() {
   const words = ['madam', 'racecar', 'hello', 'level', 'world']
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <h1 className="text-2xl font-bold text-slate-900">Palindrome</h1>
 
       <div className="mt-6 space-y-2">
