@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { addHighlight, removeHighlight } from '../lib/highlights.js'
+import { addHighlight, removeHighlight, useHighlightsLocked } from '../lib/highlights.js'
 
 // Character offset of (node, offset) inside root's text
 function offsetIn(root, node, offset) {
@@ -14,6 +14,7 @@ const rootOf = (node) => (node?.nodeType === 1 ? node : node?.parentElement)?.cl
 // Floating toolbar, mounted once: select answer text to highlight it, click a highlight to remove it.
 function HighlightToolbar() {
   const [tool, setTool] = useState(null) // { x, y, id, start, end } or { x, y, id, index }
+  const locked = useHighlightsLocked()
 
   useEffect(() => {
     let timer
@@ -52,7 +53,7 @@ function HighlightToolbar() {
     }
   }, [])
 
-  if (!tool) return null
+  if (!tool || locked) return null
 
   const add = (color) => {
     addHighlight(tool.id, tool.start, tool.end, color)

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { exportHighlights, importHighlights, useAllHighlights } from '../lib/highlights.js'
 import { cloudEnabled, useCloud } from '../lib/cloudSync.js'
 import AccountButton from './AccountButton.jsx'
+import HighlightLock from './HighlightLock.jsx'
 
 // Index page panel: highlight counts per topic, plus Export / Import of a backup file.
 // pages: [{ title, path }] of the question pages.
@@ -55,7 +56,8 @@ function MyHighlights({ pages }) {
                 : 'Saved in this browser. Export a backup to keep them safe or move them to another device.'}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <HighlightLock />
           <button type="button" className={button} onClick={exportHighlights} disabled={!total}>
             Export backup
           </button>

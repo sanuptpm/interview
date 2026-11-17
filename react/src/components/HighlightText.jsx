@@ -1,4 +1,4 @@
-import { highlightId, useHighlights } from '../lib/highlights.js'
+import { highlightId, useHighlights, useHighlightsLocked } from '../lib/highlights.js'
 
 const markClass = {
   yellow: 'rounded-sm bg-yellow-200 px-0.5 text-slate-900',
@@ -10,6 +10,7 @@ const markClass = {
 function HighlightText({ title, text, className }) {
   const id = highlightId(title)
   const ranges = useHighlights(id)
+  const locked = useHighlightsLocked()
 
   if (typeof text !== 'string') return <p className={className}>{text}</p>
 
@@ -18,11 +19,12 @@ function HighlightText({ title, text, className }) {
   ranges.forEach((range, index) => {
     if (range.start > at) parts.push(text.slice(at, range.start))
     parts.push(
+      // Locked: no data-hl-index, so clicking a highlight doesn't offer "Remove"
       <mark
         key={index}
-        data-hl-index={index}
-        title="Click to remove highlight"
-        className={'cursor-pointer ' + (markClass[range.color] || markClass.yellow)}
+        data-hl-index={locked ? undefined : index}
+        title={locked ? undefined : 'Click to remove highlight'}
+        className={(locked ? '' : 'cursor-pointer ') + (markClass[range.color] || markClass.yellow)}
       >
         {text.slice(range.start, range.end)}
       </mark>

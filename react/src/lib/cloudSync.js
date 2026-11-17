@@ -1,13 +1,17 @@
 import { useSyncExternalStore } from 'react'
 import {
   getAllHighlights,
+  getHighlightsLocked,
   mergeHighlights,
   replaceAllHighlights,
+  setHighlightsLocked,
   subscribeHighlights,
+  subscribeHighlightsLock,
 } from './highlights.js'
 
 // Sync highlights to Firebase (Google sign-in + Firestore), so they follow the user
-// to every device. Each user has one document: highlights/{uid} = { data: JSON, updatedAt }.
+// to every device. Each user has one document:
+// highlights/{uid} = { data: JSON string of { v: 2, locked, highlights }, updatedAt }.
 // Settings come from react/.env. Without them the site works as before,
 // with highlights saved only in this browser.
 const config = {
@@ -49,19 +53,29 @@ let stopSync = () => {}
 
 async function startSync(fb, user) {
   const ref = fb.store.doc(fb.db, 'highlights', user.uid)
+
+  // The cloud copy keeps the lock inside the `data` text, next to the highlights:
+  // data = '{"v":2,"locked":true,"highlights":{...}}'. Older copies hold only the highlights.
   const parse = (snap) => {
     try {
-      return JSON.parse(snap.data()?.data || '{}')
+      const raw = JSON.parse(snap.data()?.data || '{}')
+      if (raw?.v === 2) return { highlights: raw.highlights || {}, locked: raw.locked }
+      return { highlights: raw || {}, locked: undefined }
     } catch {
-      return {}
+      return { highlights: {}, locked: undefined }
     }
   }
+  const serialize = () => JSON.stringify({ v: 2, locked: getHighlightsLocked(), highlights: getAllHighlights() })
 
-  // 1. First sign-in on this device: keep both this browser's and the cloud's highlights
+  // 1. First sign-in on this device: keep both this browser's and the cloud's highlights.
+  //    The account's lock wins when it has one; otherwise this browser's choice is saved.
   const first = await fb.store.getDoc(ref)
-  const merged = mergeHighlights(parse(first), getAllHighlights())
-  let lastJson = JSON.stringify(merged)
-  replaceAllHighlights(merged)
+  const cloud = parse(first)
+  let applying = true
+  replaceAllHighlights(mergeHighlights(cloud.highlights, getAllHighlights()))
+  if (typeof cloud.locked === 'boolean') setHighlightsLocked(cloud.locked)
+  applying = false
+  let lastJson = serialize()
 
   let timer
   const write = (json) => {
@@ -73,29 +87,37 @@ async function startSync(fb, user) {
   }
   if (lastJson !== (first.data()?.data || '{}')) write(lastJson)
 
-  // 2. Changes from other devices replace the local copy (deletes sync too)
+  // 2. Changes from other devices replace the local copy (deletes and lock changes sync too)
   const stopCloud = fb.store.onSnapshot(ref, (snap) => {
     if (snap.metadata.hasPendingWrites) return
     const json = snap.data()?.data || '{}'
     if (json === lastJson) return
-    lastJson = json
-    replaceAllHighlights(parse(snap))
+    const next = parse(snap)
+    applying = true
+    if (typeof next.locked === 'boolean') setHighlightsLocked(next.locked)
+    replaceAllHighlights(next.highlights)
+    applying = false
+    lastJson = serialize()
   })
 
-  // 3. Changes made here are saved to the cloud (batched for 800 ms)
-  const stopLocal = subscribeHighlights(() => {
-    const json = JSON.stringify(getAllHighlights())
+  // 3. Changes made here (highlights or the lock) are saved to the cloud (batched for 800 ms)
+  const onLocalChange = () => {
+    if (applying) return
+    const json = serialize()
     if (json === lastJson) return
     lastJson = json
     setState({ sync: 'saving' })
     clearTimeout(timer)
     timer = setTimeout(() => write(json), 800)
-  })
+  }
+  const stopLocal = subscribeHighlights(onLocalChange)
+  const stopLock = subscribeHighlightsLock(onLocalChange)
 
   return () => {
     clearTimeout(timer)
     stopCloud()
     stopLocal()
+    stopLock()
   }
 }
 

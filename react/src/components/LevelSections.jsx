@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { filterGroups, groupByLevel, keepItems } from '../lib/levels.js'
-import { clearPageHighlights, highlightId, useAllHighlights } from '../lib/highlights.js'
+import { clearPageHighlights, highlightId, useAllHighlights, useHighlightsLocked } from '../lib/highlights.js'
+import HighlightLock from './HighlightLock.jsx'
 import { Link } from 'react-router-dom'
 import SearchBox from './SearchBox.jsx'
 import AccountButton from './AccountButton.jsx'
@@ -66,6 +67,7 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
   const [ownQuery, setOwnQuery] = useState('')
   const [onlyMarked, setOnlyMarked] = useState(false)
   const highlights = useAllHighlights()
+  const locked = useHighlightsLocked()
   const search = query ?? ownQuery
   const isMarked = ({ title }) => Boolean(highlights[highlightId(title)])
   const markedCount = questions.filter((item) => isMarked({ title: item.q ?? item.title })).length
@@ -97,8 +99,10 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
         {query === undefined && (
           <SearchBox value={ownQuery} onChange={setOwnQuery} matches={matches} total={questions.length} />
         )}
-        {markedCount > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+          <HighlightLock />
+          {markedCount > 0 && (
+            <>
             <button
               type="button"
               onClick={() => setOnlyMarked(!onlyMarked)}
@@ -112,24 +116,27 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
               <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-yellow-300" />
               Highlighted only ({markedCount})
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Remove all highlights on this page?')) {
-                  clearPageHighlights()
-                  setOnlyMarked(false)
-                }
-              }}
-              className="rounded-full px-2 py-1 text-xs text-slate-400 hover:text-rose-600"
-            >
-              Clear highlights
-            </button>
+            {!locked && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Remove all highlights on this page?')) {
+                    clearPageHighlights()
+                    setOnlyMarked(false)
+                  }
+                }}
+                className="rounded-full px-2 py-1 text-xs text-slate-400 hover:text-rose-600"
+              >
+                Clear highlights
+              </button>
+            )}
             <Link to="/index#my-highlights" className="px-2 py-1 text-xs text-slate-400 hover:text-indigo-600">
               Backup
             </Link>
             <AccountButton compact />
-          </div>
-        )}
+            </>
+          )}
+        </div>
         {search && matches === 0 && (
           <p className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">
             No questions match “{search}”.

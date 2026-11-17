@@ -76,12 +76,13 @@ export function mergeHighlights(base, incoming) {
 }
 
 export function addHighlight(id, start, end, color) {
-  if (end <= start) return
+  if (locked || end <= start) return
   keepStorage()
   save({ ...data, [id]: mergeRange(data[id] || [], start, end, color) })
 }
 
 export function removeHighlight(id, index) {
+  if (locked) return
   const ranges = (data[id] || []).filter((_, i) => i !== index)
   const next = { ...data }
   if (ranges.length) next[id] = ranges
@@ -91,6 +92,7 @@ export function removeHighlight(id, index) {
 
 // Remove every highlight whose id starts with this page path
 export function clearPageHighlights() {
+  if (locked) return
   const prefix = window.location.pathname + '|'
   save(Object.fromEntries(Object.entries(data).filter(([id]) => !id.startsWith(prefix))))
 }
@@ -124,3 +126,34 @@ export const subscribeHighlights = subscribe
 const EMPTY = []
 export const useHighlights = (id) => useSyncExternalStore(subscribe, () => data[id] || EMPTY)
 export const useAllHighlights = () => useSyncExternalStore(subscribe, () => data)
+
+// Lock (this browser): highlights stay visible, but they can't be added, removed or
+// cleared until unlocked, so a stray selection or click doesn't change them.
+const LOCK_KEY = 'interview-highlights:locked'
+let locked = false
+try {
+  locked = localStorage.getItem(LOCK_KEY) === 'yes'
+} catch {
+  // storage blocked: starts unlocked
+}
+const lockListeners = new Set()
+
+export function setHighlightsLocked(on) {
+  locked = on
+  try {
+    localStorage.setItem(LOCK_KEY, on ? 'yes' : 'no')
+  } catch {
+    // storage blocked: the choice lasts until the page is reloaded
+  }
+  lockListeners.forEach((listener) => listener())
+}
+
+const subscribeLock = (listener) => {
+  lockListeners.add(listener)
+  return () => lockListeners.delete(listener)
+}
+export const useHighlightsLocked = () => useSyncExternalStore(subscribeLock, () => locked)
+
+// For cloud sync (cloudSync.js): the lock follows the signed-in user to every device
+export const getHighlightsLocked = () => locked
+export const subscribeHighlightsLock = subscribeLock
