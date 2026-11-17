@@ -5,6 +5,8 @@ import HighlightLock from './HighlightLock.jsx'
 import { Link } from 'react-router-dom'
 import SearchBox from './SearchBox.jsx'
 import AccountButton from './AccountButton.jsx'
+import PdfButton from './PdfButton.jsx'
+import { usePrintMode } from '../lib/printPdf.js'
 
 // Contents list: levels -> sub-topics -> questions, as jump links.
 function Contents({ groups, idPrefix, showLevels }) {
@@ -72,9 +74,13 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
   const isMarked = ({ title }) => Boolean(highlights[highlightId(title)])
   const markedCount = questions.filter((item) => isMarked({ title: item.q ?? item.title })).length
   const showMarkedOnly = onlyMarked && markedCount > 0
+  // While saving a PDF: every question ('all') or only highlighted ones ('marked'),
+  // whatever the search box or the "Highlighted only" filter shows right now
+  const printMode = usePrintMode()
 
-  let groups = filterGroups(groupByLevel(questions, topics), search)
-  if (showMarkedOnly) groups = keepItems(groups, isMarked)
+  let groups = groupByLevel(questions, topics)
+  if (!printMode) groups = filterGroups(groups, search)
+  if (printMode === 'marked' || (!printMode && showMarkedOnly)) groups = keepItems(groups, isMarked)
   const matches = groups.reduce((sum, group) => sum + group.count, 0)
 
   // Jump to #section when the page is opened from a link (e.g. the Index page)
@@ -86,7 +92,7 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
   return (
     <div className="mt-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
       {/* Sidebar on large screens */}
-      <aside className="hidden lg:block">
+      <aside data-print-hide className="hidden lg:block">
         <div className="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-4">
           <p className="mb-3 text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Contents
@@ -97,10 +103,13 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
 
       <div className="min-w-0">
         {query === undefined && (
-          <SearchBox value={ownQuery} onChange={setOwnQuery} matches={matches} total={questions.length} />
+          <div data-print-hide>
+            <SearchBox value={ownQuery} onChange={setOwnQuery} matches={matches} total={questions.length} />
+          </div>
         )}
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+        <div data-print-hide className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <HighlightLock />
+          <PdfButton />
           {markedCount > 0 && (
             <>
             <button
@@ -137,14 +146,19 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
             </>
           )}
         </div>
-        {search && matches === 0 && (
-          <p className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">
+        {printMode === 'marked' && groups.length > 0 && (
+          <p className="hidden text-sm text-slate-500 print:block">
+            Only my highlighted questions ({matches}). Highlighted text is marked in yellow, important text in red.
+          </p>
+        )}
+        {!printMode && search && matches === 0 && (
+          <p data-print-hide className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">
             No questions match “{search}”.
           </p>
         )}
 
         {/* Dropdown on small screens */}
-        <details className="mb-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3 lg:hidden">
+        <details data-print-hide className="mb-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3 lg:hidden">
           <summary className="cursor-pointer text-sm font-semibold text-slate-700">Contents</summary>
           <div className="mt-3">
             <Contents groups={groups} idPrefix={idPrefix} showLevels={showLevels} />
@@ -152,7 +166,7 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
         </details>
 
         {showLevels && (
-          <div className="flex flex-wrap gap-2 text-sm">
+          <div data-print-hide className="flex flex-wrap gap-2 text-sm">
             {groups.map((group) => (
               <a
                 key={group.id}
@@ -171,18 +185,18 @@ function LevelSections({ questions, renderItem, idPrefix = '', topics = [], show
             id={idPrefix + group.id}
             className={showLevels ? 'mt-8 scroll-mt-4' : 'mt-2'}
           >
-            {showLevels && <h2 className="text-lg font-bold text-slate-900">{group.level}</h2>}
+            {showLevels && <h2 data-print-heading className="text-lg font-bold text-slate-900">{group.level}</h2>}
             {group.subGroups.map((sub) => (
               <div key={sub.id} id={idPrefix + sub.id} className="mt-3 scroll-mt-4">
                 {sub.anchor && <span id={idPrefix + sub.anchor} className="block scroll-mt-4" />}
                 {sub.topic && (
-                  <h3 className="mt-5 mb-2 text-xs font-semibold tracking-wider text-indigo-500 uppercase">
+                  <h3 data-print-heading className="mt-5 mb-2 text-xs font-semibold tracking-wider text-indigo-500 uppercase">
                     {sub.topic}
                   </h3>
                 )}
                 <div className="space-y-4">
                   {sub.items.map(({ item, title, number }) => (
-                    <div key={title} id={idPrefix + 'q' + number} className="scroll-mt-4">
+                    <div key={title} id={idPrefix + 'q' + number} data-print-card className="scroll-mt-4">
                       {renderItem(item, number)}
                     </div>
                   ))}

@@ -69,6 +69,7 @@ function HighlightToolbar() {
   return (
     <div
       role="toolbar"
+      data-print-hide
       aria-label="Highlight"
       // Keep the text selection when a button is pressed
       onMouseDown={(e) => e.preventDefault()}

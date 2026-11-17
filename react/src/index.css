@@ -12,3 +12,48 @@ pre,
   font-variant-ligatures: none;
   font-feature-settings: 'liga' 0, 'calt' 0;
 }
+
+/* "Download PDF" (src/lib/printPdf.js): lay the question pages out for paper */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  /* Buttons, search, contents, editors and the highlight toolbar */
+  [data-print-hide] {
+    display: none !important;
+  }
+  /* Keep the yellow / important colours of highlights and code blocks */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Nothing scrolls on paper: wrap long code and output lines instead of cutting them */
+  .overflow-auto,
+  .overflow-x-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+  pre,
+  code {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere;
+  }
+  .min-w-max {
+    min-width: 0 !important;
+  }
+  /* One question stays together on a page when it fits; headings stay with their questions */
+  [data-print-card] {
+    break-inside: avoid;
+  }
+  [data-print-card] > * {
+    box-shadow: none !important;
+  }
+  /* Level and sub-topic headings stay with the question below them */
+  [data-print-heading] {
+    break-after: avoid;
+  }
+}

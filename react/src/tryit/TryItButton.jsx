@@ -3,6 +3,7 @@ function TryItButton({ open, onClick }) {
   return (
     <button
       type="button"
+      data-print-hide
       onClick={onClick}
       className={`shrink-0 rounded-lg px-3 py-1 text-xs font-semibold transition ${
         open

@@ -2452,7 +2452,7 @@ function JavaScript() {
   return (
     <div className="p-2">
       <h1 className="text-2xl font-bold text-slate-900">JavaScript</h1>
-      <div className="mt-3 flex gap-2 text-sm">
+      <div data-print-hide className="mt-3 flex gap-2 text-sm">
         <a href="#basics" className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 hover:bg-indigo-100">
           Basics ({basics.length})
         </a>

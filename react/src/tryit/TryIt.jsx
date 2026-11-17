@@ -17,7 +17,7 @@ function TryIt({ kind, ...example }) {
   if (!Runner) return null
 
   return (
-    <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4">
+    <div data-print-hide className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4">
       <Suspense fallback={<p className="text-sm text-slate-500">Loading editor...</p>}>
         <Runner {...example} />
       </Suspense>

@@ -1,9 +1,24 @@
 import { highlightLines } from '../lib/highlight.js'
+import { usePrintMode } from '../lib/printPdf.js'
 
 // A read-only code block styled like the "Try it" editors: line numbers in a
 // gutter, white background and the same syntax colors. highlight.js escapes the
 // code, so rendering its HTML is safe.
 function CodeBlock({ code, language = 'javascript', className = '' }) {
+  const printing = usePrintMode()
+
+  // Saving a PDF: plain text in one <pre>. Thousands of syntax-colour spans make
+  // Chrome's print layout freeze on the biggest pages (e.g. all React questions).
+  if (printing) {
+    return (
+      <pre
+        className={`rounded-lg border border-slate-300 bg-slate-50 p-3 font-mono text-[12px] leading-5 whitespace-pre-wrap text-slate-800 ${className}`}
+      >
+        {code.replace(/\s+$/, '')}
+      </pre>
+    )
+  }
+
   const lines = highlightLines(code.replace(/\s+$/, ''), language)
 
   return (

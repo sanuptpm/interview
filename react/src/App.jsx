@@ -347,8 +347,8 @@ function ProgramPage({ title, source, files, Page }) {
     : undefined
 
   return (
-    <div className="flex h-screen flex-col bg-white max-md:h-auto">
-      <header className="flex items-center gap-4 border-b border-slate-200 px-4 py-3 text-slate-900 sm:px-6">
+    <div className="flex h-screen flex-col bg-white max-md:h-auto print:block print:h-auto">
+      <header data-print-hide className="flex items-center gap-4 border-b border-slate-200 px-4 py-3 text-slate-900 sm:px-6">
         <Link
           to="/"
           className="rounded-lg px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
@@ -376,7 +376,7 @@ function ProgramPage({ title, source, files, Page }) {
         </div>
       )}
 
-      <div className={`grid min-h-0 flex-1 ${sources ? 'md:grid-cols-2' : ''} ${editing ? 'hidden' : ''}`}>
+      <div className={`grid min-h-0 flex-1 print:block ${sources ? 'md:grid-cols-2' : ''} ${editing ? 'hidden' : ''}`}>
         {sources && (
           <section className="min-w-0 overflow-auto border-r border-slate-200 bg-white max-md:max-h-[70vh] max-md:border-r-0 max-md:border-b">
             <PaneLabel>
@@ -400,7 +400,7 @@ function ProgramPage({ title, source, files, Page }) {
           </section>
         )}
 
-        <section className="min-w-0 overflow-auto bg-white max-md:min-h-[50vh]">
+        <section className="min-w-0 overflow-auto bg-white max-md:min-h-[50vh] print:overflow-visible">
           {sources && (
             <PaneLabel>
               <span className="size-2 animate-pulse rounded-full bg-emerald-500" />

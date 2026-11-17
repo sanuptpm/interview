@@ -17,7 +17,7 @@ function SearchBox({ value, onChange, matches, total, placeholder = 'Search ques
   }, [])
 
   return (
-    <div className="sticky top-0 z-10 -mx-1 bg-white/90 px-1 py-2 backdrop-blur">
+    <div data-print-hide className="sticky top-0 z-10 -mx-1 bg-white/90 px-1 py-2 backdrop-blur">
       <div className="relative">
         <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
